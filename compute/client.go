@@ -13,7 +13,7 @@ type Client struct {
 	baseAddress string
 	username    string
 	password    string
-	client      *http.Client
+	httpClient  *http.Client
 }
 
 // NewClient creates a new cloud compute API client.
@@ -31,13 +31,23 @@ func NewClient(region string, username string, password string) *Client {
 
 // GetMyAccount retrieves the current user's account information
 func (client *Client) GetMyAccount() (*Account, error) {
-	request, err := baseRequestV1(client.baseAddress, "GET", client.username, client.password)
+	request, err := client.newRequestV1("myaccount", "GET")
 	if err != nil {
 		return nil, err
 	}
 	defer request.Body.Close()
 
-	body, err := ioutil.ReadAll(request.Body)
+	response, err := client.httpClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == 401 {
+		return nil, fmt.Errorf("Cannot connect to compute API (invalid credentials).")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -49,4 +59,34 @@ func (client *Client) GetMyAccount() (*Account, error) {
 	}
 
 	return account, nil
+}
+
+// Create a basic request for the compute API (V1, XML).
+func (client *Client) newRequestV1(relativeURI string, method string) (*http.Request, error) {
+	requestURI := fmt.Sprintf("%s/oec/0.9/%s", client.baseAddress, relativeURI)
+
+	request, err := http.NewRequest(method, requestURI, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	request.SetBasicAuth(client.username, client.password)
+	request.Header.Add("Accept", "text/xml")
+
+	return request, nil
+}
+
+// Create a basic request for the compute API (V2, JSON).
+func (client *Client) newRequestV2(relativeURI string, method string) (*http.Request, error) {
+	requestURI := fmt.Sprintf("%s/oec/0.9/%s", client.baseAddress, relativeURI)
+
+	request, err := http.NewRequest(method, requestURI, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	request.SetBasicAuth(client.username, client.password)
+	request.Header.Add("Accept", "application/json")
+
+	return request, nil
 }
