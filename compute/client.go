@@ -35,7 +35,9 @@ func (client *Client) GetMyAccount() (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer request.Body.Close()
+	if request.Body != nil {
+		defer request.Body.Close()
+	}
 
 	response, err := client.httpClient.Do(request)
 	if err != nil {
@@ -91,8 +93,8 @@ func (client *Client) newRequestV2(relativeURI string, method string) (*http.Req
 	return request, nil
 }
 
-// UseBaseAddress configures the Client to use the specified base address.
-func (client *Client) UseBaseAddress(baseAddress string) error {
+// SetBaseAddress configures the Client to use the specified base address.
+func (client *Client) SetBaseAddress(baseAddress string) error {
 	if len(baseAddress) == 0 {
 		return fmt.Errorf("Must supply a valid base URI.")
 	}
