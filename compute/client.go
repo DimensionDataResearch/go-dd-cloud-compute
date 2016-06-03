@@ -90,3 +90,14 @@ func (client *Client) newRequestV2(relativeURI string, method string) (*http.Req
 
 	return request, nil
 }
+
+// UseBaseAddress configures the Client to use the specified base address.
+func (client *Client) UseBaseAddress(baseAddress string) error {
+	if len(baseAddress) == 0 {
+		return fmt.Errorf("Must supply a valid base URI.")
+	}
+
+	client.baseAddress = baseAddress
+
+	return nil
+}
