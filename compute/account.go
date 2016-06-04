@@ -29,16 +29,7 @@ type Account struct {
 	OrganizationID string `xml:"orgId"`
 
 	// The user's assigned roles.
-	AssignedRoles Roles `xml:"roles"`
-}
-
-// Roles represents a collection of roles assigned to a compute account.
-type Roles struct {
-	// The XML name for the "Roles" data contract
-	XMLName xml.Name `xml:"roles"`
-
-	// The assigned roles.
-	Roles []Role `xml:"role"`
+	AssignedRoles []Role `xml:"roles>role"`
 }
 
 // Role represents a role assigned to a compute account.

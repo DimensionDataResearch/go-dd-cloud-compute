@@ -113,23 +113,23 @@ func verifyAccountTestResponse(test *testing.T, account *Account) {
 		test.Fatalf("OrganizationID field is '%s' (expected '%s').", account.OrganizationID, "cc309bfe-2710-43b7-a6a6-2b7a1965cf63")
 	}
 
-	if account.AssignedRoles.Roles == nil {
+	if account.AssignedRoles == nil {
 		test.Fatal("AssignedRoles.Roles field is nil.")
 	}
 
-	if len(account.AssignedRoles.Roles) != 3 {
-		test.Fatalf("AssignedRoles.Roles field has length %d (expected %d).", len(account.AssignedRoles.Roles), 3)
+	if len(account.AssignedRoles) != 3 {
+		test.Fatalf("AssignedRoles.Roles field has length %d (expected %d).", len(account.AssignedRoles), 3)
 	}
 
-	if account.AssignedRoles.Roles[0].Name != "server" {
-		test.Fatalf("AssignedRoles.Roles[0].Name is '%s' (expected '%s').", account.AssignedRoles.Roles[0].Name, "server")
+	if account.AssignedRoles[0].Name != "server" {
+		test.Fatalf("AssignedRoles[0].Name is '%s' (expected '%s').", account.AssignedRoles[0].Name, "server")
 	}
 
-	if account.AssignedRoles.Roles[1].Name != "network" {
-		test.Fatalf("AssignedRoles.Roles[1].Name is '%s' (expected '%s').", account.AssignedRoles.Roles[1].Name, "network")
+	if account.AssignedRoles[1].Name != "network" {
+		test.Fatalf("AssignedRoles[1].Name is '%s' (expected '%s').", account.AssignedRoles[1].Name, "network")
 	}
 
-	if account.AssignedRoles.Roles[2].Name != "create image" {
-		test.Fatalf("AssignedRoles.Roles[2].Name is '%s' (expected '%s').", account.AssignedRoles.Roles[2].Name, "create image")
+	if account.AssignedRoles[2].Name != "create image" {
+		test.Fatalf("AssignedRoles[2].Name is '%s' (expected '%s').", account.AssignedRoles[2].Name, "create image")
 	}
 }
