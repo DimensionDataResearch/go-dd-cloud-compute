@@ -1,4 +1,4 @@
-// Package compute contains the Go client for Dimension Data's cloud compute API.
+// Package compute contains the client for Dimension Data's cloud compute API.
 package compute
 
 import (
