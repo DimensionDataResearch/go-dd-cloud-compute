@@ -1,18 +1,31 @@
 package compute
 
-// Response represents the standard response from an API call.
-type Response struct {
-	Operation    string          `json:"operation"`
-	ResponseCode string          `json:"responseCode"`
-	Message      string          `json:"message"`
-	Info         []NameValuePair `json:"info"`
-	Warning      []NameValuePair `json:"warning"`
-	Error        []NameValuePair `json:"error"`
-	RequestId    string          `json:"requestId"`
+// ApiResponse represents common fields for all responses from an API call.
+type ApiResponse struct {
+	// The API response code.
+	ResponseCode string `json:"responseCode"`
+
+	// The API status message (if any).
+	Message string `json:"message"`
+
+	// Informational messages (if any) relating to request fields.
+	FieldMessages []FieldMessage `json:"info"`
+
+	// Warning messages (if any) relating to request fields.
+	FieldWarnings []FieldMessage `json:"warning"`
+
+	// Error messages (if any) relating to request fields.
+	FieldErrors []FieldMessage `json:"error"`
+
+	// The request ID (correlation identifier).
+	RequestID string `json:"requestId"`
 }
 
-// NameValuePair represents a name together with its associated value.
-type NameValuePair struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+// FieldMessage represents a field name together with an associated message.
+type FieldMessage struct {
+	// The field name.
+	FieldName string `json:"name"`
+
+	// The field message.
+	Message string `json:"value"`
 }

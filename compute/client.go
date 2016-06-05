@@ -3,8 +3,8 @@ package compute
 
 import (
 	"bytes"
-	"encoding/xml"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -71,9 +71,9 @@ func (client *Client) newRequestV1(relativeURI string, method string, body inter
 	requestURI := fmt.Sprintf("%s/oec/0.9/%s", client.baseAddress, relativeURI)
 
 	var (
-		request		*http.Request
-		bodyReader	io.Reader
-		err			error
+		request    *http.Request
+		bodyReader io.Reader
+		err        error
 	)
 
 	bodyReader, err = newReaderFromXML(body)
@@ -101,9 +101,9 @@ func (client *Client) newRequestV22(relativeURI string, method string, body inte
 	requestURI := fmt.Sprintf("%s/caas/2.2/%s", client.baseAddress, relativeURI)
 
 	var (
-		request		*http.Request
-		bodyReader	io.Reader
-		err			error
+		request    *http.Request
+		bodyReader io.Reader
+		err        error
 	)
 
 	bodyReader, err = newReaderFromJSON(body)
