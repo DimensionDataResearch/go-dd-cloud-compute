@@ -8,7 +8,7 @@ import (
 )
 
 // Get user account details (successful).
-func TestClient_GetMyAccount_Success(test *testing.T) {
+func TestClient_GetAccount_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Content-Type", "text/xml")
 		writer.WriteHeader(http.StatusOK)
@@ -20,7 +20,7 @@ func TestClient_GetMyAccount_Success(test *testing.T) {
 	client := NewClient("au1", "user1", "password")
 	client.SetBaseAddress(testServer.URL)
 
-	account, err := client.GetMyAccount()
+	account, err := client.GetAccount()
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestClient_GetMyAccount_Success(test *testing.T) {
 }
 
 // Get user account details (access denied).
-func TestClient_GetMyAccount_AccessDenied(test *testing.T) {
+func TestClient_GetAccount_AccessDenied(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 
 		http.Error(writer, "Invalid credentials.", http.StatusUnauthorized)
@@ -39,7 +39,7 @@ func TestClient_GetMyAccount_AccessDenied(test *testing.T) {
 	client := NewClient("au1", "user", "password")
 	client.SetBaseAddress(testServer.URL)
 
-	_, err := client.GetMyAccount()
+	_, err := client.GetAccount()
 	if err == nil {
 		test.Fatal("Client did not return expected access-denied error.")
 

@@ -2,8 +2,11 @@
 package compute
 
 import (
+	"bytes"
 	"encoding/xml"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -29,9 +32,9 @@ func NewClient(region string, username string, password string) *Client {
 	}
 }
 
-// GetMyAccount retrieves the current user's account information
-func (client *Client) GetMyAccount() (*Account, error) {
-	request, err := client.newRequestV1("myaccount", "GET")
+// GetAccount retrieves the current user's account information
+func (client *Client) GetAccount() (*Account, error) {
+	request, err := client.newRequestV1("myaccount")
 	if err != nil {
 		return nil, err
 	}
@@ -63,32 +66,46 @@ func (client *Client) GetMyAccount() (*Account, error) {
 	return account, nil
 }
 
-// Create a basic request for the compute API (V1, XML).
-func (client *Client) newRequestV1(relativeURI string, method string) (*http.Request, error) {
+// Create a basic request for the compute API (V1, XML, only GET currently supported).
+func (client *Client) newRequestV1(relativeURI string) (*http.Request, error) {
 	requestURI := fmt.Sprintf("%s/oec/0.9/%s", client.baseAddress, relativeURI)
 
-	request, err := http.NewRequest(method, requestURI, nil)
+	request, err := http.NewRequest(http.MethodGet, requestURI, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	request.SetBasicAuth(client.username, client.password)
-	request.Header.Add("Accept", "text/xml")
+	request.Header.Set("Accept", "text/xml")
 
 	return request, nil
 }
 
-// Create a basic request for the compute API (V2, JSON).
-func (client *Client) newRequestV2(relativeURI string, method string) (*http.Request, error) {
-	requestURI := fmt.Sprintf("%s/oec/0.9/%s", client.baseAddress, relativeURI)
+// Create a basic request for the compute API (V2.1, JSON).
+func (client *Client) newRequestV21(relativeURI string, method string, body interface{}) (*http.Request, error) {
+	requestURI := fmt.Sprintf("%s/caas/2.1/%s", client.baseAddress, relativeURI)
 
-	request, err := http.NewRequest(method, requestURI, nil)
+	var bodyReader io.Reader
+	if body != nil {
+		bodyData, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+
+		bodyReader = bytes.NewReader(bodyData)
+	}
+
+	request, err := http.NewRequest(method, requestURI, bodyReader)
 	if err != nil {
 		return nil, err
 	}
 
 	request.SetBasicAuth(client.username, client.password)
 	request.Header.Add("Accept", "application/json")
+
+	if bodyReader != nil {
+		request.Header.Set("Content-Type", "application/json")
+	}
 
 	return request, nil
 }
