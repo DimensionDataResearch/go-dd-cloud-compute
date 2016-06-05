@@ -1,0 +1,6 @@
+{
+	"ImportPath": "github.com/DimensionDataResearch/go-dd-cloud-compute",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
+	"Deps": []
+}
