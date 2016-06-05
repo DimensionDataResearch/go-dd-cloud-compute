@@ -1,31 +1,27 @@
 package compute
 
-import "encoding/xml"
-
 // NetworkDomain represents a compute network domain.
 type NetworkDomain struct {
-	XMLName         xml.Name `xml:"networkDomain"`
-	Name            string   `xml:"name"`
-	Description     string   `xml:"description"`
-	Type            string   `xml:"type"`
-	SnatIpv4Address string   `xml:"snatIpv4Address"`
-	CreateTime      string   `xml:"createTime"`
-	State           string   `xml:"state"`
-	Progress        string   `xml:"progress"`
-	Id              string   `xml:"id"`
-	DatacenterId    string   `xml:"datacenterId"`
+	Name            string   `json:"name"`
+	Description     string   `json:"description"`
+	Type            string   `json:"type"`
+	SnatIpv4Address string   `json:"snatIpv4Address"`
+	CreateTime      string   `json:"createTime"`
+	State           string   `json:"state"`
+	Progress        string   `json:"progress"`
+	ID              string   `json:"id"`
+	DatacenterID    string   `json:"datacenterId"`
 }
 
 // NetworkDomains represents a page of network domains.
 type NetworkDomains struct {
-	XMLName             xml.Name        `xml:"networkDomains"`
-	NetworkDomain       []NetworkDomain `xml:"networkDomain"`
-	PageNumber          int             `xml:"pageNumber"`
-	PageNumberSpecified bool            `xml:"pageNumberSpecified"`
-	PageCount           int             `xml:"pageCount"`
-	PageCountSpecified  bool            `xml:"pageCountSpecified"`
-	TotalCount          int             `xml:"totalCount"`
-	TotalCountSpecified bool            `xml:"totalCountSpecified"`
-	PageSize            int             `xml:"pageSize"`
-	PageSizeSpecified   bool            `xml:"pageSizeSpecified"`
+	Domains       		[]NetworkDomain	`json:"networkDomain"`
+	PageNumber          int             `json:"pageNumber"`
+	PageNumberSpecified bool            `json:"pageNumberSpecified"`
+	PageCount           int             `json:"pageCount"`
+	PageCountSpecified  bool            `json:"pageCountSpecified"`
+	TotalCount          int             `json:"totalCount"`
+	TotalCountSpecified bool            `json:"totalCountSpecified"`
+	PageSize            int             `json:"pageSize"`
+	PageSizeSpecified   bool            `json:"pageSizeSpecified"`
 }
