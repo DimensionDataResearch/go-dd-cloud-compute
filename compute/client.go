@@ -17,9 +17,9 @@ type Client struct {
 	baseAddress string
 	username    string
 	password    string
-	stateLock	*sync.Mutex
+	stateLock   *sync.Mutex
 	httpClient  *http.Client
-	account		*Account
+	account     *Account
 }
 
 // NewClient creates a new cloud compute API client.
