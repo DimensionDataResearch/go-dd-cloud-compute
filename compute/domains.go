@@ -34,7 +34,7 @@ type NetworkDomain struct {
 // It also contains fields common to all API responses (see ApiResponse for a list of all common fields).
 type NetworkDomains struct {
 	// Common API response fields.
-	ApiResponse
+	APIResponse
 
 	// The API status message (if any).
 	Message string `json:"message"`
