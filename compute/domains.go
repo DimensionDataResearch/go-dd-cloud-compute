@@ -33,39 +33,18 @@ type NetworkDomain struct {
 // NetworkDomains represents the response to a "List Network Domains" API call.
 // It also contains fields common to all API responses (see ApiResponse for a list of all common fields).
 type NetworkDomains struct {
-	// Common API response fields.
-	APIResponse
-
-	// The API status message (if any).
-	Message string `json:"message"`
-
-	// The request ID (correlation identifier).
-	RequestID string `json:"requestId"`
-
 	// The current page of network domains.
 	Domains []NetworkDomain `json:"networkDomain"`
 
 	// The current page number.
 	PageNumber int `json:"pageNumber"`
 
-	// Has the current page number been specified?
-	PageNumberSpecified bool `json:"pageNumberSpecified"`
-
 	// The number of network domains in the current page of results.
 	PageCount int `json:"pageCount"`
-
-	// Has the number of network domains in the current page of results been specified?
-	PageCountSpecified bool `json:"pageCountSpecified"`
 
 	// The total number of network domains that match the requested filter criteria (if any).
 	TotalCount int `json:"totalCount"`
 
-	// Has the total number of network domains been specified?
-	TotalCountSpecified bool `json:"totalCountSpecified"`
-
 	// The maximum number of network domains per page.
 	PageSize int `json:"pageSize"`
-
-	// The maximum number of network domains per page been specified?
-	PageSizeSpecified bool `json:"pageSizeSpecified"`
 }

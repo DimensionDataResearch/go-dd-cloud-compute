@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
 
 // Client is the client for Dimension Data's cloud compute API.
@@ -16,7 +17,9 @@ type Client struct {
 	baseAddress string
 	username    string
 	password    string
+	stateLock	*sync.Mutex
 	httpClient  *http.Client
+	account		*Account
 }
 
 // NewClient creates a new cloud compute API client.
@@ -28,42 +31,95 @@ func NewClient(region string, username string, password string) *Client {
 		baseAddress,
 		username,
 		password,
+		&sync.Mutex{},
 		&http.Client{},
+		nil,
 	}
+}
+
+// Reset clears all cached data from the Client.
+func (client *Client) Reset() {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	client.account = nil
 }
 
 // GetAccount retrieves the current user's account information
 func (client *Client) GetAccount() (*Account, error) {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	if client.account != nil {
+		return client.account, nil
+	}
+
 	request, err := client.newRequestV1("myaccount", http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
-	if request.Body != nil {
-		defer request.Body.Close()
-	}
 
-	response, err := client.httpClient.Do(request)
+	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
-	if response.StatusCode == 401 {
+	if statusCode == 401 {
 		return nil, fmt.Errorf("Cannot connect to compute API (invalid credentials).")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	account := &Account{}
+	err = xml.Unmarshal(responseBody, account)
 	if err != nil {
 		return nil, err
 	}
 
-	account := &Account{}
-	err = xml.Unmarshal(body, account)
-	if err != nil {
-		return nil, err
-	}
+	client.account = account
 
 	return account, nil
+}
+
+// ListNetworkDomains retrieves a list of all network domains.
+// TODO: Support filtering and sorting.
+func (client *Client) ListNetworkDomains() (domains *NetworkDomains, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/networkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		// TODO: Consider reading response as APIResponse and returning response code / message.
+
+		return nil, fmt.Errorf("Request failed with status code %d.", statusCode)
+	}
+
+	domains = &NetworkDomains{}
+	err = json.Unmarshal(responseBody, domains)
+	if err != nil {
+		return nil, err
+	}
+
+	return domains, nil
+}
+
+// getOrganizationID gets the current user's organisation Id.
+func (client *Client) getOrganizationID() (organizationID string, err error) {
+	account, err := client.GetAccount()
+	if err != nil {
+		return "", err
+	}
+
+	return account.OrganizationID, nil
 }
 
 // Create a basic request for the compute API (V1, XML).
@@ -96,6 +152,25 @@ func (client *Client) newRequestV1(relativeURI string, method string, body inter
 	return request, nil
 }
 
+// executeRequest performs the specified request and returns the entire response body, together with the HTTP status code.
+func (client *Client) executeRequest(request *http.Request) (responseBody []byte, statusCode int, err error) {
+	if request.Body != nil {
+		defer request.Body.Close()
+	}
+
+	response, err := client.httpClient.Do(request)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer response.Body.Close()
+
+	statusCode = response.StatusCode
+
+	responseBody, err = ioutil.ReadAll(response.Body)
+
+	return
+}
+
 // Create a basic request for the compute API (V2.2, JSON).
 func (client *Client) newRequestV22(relativeURI string, method string, body interface{}) (*http.Request, error) {
 	requestURI := fmt.Sprintf("%s/caas/2.2/%s", client.baseAddress, relativeURI)
@@ -124,17 +199,6 @@ func (client *Client) newRequestV22(relativeURI string, method string, body inte
 	}
 
 	return request, nil
-}
-
-// SetBaseAddress configures the Client to use the specified base address.
-func (client *Client) SetBaseAddress(baseAddress string) error {
-	if len(baseAddress) == 0 {
-		return fmt.Errorf("Must supply a valid base URI.")
-	}
-
-	client.baseAddress = baseAddress
-
-	return nil
 }
 
 // newReaderFromJSON serialises the specified data as JSON and returns an io.Reader over that JSON.

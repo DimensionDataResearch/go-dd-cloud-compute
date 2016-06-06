@@ -18,7 +18,7 @@ func TestClient_GetAccount_Success(test *testing.T) {
 	defer testServer.Close()
 
 	client := NewClient("au1", "user1", "password")
-	client.SetBaseAddress(testServer.URL)
+	client.setBaseAddress(testServer.URL)
 
 	account, err := client.GetAccount()
 	if err != nil {
@@ -37,7 +37,7 @@ func TestClient_GetAccount_AccessDenied(test *testing.T) {
 	defer testServer.Close()
 
 	client := NewClient("au1", "user", "password")
-	client.SetBaseAddress(testServer.URL)
+	client.setBaseAddress(testServer.URL)
 
 	_, err := client.GetAccount()
 	if err == nil {
@@ -48,6 +48,53 @@ func TestClient_GetAccount_AccessDenied(test *testing.T) {
 	if err.Error() != "Cannot connect to compute API (invalid credentials)." {
 		test.Fatal("Unexpected error: ", err)
 	}
+}
+
+// List network domains (successful).
+func TestClient_ListNetworkDomains_Success(test *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, networkDomainsTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	networkDomains, err := client.ListNetworkDomains()
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	verifyNetworkDomainsTestResponse(test, networkDomains)
+}
+
+/*
+ * Test helpers
+ */
+
+// Configure the Client to use the specified base address.
+func (client *Client) setBaseAddress(baseAddress string) error {
+	if len(baseAddress) == 0 {
+		return fmt.Errorf("Must supply a valid base URI.")
+	}
+
+	client.baseAddress = baseAddress
+
+	return nil
+}
+
+// Pre-cache account details for the client.
+func (client *Client) setAccount(account *Account) {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	client.account = account
 }
 
 /*
@@ -65,7 +112,7 @@ var accountTestResponse = `
             <ns3:department>Some Department</ns3:department>
             <ns3:customDefined1></ns3:customDefined1>
             <ns3:customDefined2></ns3:customDefined2>
-            <ns3:orgId>cc309bfe-2710-43b7-a6a6-2b7a1965cf63</ns3:orgId>
+            <ns3:orgId>cc309bfe-1234-43b7-a6a6-2b7a1965cf63</ns3:orgId>
             <ns3:roles>
                 <ns3:role>
                     <ns3:name>server</ns3:name>
@@ -81,55 +128,73 @@ var accountTestResponse = `
 `
 
 func verifyAccountTestResponse(test *testing.T, account *Account) {
-	if account == nil {
-		test.Fatal("Account was nil.")
-	}
+	expect := expect(test)
 
-	if account.UserName != "user1" {
-		test.Fatalf("UserName field is '%s' (expected '%s').", account.UserName, "user1")
-	}
+	expect.notNil("Account", account)
 
-	if account.FullName != "User One" {
-		test.Fatalf("FullName field is '%s' (expected '%s').", account.FullName, "User One")
-	}
+	expect.equalsString("Account.UserName", "user1", account.UserName)
+	expect.equalsString("Account.FullName", "User One", account.FullName)
+	expect.equalsString("Account.FirstName", "User", account.FirstName)
+	expect.equalsString("Account.LastName", "One", account.LastName)
+	expect.equalsString("Account.Department", "Some Department", account.Department)
+	expect.equalsString("Account.EmailAddress", "user1@corp.com", account.EmailAddress)
+	expect.equalsString("Account.OrganizationID", "cc309bfe-1234-43b7-a6a6-2b7a1965cf63", account.OrganizationID)
 
-	if account.FirstName != "User" {
-		test.Fatalf("FirstName field is '%s' (expected '%s').", account.FirstName, "User")
-	}
+	expect.notNil("Account.AssignedRoles", account.AssignedRoles)
+	expect.equalsInt("Account.AssignedRoles size", 3, len(account.AssignedRoles))
 
-	if account.LastName != "One" {
-		test.Fatalf("LastName field is '%s' (expected '%s').", account.LastName, "One")
-	}
+	role1 := account.AssignedRoles[0]
+	expect.equalsString("AssignedRoles[0].Name", "server", role1.Name)
 
-	if account.Department != "Some Department" {
-		test.Fatalf("FullName field is '%s' (expected '%s').", account.Department, "Some Department")
-	}
+	role2 := account.AssignedRoles[1]
+	expect.equalsString("AssignedRoles[1].Name", "network", role2.Name)
 
-	if account.EmailAddress != "user1@corp.com" {
-		test.Fatalf("EmailAddress field is '%s' (expected '%s').", account.EmailAddress, "user1@corp.com")
-	}
+	role3 := account.AssignedRoles[2]
+	expect.equalsString("AssignedRoles[2].Name", "create image", role3.Name)
+}
 
-	if account.OrganizationID != "cc309bfe-2710-43b7-a6a6-2b7a1965cf63" {
-		test.Fatalf("OrganizationID field is '%s' (expected '%s').", account.OrganizationID, "cc309bfe-2710-43b7-a6a6-2b7a1965cf63")
+var networkDomainsTestResponse = `
+{
+	  "networkDomain": [
+	    {
+	      "name": "Domain 1",
+	      "description": "This is test domain 1",
+	      "type": "ESSENTIALS",
+	      "snatIpv4Address": "168.128.17.63",
+	      "createTime": "2016-01-12T22:33:05.000Z",
+	      "state": "NORMAL",
+	      "id": "75ab2a57-b75e-4ec6-945a-e8c60164fdf6",
+	      "datacenterId": "AU9"
+	    },
+	    {
+	      "name": "Domain 2",
+	      "description": "",
+	      "type": "ESSENTIALS",
+	      "snatIpv4Address": "168.128.7.18",
+	      "createTime": "2016-01-18T08:56:16.000Z",
+	      "state": "NORMAL",
+	      "id": "b91e0ba4-322c-32ca-bbc7-50b9a72d5f98",
+	      "datacenterId": "AU10"
+	    }
+	  ],
+	  "pageNumber": 1,
+	  "pageCount": 2,
+	  "totalCount": 2,
+	  "pageSize": 250
 	}
+`
 
-	if account.AssignedRoles == nil {
-		test.Fatal("AssignedRoles.Roles field is nil.")
-	}
+func verifyNetworkDomainsTestResponse(test *testing.T, networkDomains *NetworkDomains) {
+	expect := expect(test)
 
-	if len(account.AssignedRoles) != 3 {
-		test.Fatalf("AssignedRoles.Roles field has length %d (expected %d).", len(account.AssignedRoles), 3)
-	}
+	expect.notNil("NetworkDomains", networkDomains)
 
-	if account.AssignedRoles[0].Name != "server" {
-		test.Fatalf("AssignedRoles[0].Name is '%s' (expected '%s').", account.AssignedRoles[0].Name, "server")
-	}
+	expect.equalsInt("NetworkDomains.PageCount", 2, networkDomains.PageCount)
+	expect.equalsInt("NetworkDomains.Domains size", 2, len(networkDomains.Domains))
 
-	if account.AssignedRoles[1].Name != "network" {
-		test.Fatalf("AssignedRoles[1].Name is '%s' (expected '%s').", account.AssignedRoles[1].Name, "network")
-	}
+	domain1 := networkDomains.Domains[0]
+	expect.equalsString("NetworkDomains.Domains[0].Name", "Domain 1", domain1.Name)
 
-	if account.AssignedRoles[2].Name != "create image" {
-		test.Fatalf("AssignedRoles[2].Name is '%s' (expected '%s').", account.AssignedRoles[2].Name, "create image")
-	}
+	domain2 := networkDomains.Domains[1]
+	expect.equalsString("NetworkDomains.Domains[1].Name", "Domain 2", domain2.Name)
 }
