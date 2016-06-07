@@ -79,6 +79,49 @@ func (client *Client) GetAccount() (*Account, error) {
 	return account, nil
 }
 
+// GetNetworkDomain retrieves the network domain with the specified Id.
+// id is the Id of the network domain to retrieve.
+// Returns nil if no network domain is found with the specified Id.
+func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/networkDomain/%s", organizationID, id)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponse
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
+			return nil, nil // Not an error, but was not found.
+		}
+
+		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	domain = &NetworkDomain{}
+	err = json.Unmarshal(responseBody, domain)
+	if err != nil {
+		return nil, err
+	}
+
+	return domain, nil
+}
+
 // ListNetworkDomains retrieves a list of all network domains.
 // TODO: Support filtering and sorting.
 func (client *Client) ListNetworkDomains() (domains *NetworkDomains, err error) {
@@ -92,15 +135,21 @@ func (client *Client) ListNetworkDomains() (domains *NetworkDomains, err error) 
 	if err != nil {
 		return nil, err
 	}
+
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return nil, err
 	}
 
 	if statusCode != http.StatusOK {
-		// TODO: Consider reading response as APIResponse and returning response code / message.
+		var apiResponse *APIResponse
 
-		return nil, fmt.Errorf("Request failed with status code %d.", statusCode)
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	domains = &NetworkDomains{}
@@ -199,6 +248,25 @@ func (client *Client) newRequestV22(relativeURI string, method string, body inte
 	}
 
 	return request, nil
+}
+
+// Read an APIResponse (as JSON) from the response body.
+func readAPIResponseAsJSON(responseBody []byte, statusCode int) (*APIResponse, error) {
+	apiResponse := &APIResponse{}
+	err := json.Unmarshal(responseBody, apiResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(apiResponse.ResponseCode) == 0 {
+		apiResponse.ResponseCode = "UNKNOWN_RESPONSE_CODE"
+	}
+
+	if len(apiResponse.Message) == 0 {
+		apiResponse.Message = "An unexpected response was received from the compute API."
+	}
+
+	return apiResponse, nil
 }
 
 // newReaderFromJSON serialises the specified data as JSON and returns an io.Reader over that JSON.

@@ -50,6 +50,30 @@ func TestClient_GetAccount_AccessDenied(test *testing.T) {
 	}
 }
 
+// Get network domain by Id (successful).
+func TestClient_GetNetworkDomain_ById_Success(test *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, networkDomainTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	networkDomain, err := client.GetNetworkDomain("8cdfd607-f429-4df6-9352-162cfc0891be")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	verifyNetworkDomainTestResponse(test, networkDomain)
+}
+
 // List network domains (successful).
 func TestClient_ListNetworkDomains_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -197,4 +221,29 @@ func verifyNetworkDomainsTestResponse(test *testing.T, networkDomains *NetworkDo
 
 	domain2 := networkDomains.Domains[1]
 	expect.equalsString("NetworkDomains.Domains[1].Name", "Domain 2", domain2.Name)
+}
+
+var networkDomainTestResponse = `
+	{
+		"name": "Development Network Domain",
+		"description": "This is a new Network Domain",
+		"type": "ESSENTIALS",
+		"snatIpv4Address": "165.180.9.252",
+		"createTime": "2015-02-24T10:47:21.000Z",
+		"state": "NORMAL",
+		"id": "8cdfd607-f429-4df6-9352-162cfc0891be",
+		"datacenter": "NA9"
+	}
+`
+
+func verifyNetworkDomainTestResponse(test *testing.T, networkDomain *NetworkDomain) {
+	expect := expect(test)
+
+	expect.notNil("NetworkDomain", networkDomain)
+	expect.equalsString("NetworkDomain.ID", "8cdfd607-f429-4df6-9352-162cfc0891be", networkDomain.ID)
+	expect.equalsString("NetworkDomain.Name", "Development Network Domain", networkDomain.Name)
+	expect.equalsString("NetworkDomain.Type", "ESSENTIALS", networkDomain.Type)
+	expect.equalsString("NetworkDomain.State", "NORMAL", networkDomain.State)
+	expect.equalsString("NetworkDomain.NatIPv4Address", "165.180.9.252", networkDomain.NatIPv4Address)
+	expect.equalsString("NetworkDomain.DatacenterID", "NA9", networkDomain.DatacenterID)
 }
