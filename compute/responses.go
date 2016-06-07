@@ -1,6 +1,6 @@
 package compute
 
-// APIResponse represents common fields for all responses from an API call.
+// APIResponse represents the basic response most commonly received when making API calls.
 type APIResponse struct {
 	// The API response code.
 	ResponseCode string `json:"responseCode"`
@@ -29,6 +29,8 @@ type FieldMessage struct {
 	// The field message.
 	Message string `json:"value"`
 }
+
+// Well-known API response codes
 
 const (
 	// ResponseCodeOK indicates that an operation completed successfully.
