@@ -1,40 +1,10 @@
 package compute
 
-// DeployNetworkDomain represents a request to deploy a compute network domain.
-type DeployNetworkDomain struct {
-	// The network domain name.
-	Name string `json:"name"`
-
-	// The network domain description.
-	Description string `json:"description"`
-
-	// The network domain type.
-	Type string `json:"type"`
-
-	// The Id of the data centre in which the network domain is located.
-	DatacenterID string `json:"datacenterId"`
-}
-
-// EditNetworkDomain represents a request to edit a compute network domain.
-type EditNetworkDomain struct {
-	// The network domain ID.
-	ID string `json:"id"`
-
-	// The network domain name.
-	Name string `json:"name,omitempty"`
-
-	// The network domain description.
-	Description string `json:"description,omitempty"`
-
-	// The network domain type.
-	Type string `json:"type,omitempty"`
-}
-
-// DeleteNetworkDomain represents a request to delete a compute network domain.
-type DeleteNetworkDomain struct {
-	// The network domain ID.
-	ID string `json:"id"`
-}
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
 
 // NetworkDomain represents a compute network domain.
 type NetworkDomain struct {
@@ -83,4 +53,219 @@ type NetworkDomains struct {
 
 	// The maximum number of network domains per page.
 	PageSize int `json:"pageSize"`
+}
+
+// DeployNetworkDomain represents a request to deploy a compute network domain.
+type DeployNetworkDomain struct {
+	// The network domain name.
+	Name string `json:"name"`
+
+	// The network domain description.
+	Description string `json:"description"`
+
+	// The network domain type.
+	Type string `json:"type"`
+
+	// The Id of the data centre in which the network domain is located.
+	DatacenterID string `json:"datacenterId"`
+}
+
+// EditNetworkDomain represents a request to edit a compute network domain.
+type EditNetworkDomain struct {
+	// The network domain ID.
+	ID string `json:"id"`
+
+	// The network domain name.
+	Name string `json:"name,omitempty"`
+
+	// The network domain description.
+	Description string `json:"description,omitempty"`
+
+	// The network domain type.
+	Type string `json:"type,omitempty"`
+}
+
+// DeleteNetworkDomain represents a request to delete a compute network domain.
+type DeleteNetworkDomain struct {
+	// The network domain ID.
+	ID string `json:"id"`
+}
+
+// GetNetworkDomain retrieves the network domain with the specified Id.
+// id is the Id of the network domain to retrieve.
+// Returns nil if no network domain is found with the specified Id.
+func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/networkDomain/%s", organizationID, id)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponse
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
+			return nil, nil // Not an error, but was not found.
+		}
+
+		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	domain = &NetworkDomain{}
+	err = json.Unmarshal(responseBody, domain)
+	if err != nil {
+		return nil, err
+	}
+
+	return domain, nil
+}
+
+// ListNetworkDomains retrieves a list of all network domains.
+// TODO: Support filtering and sorting.
+func (client *Client) ListNetworkDomains() (domains *NetworkDomains, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/networkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponse
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	domains = &NetworkDomains{}
+	err = json.Unmarshal(responseBody, domains)
+	if err != nil {
+		return nil, err
+	}
+
+	return domains, nil
+}
+
+// DeployNetworkDomain deploys a new network domain.
+// Returns the Id of the new network domain.
+func (client *Client) DeployNetworkDomain(name string, description string, plan string, datacenter string) (networkDomainID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployNetworkDomain{
+		Name:         name,
+		Description:  description,
+		Type:         plan,
+		DatacenterID: datacenter,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return "", fmt.Errorf("Request to deploy network domain '%s' failed with status code %d (%s): %s", name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	// Expected: "info" { "name": "networkDomainId", "value": "the-Id-of-the-new-network-domain" }
+	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "networkDomainId" {
+		return "", fmt.Errorf("Received an unexpected response (missing 'networkDomainId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// EditNetworkDomain updates an existing network domain.
+// Pass an empty string for any field to retain its existing value.
+// Returns an error if the operation was not successful.
+func (client *Client) EditNetworkDomain(id string, name string, description string, plan string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/editNetworkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditNetworkDomain{
+		ID:          id,
+		Name:        name,
+		Description: description,
+		Type:        plan,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// DeleteNetworkDomain deletes an existing network domain.
+// Returns an error if the operation was not successful.
+func (client *Client) DeleteNetworkDomain(id string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteNetworkDomain{id})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }

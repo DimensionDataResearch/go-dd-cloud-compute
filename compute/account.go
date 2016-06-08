@@ -1,6 +1,10 @@
 package compute
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"fmt"
+	"net/http"
+)
 
 // Account represents the details for a compute account.
 type Account struct {
@@ -39,4 +43,38 @@ type Role struct {
 
 	// The role name.
 	Name string `xml:"name"`
+}
+
+// GetAccount retrieves the current user's account information
+func (client *Client) GetAccount() (*Account, error) {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	if client.account != nil {
+		return client.account, nil
+	}
+
+	request, err := client.newRequestV1("myaccount", http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode == 401 {
+		return nil, fmt.Errorf("Cannot connect to compute API (invalid credentials).")
+	}
+
+	account := &Account{}
+	err = xml.Unmarshal(responseBody, account)
+	if err != nil {
+		return nil, err
+	}
+
+	client.account = account
+
+	return account, nil
 }

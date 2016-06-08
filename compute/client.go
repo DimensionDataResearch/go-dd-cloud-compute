@@ -14,12 +14,12 @@ import (
 
 // Client is the client for Dimension Data's cloud compute API.
 type Client struct {
-	baseAddress 	string
-	username    	string
-	password    	string
-	stateLock   	*sync.Mutex
-	httpClient  	*http.Client
-	account     	*Account
+	baseAddress string
+	username    string
+	password    string
+	stateLock   *sync.Mutex
+	httpClient  *http.Client
+	account     *Account
 }
 
 // NewClient creates a new cloud compute API client.
@@ -45,159 +45,6 @@ func (client *Client) Reset() {
 	client.account = nil
 }
 
-// GetAccount retrieves the current user's account information
-func (client *Client) GetAccount() (*Account, error) {
-	client.stateLock.Lock()
-	defer client.stateLock.Unlock()
-
-	if client.account != nil {
-		return client.account, nil
-	}
-
-	request, err := client.newRequestV1("myaccount", http.MethodGet, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	responseBody, statusCode, err := client.executeRequest(request)
-	if err != nil {
-		return nil, err
-	}
-
-	if statusCode == 401 {
-		return nil, fmt.Errorf("Cannot connect to compute API (invalid credentials).")
-	}
-
-	account := &Account{}
-	err = xml.Unmarshal(responseBody, account)
-	if err != nil {
-		return nil, err
-	}
-
-	client.account = account
-
-	return account, nil
-}
-
-// DeployNetworkDomain deploys a new network domain.
-// Returns the Id of the new network domain.
-func (client *Client) DeployNetworkDomain(name string, description string, plan string, datacenter string) (networkDomainID string, err error) {
-	organizationID, err := client.getOrganizationID()
-	if err != nil {
-		return "", err
-	}
-
-	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployNetworkDomain{
-		Name: name,
-		Description: description,
-		Type: plan,
-		DatacenterID: datacenter,
-	})
-	responseBody, statusCode, err := client.executeRequest(request)
-	if err != nil {
-		return "", err
-	}
-
-	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
-	if err != nil {
-		return "", err
-	}
-
-	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return "", fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
-	}
-
-	// Expected: "info" { "name": "networkDomainId", "value": "the-Id-of-the-new-network-domain" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "networkDomainId" {
-		return "", fmt.Errorf("Received an unexpected response (missing 'networkDomainId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
-	}
-
-	return apiResponse.FieldMessages[0].Message, nil
-}
-
-// GetNetworkDomain retrieves the network domain with the specified Id.
-// id is the Id of the network domain to retrieve.
-// Returns nil if no network domain is found with the specified Id.
-func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err error) {
-	organizationID, err := client.getOrganizationID()
-	if err != nil {
-		return nil, err
-	}
-
-	requestURI := fmt.Sprintf("%s/network/networkDomain/%s", organizationID, id)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
-	if err != nil {
-		return nil, err
-	}
-	responseBody, statusCode, err := client.executeRequest(request)
-	if err != nil {
-		return nil, err
-	}
-
-	if statusCode != http.StatusOK {
-		var apiResponse *APIResponse
-
-		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
-		if err != nil {
-			return nil, err
-		}
-
-		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
-			return nil, nil // Not an error, but was not found.
-		}
-
-		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
-	}
-
-	domain = &NetworkDomain{}
-	err = json.Unmarshal(responseBody, domain)
-	if err != nil {
-		return nil, err
-	}
-
-	return domain, nil
-}
-
-// ListNetworkDomains retrieves a list of all network domains.
-// TODO: Support filtering and sorting.
-func (client *Client) ListNetworkDomains() (domains *NetworkDomains, err error) {
-	organizationID, err := client.getOrganizationID()
-	if err != nil {
-		return nil, err
-	}
-
-	requestURI := fmt.Sprintf("%s/network/networkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	responseBody, statusCode, err := client.executeRequest(request)
-	if err != nil {
-		return nil, err
-	}
-
-	if statusCode != http.StatusOK {
-		var apiResponse *APIResponse
-
-		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
-		if err != nil {
-			return nil, err
-		}
-
-		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
-	}
-
-	domains = &NetworkDomains{}
-	err = json.Unmarshal(responseBody, domains)
-	if err != nil {
-		return nil, err
-	}
-
-	return domains, nil
-}
-
 // getOrganizationID gets the current user's organisation Id.
 func (client *Client) getOrganizationID() (organizationID string, err error) {
 	account, err := client.GetAccount()
@@ -206,66 +53,6 @@ func (client *Client) getOrganizationID() (organizationID string, err error) {
 	}
 
 	return account.OrganizationID, nil
-}
-
-// EditNetworkDomain updates an existing network domain.
-// Pass an empty string for any field to retain its existing value.
-// Returns an error if the operation was not successful.
-func (client *Client) EditNetworkDomain(id string, name string, description string, plan string) (err error) {
-	organizationID, err := client.getOrganizationID()
-	if err != nil {
-		return err
-	}
-
-	requestURI := fmt.Sprintf("%s/network/editNetworkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditNetworkDomain{
-		ID: id,
-		Name: name,
-		Description: description,
-		Type: plan,
-	})
-	responseBody, statusCode, err := client.executeRequest(request)
-	if err != nil {
-		return err
-	}
-
-	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
-	if err != nil {
-		return err
-	}
-
-	if apiResponse.ResponseCode != ResponseCodeOK {
-		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
-	}
-
-	return nil
-}
-
-// DeleteNetworkDomain deletes an existing network domain.
-// Returns an error if the operation was not successful.
-func (client *Client) DeleteNetworkDomain(id string) (err error) {
-	organizationID, err := client.getOrganizationID()
-	if err != nil {
-		return err
-	}
-
-	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteNetworkDomain{id})
-	responseBody, statusCode, err := client.executeRequest(request)
-	if err != nil {
-		return err
-	}
-
-	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
-	if err != nil {
-		return err
-	}
-
-	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
-	}
-
-	return nil
 }
 
 // Create a basic request for the compute API (V1, XML).
