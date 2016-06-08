@@ -87,8 +87,8 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomain/deployNetworkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, &DeployNetworkDomain{
+	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployNetworkDomain{
 		Name: name,
 		Description: description,
 		Type: plan,

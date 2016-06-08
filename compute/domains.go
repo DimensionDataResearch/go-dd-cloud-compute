@@ -12,7 +12,7 @@ type DeployNetworkDomain struct {
 	Type string `json:"type"`
 
 	// The Id of the data centre in which the network domain is located.
-	DatacenterID string `json:"datacenter"`
+	DatacenterID string `json:"datacenterId"`
 }
 
 // NetworkDomain represents a compute network domain.

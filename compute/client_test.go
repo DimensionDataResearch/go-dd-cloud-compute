@@ -62,7 +62,7 @@ func TestClient_DeployNetworkDomain_Success(test *testing.T) {
 		}
 
 		expect.equalsString("Request.Body",
-			`{"name":"A Network Domain","description":"This is a network domain","type":"ESSENTIALS","datacenter":"AU9"}`,
+			`{"name":"A Network Domain","description":"This is a network domain","type":"ESSENTIALS","datacenterId":"AU9"}`,
 			requestBody,
 		)
 
