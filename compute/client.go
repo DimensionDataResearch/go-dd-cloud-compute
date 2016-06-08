@@ -234,8 +234,35 @@ func (client *Client) EditNetworkDomain(id string, name string, description stri
 		return err
 	}
 
-	if apiResponse.ResponseCode != "OK" {
-		return fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// DeleteNetworkDomain deletes an existing network domain.
+// Returns an error if the operation was not successful.
+func (client *Client) DeleteNetworkDomain(id string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteNetworkDomain{id})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

@@ -133,6 +133,42 @@ func TestClient_EditNetworkDomain_Success(test *testing.T) {
 	// Pass
 }
 
+// Delete network domain (successful).
+func TestClient_DeleteNetworkDomain_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody, err := readRequestBodyAsString(request)
+		if err != nil {
+			test.Fatal("Failed to read request body: ", err)
+		}
+
+		expect.equalsString("Request.Body",
+			`{"id":"f14a871f-9a25-470c-aef8-51e13202e1aa"}`,
+			requestBody,
+		)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, deleteNetworkDomainTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	err := client.DeleteNetworkDomain("f14a871f-9a25-470c-aef8-51e13202e1aa")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	// Pass
+}
+
 // Get network domain by Id (successful).
 func TestClient_GetNetworkDomain_ById_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -392,7 +428,29 @@ func verifyEditNetworkDomainTestResponse(test *testing.T, response *APIResponse)
 
 	expect.notNil("APIResponse", response)
 	expect.equalsString("Response.Operation", "EDIT_NETWORK_DOMAIN", response.Operation)
-	expect.equalsString("Response.ResponseCode", "OK", response.ResponseCode)
+	expect.equalsString("Response.ResponseCode", ResponseCodeOK, response.ResponseCode)
 	expect.equalsString("Response.Message", "Network Domain 'Development Network Domain' was edited successfully.", response.Message)
+	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+var deleteNetworkDomainTestResponse = `
+	{
+		"operation": "DELETE_NETWORK_DOMAIN",
+		"responseCode": "IN_PROGRESS",
+		"message": "Request to Delete Network Domain (Id: 8cdfd607-f429-4df6-9352-162cfc0891be) has been accepted and is being processed.",
+		"info": [],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyDeleteNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
+	expect := expect(test)
+
+	expect.notNil("APIResponse", response)
+	expect.equalsString("Response.Operation", "DELETE_NETWORK_DOMAIN", response.Operation)
+	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.equalsString("Response.Message", "Request to Delete Network Domain (Id: 8cdfd607-f429-4df6-9352-162cfc0891be) has been accepted and is being processed.", response.Message)
 	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
