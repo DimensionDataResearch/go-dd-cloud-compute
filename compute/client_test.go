@@ -92,6 +92,47 @@ func TestClient_DeployNetworkDomain_Success(test *testing.T) {
 	expect.equalsString("NetworkDomainID", "f14a871f-9a25-470c-aef8-51e13202e1aa", networkDomainID)
 }
 
+// Edit network domain (successful).
+func TestClient_EditNetworkDomain_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody, err := readRequestBodyAsString(request)
+		if err != nil {
+			test.Fatal("Failed to read request body: ", err)
+		}
+
+		expect.equalsString("Request.Body",
+			`{"id":"f14a871f-9a25-470c-aef8-51e13202e1aa","name":"A Network Domain","description":"This is a network domain","type":"ESSENTIALS"}`,
+			requestBody,
+		)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, editNetworkDomainTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	err := client.EditNetworkDomain(
+		"f14a871f-9a25-470c-aef8-51e13202e1aa",
+		"A Network Domain",
+		"This is a network domain",
+		"ESSENTIALS",
+	)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	// Pass
+}
+
 // Get network domain by Id (successful).
 func TestClient_GetNetworkDomain_ById_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -326,10 +367,32 @@ func verifyDeployNetworkDomainTestResponse(test *testing.T, response *APIRespons
 
 	expect.notNil("APIResponse", response)
 	expect.equalsString("Response.Operation", "DEPLOY_NETWORK_DOMAIN", response.Operation)
-	expect.equalsString("Response.ResponseCode", "Development Network Domain", response.ResponseCode)
+	expect.equalsString("Response.ResponseCode", "IN_PROGRESS", response.ResponseCode)
 	expect.equalsString("Response.Message", "Request to deploy Network Domain 'A Network Domain' has been accepted and is being processed.", response.Message)
 	expect.equalsInt("Response.FieldMessages size", 1, len(response.FieldMessages))
 	expect.equalsString("Response.FieldMessages[0].Name", "networkDomainId", response.FieldMessages[0].FieldName)
 	expect.equalsString("Response.FieldMessages[0].Message", "f14a871f-9a25-470c-aef8-51e13202e1aa", response.FieldMessages[0].Message)
+	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+var editNetworkDomainTestResponse = `
+	{
+		"operation": "EDIT_NETWORK_DOMAIN",
+		"responseCode": "OK",
+		"message": "Network Domain 'Development Network Domain' was edited successfully.",
+		"info": [],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyEditNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
+	expect := expect(test)
+
+	expect.notNil("APIResponse", response)
+	expect.equalsString("Response.Operation", "EDIT_NETWORK_DOMAIN", response.Operation)
+	expect.equalsString("Response.ResponseCode", "OK", response.ResponseCode)
+	expect.equalsString("Response.Message", "Network Domain 'Development Network Domain' was edited successfully.", response.Message)
 	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }

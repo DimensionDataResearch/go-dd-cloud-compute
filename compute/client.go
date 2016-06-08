@@ -208,6 +208,39 @@ func (client *Client) getOrganizationID() (organizationID string, err error) {
 	return account.OrganizationID, nil
 }
 
+// EditNetworkDomain updates an existing network domain.
+// Pass an empty string for any field to retain its existing value.
+// Returns an error if the operation was not successful.
+func (client *Client) EditNetworkDomain(id string, name string, description string, plan string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/networkDomain/%s", organizationID, id)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditNetworkDomain{
+		ID: id,
+		Name: name,
+		Description: description,
+		Type: plan,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != "OK" {
+		return fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
 // Create a basic request for the compute API (V1, XML).
 func (client *Client) newRequestV1(relativeURI string, method string, body interface{}) (*http.Request, error) {
 	requestURI := fmt.Sprintf("%s/oec/0.9/%s", client.baseAddress, relativeURI)
