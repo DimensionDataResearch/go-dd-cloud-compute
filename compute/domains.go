@@ -15,6 +15,21 @@ type DeployNetworkDomain struct {
 	DatacenterID string `json:"datacenterId"`
 }
 
+// EditNetworkDomain represents a request to deploy a compute network domain.
+type EditNetworkDomain struct {
+	// The network domain ID.
+	ID string `json:"id"`
+
+	// The network domain name.
+	Name string `json:"name,omitempty"`
+
+	// The network domain description.
+	Description string `json:"description,omitempty"`
+
+	// The network domain type.
+	Type string `json:"type,omitempty"`
+}
+
 // NetworkDomain represents a compute network domain.
 type NetworkDomain struct {
 	// The network domain Id.
