@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -48,6 +49,47 @@ func TestClient_GetAccount_AccessDenied(test *testing.T) {
 	if err.Error() != "Cannot connect to compute API (invalid credentials)." {
 		test.Fatal("Unexpected error: ", err)
 	}
+}
+
+// Deploy network domain (successful).
+func TestClient_DeployNetworkDomain_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody, err := readRequestBodyAsString(request)
+		if err != nil {
+			test.Fatal("Failed to read request body: ", err)
+		}
+
+		expect.equalsString("Request.Body",
+			`{"name":"A Network Domain","description":"This is a network domain","type":"ESSENTIALS","datacenter":"AU9"}`,
+			requestBody,
+		)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, deployNetworkDomainTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	networkDomainID, err := client.DeployNetworkDomain(
+		"A Network Domain",
+		"This is a network domain",
+		"ESSENTIALS",
+		"AU9",
+	)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	expect.equalsString("NetworkDomainID", "f14a871f-9a25-470c-aef8-51e13202e1aa", networkDomainID)
 }
 
 // Get network domain by Id (successful).
@@ -119,6 +161,20 @@ func (client *Client) setAccount(account *Account) {
 	defer client.stateLock.Unlock()
 
 	client.account = account
+}
+
+func readRequestBodyAsString(request *http.Request) (string, error) {
+	if request.Body == nil {
+		return "", nil
+	}
+
+	defer request.Body.Close()
+	responseBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(responseBody), nil
 }
 
 /*
@@ -246,4 +302,34 @@ func verifyNetworkDomainTestResponse(test *testing.T, networkDomain *NetworkDoma
 	expect.equalsString("NetworkDomain.State", "NORMAL", networkDomain.State)
 	expect.equalsString("NetworkDomain.NatIPv4Address", "165.180.9.252", networkDomain.NatIPv4Address)
 	expect.equalsString("NetworkDomain.DatacenterID", "NA9", networkDomain.DatacenterID)
+}
+
+var deployNetworkDomainTestResponse = `
+	{
+		"operation": "DEPLOY_NETWORK_DOMAIN",
+		"responseCode": "IN_PROGRESS",
+		"message": "Request to deploy Network Domain 'A Network Domain' has been accepted and is being processed.",
+		"info": [
+			{
+				"name": "networkDomainId",
+				"value": "f14a871f-9a25-470c-aef8-51e13202e1aa"
+			}
+		],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyDeployNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
+	expect := expect(test)
+
+	expect.notNil("APIResponse", response)
+	expect.equalsString("Response.Operation", "DEPLOY_NETWORK_DOMAIN", response.Operation)
+	expect.equalsString("Response.ResponseCode", "Development Network Domain", response.ResponseCode)
+	expect.equalsString("Response.Message", "Request to deploy Network Domain 'A Network Domain' has been accepted and is being processed.", response.Message)
+	expect.equalsInt("Response.FieldMessages size", 1, len(response.FieldMessages))
+	expect.equalsString("Response.FieldMessages[0].Name", "networkDomainId", response.FieldMessages[0].FieldName)
+	expect.equalsString("Response.FieldMessages[0].Message", "f14a871f-9a25-470c-aef8-51e13202e1aa", response.FieldMessages[0].Message)
+	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }

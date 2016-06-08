@@ -14,12 +14,12 @@ import (
 
 // Client is the client for Dimension Data's cloud compute API.
 type Client struct {
-	baseAddress string
-	username    string
-	password    string
-	stateLock   *sync.Mutex
-	httpClient  *http.Client
-	account     *Account
+	baseAddress 	string
+	username    	string
+	password    	string
+	stateLock   	*sync.Mutex
+	httpClient  	*http.Client
+	account     	*Account
 }
 
 // NewClient creates a new cloud compute API client.
@@ -77,6 +77,43 @@ func (client *Client) GetAccount() (*Account, error) {
 	client.account = account
 
 	return account, nil
+}
+
+// DeployNetworkDomain deploys a new network domain.
+// Returns the Id of the new network domain.
+func (client *Client) DeployNetworkDomain(name string, description string, plan string, datacenter string) (networkDomainID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/networkDomain/deployNetworkDomain", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, &DeployNetworkDomain{
+		Name: name,
+		Description: description,
+		Type: plan,
+		DatacenterID: datacenter,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return "", fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	// Expected: "info" { "name": "networkDomainId", "value": "the-Id-of-the-new-network-domain" }
+	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "networkDomainId" {
+		return "", fmt.Errorf("Received an unexpected response (missing 'networkDomainId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return apiResponse.FieldMessages[0].Message, nil
 }
 
 // GetNetworkDomain retrieves the network domain with the specified Id.

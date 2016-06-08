@@ -2,6 +2,9 @@ package compute
 
 // APIResponse represents the basic response most commonly received when making API calls.
 type APIResponse struct {
+	// The operation that was performed.
+	Operation string `json:"operation"`
+
 	// The API response code.
 	ResponseCode string `json:"responseCode"`
 

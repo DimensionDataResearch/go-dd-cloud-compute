@@ -1,5 +1,20 @@
 package compute
 
+// DeployNetworkDomain represents a request to deploy a compute network domain.
+type DeployNetworkDomain struct {
+	// The network domain name.
+	Name string `json:"name"`
+
+	// The network domain description.
+	Description string `json:"description"`
+
+	// The network domain type.
+	Type string `json:"type"`
+
+	// The Id of the data centre in which the network domain is located.
+	DatacenterID string `json:"datacenter"`
+}
+
 // NetworkDomain represents a compute network domain.
 type NetworkDomain struct {
 	// The network domain Id.
