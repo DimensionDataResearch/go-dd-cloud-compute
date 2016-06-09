@@ -122,7 +122,7 @@ func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err er
 			return nil, nil // Not an error, but was not found.
 		}
 
-		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, fmt.Errorf("Request to retrieve network domain failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	domain = &NetworkDomain{}

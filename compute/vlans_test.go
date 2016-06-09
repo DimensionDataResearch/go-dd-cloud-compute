@@ -7,6 +7,30 @@ import (
 	"testing"
 )
 
+// Get VLAN by Id (successful).
+func TestClient_GetVLAN_ById_Success(test *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, getVLANTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	networkDomain, err := client.GetVLAN("0e56433f-d808-4669-821d-812769517ff8")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	verifyGetVLANTestResponse(test, networkDomain)
+}
+
 // Deploy network domain (successful).
 func TestClient_DeployVlan_Success(test *testing.T) {
 	expect := expect(test)
@@ -77,6 +101,49 @@ func verifyDeployVLANTestRequest(test *testing.T, request *DeployVLAN) {
 /*
  * Test responses.
  */
+
+var getVLANTestResponse = `
+	{
+		"networkDomain": {
+			"id": "484174a2-ae74-4658-9e56-50fc90e086cf",
+			"name": "Production Network Domain"
+		},
+		"name": "Production VLAN",
+		"description": "For hosting our Production Cloud Servers",
+		"privateIpv4Range": {
+			"address": "10.0.3.0",
+			"prefixSize": 24
+		},
+		"ipv4GatewayAddress": "10.0.3.1",
+		"ipv6Range": {
+			"address": "2607:f480:1111:1153:0:0:0:0",
+			"prefixSize": 64
+		},
+		"ipv6GatewayAddress": "2607:f480:1111:1153:0:0:0:1",
+		"createTime": 1423825004000,
+		"state": "NORMAL",
+		"id": "0e56433f-d808-4669-821d-812769517ff8",
+		"datacenterId": "NA9"
+	}
+`
+
+func verifyGetVLANTestResponse(test *testing.T, vlan *VLAN) {
+	expect := expect(test)
+
+	expect.notNil("VLAN", vlan)
+	expect.equalsString("VLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", vlan.ID)
+	expect.equalsString("VLAN.Name", "Production VLAN", vlan.Name)
+	expect.equalsString("VLAN.Description", "For hosting our Production Cloud Servers", vlan.Description)
+	expect.equalsString("VLAN.IPv4Range.BaseAddress", "10.0.3.0", vlan.IPv4Range.BaseAddress)
+	expect.equalsInt("VLAN.IPv4Range.PrefixSize", 24, vlan.IPv4Range.PrefixSize)
+	expect.equalsString("VLAN.IPv4GatewayAddress", "10.0.3.1", vlan.IPv4GatewayAddress)
+	expect.equalsString("VLAN.IPv6Range.BaseAddress", "2607:f480:1111:1153:0:0:0:0", vlan.IPv6Range.BaseAddress)
+	expect.equalsInt("VLAN.IPv6Range.PrefixSize", 64, vlan.IPv6Range.PrefixSize)
+	expect.equalsString("VLAN.IPv6GatewayAddress", "2607:f480:1111:1153:0:0:0:1", vlan.IPv6GatewayAddress)
+	expect.equalsInt("VLAN.CreateTime", 1423825004000, vlan.CreateTime)
+	expect.equalsString("VLAN.State", "NORMAL", vlan.State)
+	expect.equalsString("VLAN.DataCenterID", "NA9", vlan.DataCenterID)
+}
 
 var deployVLANTestResponse = `
 	{
