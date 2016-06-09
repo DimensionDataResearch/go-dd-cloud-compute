@@ -83,11 +83,11 @@ type EditVLAN struct {
 	// The ID of the VLAN to edit.
 	ID string `json:"id"`
 
-	// The VLAN name.
-	Name string `json:"name"`
+	// The VLAN name (optional).
+	Name *string `json:"name,omitempty"`
 
-	// The VLAN description.
-	Description string `json:"description"`
+	// The VLAN description (optional).
+	Description *string `json:"description,omitempty"`
 }
 
 // GetVLAN retrieves the VLAN with the specified Id.
@@ -206,7 +206,7 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 // EditVLAN updates an existing VLAN.
 // Pass an empty string for any field to retain its existing value.
 // Returns an error if the operation was not successful.
-func (client *Client) EditVLAN(id string, name string, description string) (err error) {
+func (client *Client) EditVLAN(id string, name *string, description *string) (err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err

@@ -74,14 +74,14 @@ type EditNetworkDomain struct {
 	// The network domain ID.
 	ID string `json:"id"`
 
-	// The network domain name.
-	Name string `json:"name,omitempty"`
+	// The network domain name (optional).
+	Name *string `json:"name,omitempty"`
 
-	// The network domain description.
-	Description string `json:"description,omitempty"`
+	// The network domain description (optional).
+	Description *string `json:"description,omitempty"`
 
-	// The network domain type.
-	Type string `json:"type,omitempty"`
+	// The network domain type (optional).
+	Type *string `json:"type,omitempty"`
 }
 
 // DeleteNetworkDomain represents a request to delete a compute network domain.
@@ -212,7 +212,7 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 // EditNetworkDomain updates an existing network domain.
 // Pass an empty string for any field to retain its existing value.
 // Returns an error if the operation was not successful.
-func (client *Client) EditNetworkDomain(id string, name string, description string, plan string) (err error) {
+func (client *Client) EditNetworkDomain(id string, name *string, description *string, plan *string) (err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err

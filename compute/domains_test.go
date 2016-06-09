@@ -76,12 +76,11 @@ func TestClient_EditNetworkDomain_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	err := client.EditNetworkDomain(
-		"f14a871f-9a25-470c-aef8-51e13202e1aa",
-		"A Network Domain",
-		"This is a network domain",
-		"ESSENTIALS",
-	)
+	name := "A Network Domain"
+	description := "This is a network domain"
+	plan := "ESSENTIALS"
+
+	err := client.EditNetworkDomain("f14a871f-9a25-470c-aef8-51e13202e1aa", &name, &description, &plan)
 	if err != nil {
 		test.Fatal(err)
 	}

@@ -125,11 +125,9 @@ func TestClient_EditVlan_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	err := client.EditVLAN(
-		"0e56433f-d808-4669-821d-812769517ff8",
-		"Production VLAN",
-		"For hosting our Production Cloud Servers",
-	)
+	name := "Production VLAN"
+	description := "For hosting our Production Cloud Servers"
+	err := client.EditVLAN("0e56433f-d808-4669-821d-812769517ff8", &name, &description)
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -175,8 +173,10 @@ func verifyEditVLANTestRequest(test *testing.T, request *EditVLAN) {
 
 	expect.notNil("EditVLAN", request)
 	expect.equalsString("EditVLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", request.ID)
-	expect.equalsString("EditVLAN.Name", "Production VLAN", request.Name)
-	expect.equalsString("EditVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
+	expect.notNil("EditVLAN.Name", request.Name)
+	expect.equalsString("EditVLAN.Name", "Production VLAN", *request.Name)
+	expect.notNil("EditVLAN.Description", request.Description)
+	expect.equalsString("EditVLAN.Description", "For hosting our Production Cloud Servers", *request.Description)
 }
 
 /*
