@@ -236,7 +236,7 @@ func (client *Client) EditNetworkDomain(id string, name string, description stri
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
-		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return fmt.Errorf("Request to edit VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

@@ -55,7 +55,7 @@ func TestClient_ListVLANs_Success(test *testing.T) {
 	verifyListVLANsTestResponse(test, vlans)
 }
 
-// Deploy network domain (successful).
+// Deploy VLAN (successful).
 func TestClient_DeployVlan_Success(test *testing.T) {
 	expect := expect(test)
 
@@ -97,6 +97,46 @@ func TestClient_DeployVlan_Success(test *testing.T) {
 	expect.equalsString("VLANID", "0e56433f-d808-4669-821d-812769517ff8", vlanID)
 }
 
+// Edit VLAN (successful).
+func TestClient_EditVlan_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody, err := readRequestBodyAsString(request)
+		if err != nil {
+			test.Fatal("Failed to read request body: ", err)
+		}
+
+		expect.equalsString("Request.Body",
+			`{"id":"0e56433f-d808-4669-821d-812769517ff8","name":"Production VLAN","description":"For hosting our Production Cloud Servers"}`,
+			requestBody,
+		)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, editVLANTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	err := client.EditVLAN(
+		"0e56433f-d808-4669-821d-812769517ff8",
+		"Production VLAN",
+		"For hosting our Production Cloud Servers",
+	)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	// Pass
+}
+
 /*
  * Test requests.
  */
@@ -115,11 +155,28 @@ func verifyDeployVLANTestRequest(test *testing.T, request *DeployVLAN) {
 	expect := expect(test)
 
 	expect.notNil("DeployVLAN", request)
-	expect.equalsString("DeployVLAN.NetworkDomainID", "484174a2-ae74-4658-9e56-50fc90e086cf", request.NetworkDomainID)
+	expect.equalsString("DeployVLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", request.NetworkDomainID)
 	expect.equalsString("DeployVLAN.Name", "Production VLAN", request.Name)
 	expect.equalsString("DeployVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
 	expect.equalsString("DeployVLAN.IPv4BaseAddress", "10.0.3.0", request.IPv4BaseAddress)
 	expect.equalsInt("DeployVLAN.IPv4PrefixSize", 23, request.IPv4PrefixSize)
+}
+
+var editVLANTestRequest = `
+	{
+		"id": "0e56433f-d808-4669-821d-812769517ff8",
+		"name": "Production VLAN",
+		"description": "For hosting our Production Cloud Servers"
+	}
+`
+
+func verifyEditVLANTestRequest(test *testing.T, request *EditVLAN) {
+	expect := expect(test)
+
+	expect.notNil("EditVLAN", request)
+	expect.equalsString("EditVLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", request.ID)
+	expect.equalsString("EditVLAN.Name", "Production VLAN", request.Name)
+	expect.equalsString("EditVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
 }
 
 /*
@@ -254,5 +311,26 @@ func verifyDeployVLANTestResponse(test *testing.T, response *APIResponse) {
 	expect.equalsString("Response.Operation", "DEPLOY_VLAN", response.Operation)
 	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
 	expect.equalsString("Response.Message", "Request to deploy VLAN 'Production VLAN' has been accepted and is being processed.", response.Message)
+	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+var editVLANTestResponse = `
+	{
+		"operation": "EDIT_VLAN",
+		"responseCode": "OK",
+		"message": "VLAN 'Production VLAN' was edited successfully.",
+		"info": [],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyEditVLANTestResponse(test *testing.T, response *APIResponse) {
+	expect := expect(test)
+
+	expect.notNil("APIResponse", response)
+	expect.equalsString("Response.Operation", "EDIT_VLAN", response.Operation)
+	expect.equalsString("Response.ResponseCode", ResponseCodeOK, response.ResponseCode)
 	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }

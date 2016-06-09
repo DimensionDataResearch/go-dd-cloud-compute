@@ -78,6 +78,18 @@ type DeployVLAN struct {
 	IPv4PrefixSize int `json:"privateIpv4PrefixSize"`
 }
 
+// EditVLAN represents the request body when editing a cloud compute VLAN.
+type EditVLAN struct {
+	// The ID of the VLAN to edit.
+	ID string `json:"id"`
+
+	// The VLAN name.
+	Name string `json:"name"`
+
+	// The VLAN description.
+	Description string `json:"description"`
+}
+
 // GetVLAN retrieves the VLAN with the specified Id.
 // id is the Id of the VLAN to retrieve.
 // Returns nil if no VLAN is found with the specified Id.
@@ -189,4 +201,36 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// EditVLAN updates an existing VLAN.
+// Pass an empty string for any field to retain its existing value.
+// Returns an error if the operation was not successful.
+func (client *Client) EditVLAN(id string, name string, description string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/editVlan", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditVLAN{
+		ID:          id,
+		Name:        name,
+		Description: description,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return fmt.Errorf("Request to edit VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
