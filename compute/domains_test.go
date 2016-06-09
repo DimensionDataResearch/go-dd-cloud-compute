@@ -155,7 +155,7 @@ func TestClient_ListNetworkDomains_Success(test *testing.T) {
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
 
-		fmt.Fprintln(writer, networkDomainsTestResponse)
+		fmt.Fprintln(writer, listNetworkDomainsTestResponse)
 	}))
 	defer testServer.Close()
 
@@ -170,14 +170,14 @@ func TestClient_ListNetworkDomains_Success(test *testing.T) {
 		test.Fatal(err)
 	}
 
-	verifyNetworkDomainsTestResponse(test, networkDomains)
+	verifyListNetworkDomainsTestResponse(test, networkDomains)
 }
 
 /*
  * Test responses.
  */
 
-var networkDomainsTestResponse = `
+var listNetworkDomainsTestResponse = `
 {
 	  "networkDomain": [
 	    {
@@ -208,7 +208,7 @@ var networkDomainsTestResponse = `
 	}
 `
 
-func verifyNetworkDomainsTestResponse(test *testing.T, networkDomains *NetworkDomains) {
+func verifyListNetworkDomainsTestResponse(test *testing.T, networkDomains *NetworkDomains) {
 	expect := expect(test)
 
 	expect.notNil("NetworkDomains", networkDomains)

@@ -33,13 +33,31 @@ type VLAN struct {
 	IPv6GatewayAddress string `json:"ipv6GatewayAddress"`
 
 	// The date / time that the VLAN was first created.
-	CreateTime int `json:"createTime"`
+	CreateTime string `json:"createTime"`
 
 	// The VLAN's current state.
 	State string `json:"state"`
 
 	// The ID of the data center in which the VLAN and its containing network domain are deployed.
 	DataCenterID string `json:"datacenterId"`
+}
+
+// VLANs represents the response to a "List VLANs" API call.
+type VLANs struct {
+	// The current page of network domains.
+	VLANs []VLAN `json:"vlan"`
+
+	// The current page number.
+	PageNumber int `json:"pageNumber"`
+
+	// The number of VLANs in the current page of results.
+	PageCount int `json:"pageCount"`
+
+	// The total number of VLANs that match the requested filter criteria (if any).
+	TotalCount int `json:"totalCount"`
+
+	// The maximum number of VLANs per page.
+	PageSize int `json:"pageSize"`
 }
 
 // DeployVLAN represents the request body when deploying a cloud compute VLAN.
@@ -98,6 +116,42 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 	err = json.Unmarshal(responseBody, vlan)
 
 	return vlan, err
+}
+
+// ListVLANs retrieves a list of all VLANs in the specified network domain.
+// TODO: Support filtering and sorting.
+func (client *Client) ListVLANs(networkDomainID string) (vlans *VLANs, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/vlan?networkDomainId=%s", organizationID, networkDomainID)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponse
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("Request to list VLANs failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	vlans = &VLANs{}
+	err = json.Unmarshal(responseBody, vlans)
+
+	return vlans, err
 }
 
 // DeployVLAN deploys a new VLAN into a network domain.

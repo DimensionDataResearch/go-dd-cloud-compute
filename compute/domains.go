@@ -37,7 +37,6 @@ type NetworkDomain struct {
 }
 
 // NetworkDomains represents the response to a "List Network Domains" API call.
-// It also contains fields common to all API responses (see ApiResponse for a list of all common fields).
 type NetworkDomains struct {
 	// The current page of network domains.
 	Domains []NetworkDomain `json:"networkDomain"`
