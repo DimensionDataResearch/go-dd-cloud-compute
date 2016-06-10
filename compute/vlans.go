@@ -18,7 +18,7 @@ type VLAN struct {
 	Description string `json:"description"`
 
 	// The network domain in which the VLAN is deployed associated.
-	NetworkDomain EntitySummary `json:"networkDomain"`
+	VLAN EntitySummary `json:"networkDomain"`
 
 	// The VLAN's associated IPv4 network range.
 	IPv4Range IPv4Range `json:"privateIpv4Range"`
@@ -63,7 +63,7 @@ type VLANs struct {
 // DeployVLAN represents the request body when deploying a cloud compute VLAN.
 type DeployVLAN struct {
 	// The Id of the network domain in which the VLAN will be deployed.
-	NetworkDomainID string `json:"networkDomainId"`
+	VLANID string `json:"networkDomainId"`
 
 	// The VLAN name.
 	Name string `json:"name"`
@@ -88,6 +88,12 @@ type EditVLAN struct {
 
 	// The VLAN description (optional).
 	Description *string `json:"description,omitempty"`
+}
+
+// DeleteVLAN represents a request to delete a compute VLAN.
+type DeleteVLAN struct {
+	// The VLAN Id.
+	ID string `json:"id"`
 }
 
 // GetVLAN retrieves the VLAN with the specified Id.
@@ -175,7 +181,7 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 
 	requestURI := fmt.Sprintf("%s/network/deployVlan", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployVLAN{
-		NetworkDomainID: networkDomainID,
+		VLANID:          networkDomainID,
 		Name:            name,
 		Description:     description,
 		IPv4BaseAddress: ipv4BaseAddress,
@@ -230,6 +236,33 @@ func (client *Client) EditVLAN(id string, name *string, description *string) (er
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
 		return fmt.Errorf("Request to edit VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// DeleteVLAN deletes an existing VLAN.
+// Returns an error if the operation was not successful.
+func (client *Client) DeleteVLAN(id string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/deleteVlan", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteVLAN{id})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return fmt.Errorf("Request to delete VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

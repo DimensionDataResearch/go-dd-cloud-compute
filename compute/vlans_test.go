@@ -135,6 +135,42 @@ func TestClient_EditVlan_Success(test *testing.T) {
 	// Pass
 }
 
+// Delete VLAN (successful).
+func TestClient_DeleteVLAN_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody, err := readRequestBodyAsString(request)
+		if err != nil {
+			test.Fatal("Failed to read request body: ", err)
+		}
+
+		expect.equalsString("Request.Body",
+			`{"id":"0e56433f-d808-4669-821d-812769517ff8"}`,
+			requestBody,
+		)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, deleteVLANTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	err := client.DeleteVLAN("0e56433f-d808-4669-821d-812769517ff8")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	// Pass
+}
+
 /*
  * Test requests.
  */
@@ -153,7 +189,7 @@ func verifyDeployVLANTestRequest(test *testing.T, request *DeployVLAN) {
 	expect := expect(test)
 
 	expect.notNil("DeployVLAN", request)
-	expect.equalsString("DeployVLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", request.NetworkDomainID)
+	expect.equalsString("DeployVLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", request.VLANID)
 	expect.equalsString("DeployVLAN.Name", "Production VLAN", request.Name)
 	expect.equalsString("DeployVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
 	expect.equalsString("DeployVLAN.IPv4BaseAddress", "10.0.3.0", request.IPv4BaseAddress)
@@ -273,8 +309,8 @@ func verifyListVLANsTestResponse(test *testing.T, vlans *VLANs) {
 	expect.equalsString("VLANs.VLANs[0].Description", "For hosting our Production Cloud Servers", vlan1.Description)
 	expect.equalsString("VLANs.VLANs[0].DataCenterID", "NA9", vlan1.DataCenterID)
 
-	expect.equalsString("VLANs.VLANs[0].NetworkDomain.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", vlan1.NetworkDomain.ID)
-	expect.equalsString("VLANs.VLANs[0].NetworkDomain.Name", "Production Network Domain", vlan1.NetworkDomain.Name)
+	expect.equalsString("VLANs.VLANs[0].VLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", vlan1.VLAN.ID)
+	expect.equalsString("VLANs.VLANs[0].VLAN.Name", "Production Network Domain", vlan1.VLAN.Name)
 
 	expect.equalsString("VLANs.VLANs[0].IPv4Range.BaseAddress", "10.0.3.0", vlan1.IPv4Range.BaseAddress)
 	expect.equalsInt("VLANs.VLANs[0].IPv4Range.PrefixSize", 24, vlan1.IPv4Range.PrefixSize)
@@ -332,5 +368,27 @@ func verifyEditVLANTestResponse(test *testing.T, response *APIResponse) {
 	expect.notNil("APIResponse", response)
 	expect.equalsString("Response.Operation", "EDIT_VLAN", response.Operation)
 	expect.equalsString("Response.ResponseCode", ResponseCodeOK, response.ResponseCode)
+	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+var deleteVLANTestResponse = `
+	{
+		"operation": "DELETE_VLAN",
+		"responseCode": "IN_PROGRESS",
+		"message": "Request to Delete VLAN (Id: 0e56433f-d808-4669-821d-812769517ff8) has been accepted and is being processed.",
+		"info": [],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyDeleteVLANTestResponse(test *testing.T, response *APIResponse) {
+	expect := expect(test)
+
+	expect.notNil("APIResponse", response)
+	expect.equalsString("Response.Operation", "DELETE_VLAN", response.Operation)
+	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.equalsString("Response.Message", "Request to VLAN (Id: 0e56433f-d808-4669-821d-812769517ff8) has been accepted and is being processed.", response.Message)
 	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
