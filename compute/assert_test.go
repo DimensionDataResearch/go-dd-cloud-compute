@@ -1,6 +1,8 @@
 package compute
 
-import "testing"
+import (
+	"testing"
+ )
 
 type expectHelper struct {
 	test *testing.T
@@ -8,6 +10,18 @@ type expectHelper struct {
 
 func expect(test *testing.T) expectHelper {
 	return expectHelper{test}
+}
+
+func (expect expectHelper) isTrue(description string, condition bool) {
+	if !condition {
+		expect.test.Errorf("Expression was false: %s", description)
+	}
+}
+
+func (expect expectHelper) isFalse(description string, condition bool) {
+	if condition {
+		expect.test.Errorf("Expression was true: %s", description)
+	}
 }
 
 func (expect expectHelper) notNil(description string, actual interface{}) {

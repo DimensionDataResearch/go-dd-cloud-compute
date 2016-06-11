@@ -11,13 +11,13 @@ type ServerDeploymentConfiguration struct {
 	Description           string                `json:"description"`
 	ImageID               string                `json:"imageId"`
 	AdministratorPassword string                `json:"administratorPassword"`
-	CPU                   VirtualMachineCPU     `json:"cpu"`
-	MemoryGB              int                   `json:"memoryGb"`
+	CPU                   *VirtualMachineCPU    `json:"cpu,omitempty"`
+	MemoryGB              *int                  `json:"memoryGb,omitempty"`
 	Disks                 []VirtualMachineDisk  `json:"disk"`
-	Network               VirtualMachineNetwork `json:"network"`
+	Network               VirtualMachineNetwork `json:"networkInfo"`
 	PrimaryDNS            string                `json:"primaryDns"`
 	SecondaryDNS          string                `json:"secondaryDns"`
-	Start                 bool                  `json:"start"`
+	Start                 *bool                 `json:"start"`
 }
 
 // DeployServer deploys a new virtual machine.
