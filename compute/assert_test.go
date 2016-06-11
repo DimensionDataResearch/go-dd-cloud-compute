@@ -18,12 +18,12 @@ func (expect expectHelper) notNil(description string, actual interface{}) {
 
 func (expect expectHelper) equalsString(description string, expected string, actual string) {
 	if actual != expected {
-		expect.test.Fatalf("%s was '%s' (expected '%s').", description, actual, expected)
+		expect.test.Errorf("%s was '%s' (expected '%s').", description, actual, expected)
 	}
 }
 
 func (expect expectHelper) equalsInt(description string, expected int, actual int) {
 	if actual != expected {
-		expect.test.Fatalf("%s was %d (expected %d).", description, actual, expected)
+		expect.test.Errorf("%s was %d (expected %d).", description, actual, expected)
 	}
 }

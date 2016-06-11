@@ -41,3 +41,43 @@ type IPv6Range struct {
 func (network IPv6Range) ToDisplayString() string {
 	return fmt.Sprintf("%s/%d", network.BaseAddress, network.PrefixSize)
 }
+
+// OperatingSystem represents a well-known operating system for virtual machines.
+type OperatingSystem struct {
+	// The operating system Id.
+	ID string `json:"id"`
+
+	// The operating system type.
+	Family string `json:"family"`
+
+	// The operating system display-name.
+	DisplayName string `json:"displayName"`
+}
+
+// VirtualMachineCPU represents the CPU configuration for a virtual machine.
+type VirtualMachineCPU struct {
+	Count          int    `json:"count"`
+	Speed          string `json:"speed"`
+	CoresPerSocket int    `json:"coresPerSocket"`
+}
+
+// VirtualMachineDisk represents the disk configuration for a virtual machine.
+type VirtualMachineDisk struct {
+	ID         string `json:"id,omitempty"`
+	SCSIUnitID int    `json:"scsiId"`
+	SizeGB     int    `json:"sizeGb,omitempty"`
+	Speed      string `json:"speed"`
+}
+
+// VirtualMachineNetwork represents the networking configuration for a virtual machine.
+type VirtualMachineNetwork struct {
+	NetworkDomainID           string                         `json:"networkDomainId,omitempty"`
+	PrimaryAdapter            VirtualMachineNetworkAdapter   `json:"primaryNic"`
+	AdditionalNetworkAdapters []VirtualMachineNetworkAdapter `json:"additionalNic"`
+}
+
+// VirtualMachineNetworkAdapter represents the configuration for a virtual machine's network adapter.
+type VirtualMachineNetworkAdapter struct {
+	VLANID             string `json:"vlanId"`
+	PrivateIPv4Address string `json:"privateIpv4"`
+}

@@ -39,31 +39,8 @@ type OSImage struct {
 	OSImageKey      string               `json:"osImageKey"`
 }
 
-// OperatingSystem a well-known operating system for virtual machines.
-type OperatingSystem struct {
-	// The operating system Id.
-	ID string `json:"id"`
-
-	// The operating system type.
-	Family string `json:"family"`
-
-	// The operating system display-name.
-	DisplayName string `json:"displayName"`
-}
-
-// VirtualMachineCPU represents the CPU configuration for a virtual machine.
-type VirtualMachineCPU struct {
-	Count          int    `json:"count"`
-	Speed          string `json:"speed"`
-	CoresPerSocket int    `json:"coresPerSocket"`
-}
-
-// VirtualMachineDisk represents the disk configuration for a virtual machine.
-type VirtualMachineDisk struct {
-	ID         string `json:"id"`
-	SCSIUnitID int    `json:"scsiId"`
-	SizeGB     int    `json:"sizeGb"`
-	Speed      string `json:"speed"`
+// DeployOSImage represents the request body when deploying a cloud compute OS image.
+type DeployOSImage struct {
 }
 
 // FindOSImage finds an OS image by name in a given data centre.

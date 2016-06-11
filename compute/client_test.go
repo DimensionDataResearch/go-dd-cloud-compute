@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -41,4 +42,18 @@ func readRequestBodyAsString(request *http.Request) (string, error) {
 	}
 
 	return string(responseBody), nil
+}
+
+func readRequestBodyAsJSON(request *http.Request, target interface{}) error {
+	if request.Body == nil {
+		return fmt.Errorf("Request body is missing.")
+	}
+
+	defer request.Body.Close()
+	responseBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(responseBody, target)
 }
