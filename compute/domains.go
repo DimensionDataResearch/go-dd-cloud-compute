@@ -33,7 +33,7 @@ type NetworkDomain struct {
 	Progress string `json:"progress"`
 
 	// The Id of the data centre in which the network domain is located.
-	DatacenterID string `json:"datacenter"`
+	DatacenterID string `json:"datacenterId"`
 }
 
 // NetworkDomains represents the response to a "List Network Domains" API call.

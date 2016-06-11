@@ -231,7 +231,7 @@ var networkDomainTestResponse = `
 		"createTime": "2015-02-24T10:47:21.000Z",
 		"state": "NORMAL",
 		"id": "8cdfd607-f429-4df6-9352-162cfc0891be",
-		"datacenter": "NA9"
+		"datacenterId": "NA9"
 	}
 `
 
