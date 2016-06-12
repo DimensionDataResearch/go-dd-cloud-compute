@@ -83,6 +83,6 @@ type VirtualMachineNetworkAdapter struct {
 	VLANID             *string `json:"vlanId,omitempty"`
 	VLANName           *string `json:"vlanName,omitempty"`
 	PrivateIPv4Address *string `json:"privateIpv4,omitempty"`
-	PrivateIPv6Address *string `json:"privateIpv6,omitempty"`
+	PrivateIPv6Address *string `json:"ipv6,omitempty"`
 	State              *string `json:"state,omitempty"`
 }
