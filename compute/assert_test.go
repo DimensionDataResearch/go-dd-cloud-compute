@@ -25,7 +25,8 @@ func (expect expectHelper) isFalse(description string, condition bool) {
 }
 
 func (expect expectHelper) notNil(description string, actual interface{}) {
-	if actual == nil {
+	switch actual.(type) {
+	case nil:
 		expect.test.Fatalf("%s was nil.", description)
 	}
 }

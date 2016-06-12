@@ -207,7 +207,7 @@ func verifyGetServerTestResponse(test *testing.T, server *Server) {
 	expect.notNil("Server", server)
 	expect.equalsString("Server.Name", "Production Web Server", server.Name)
 	// TODO: Verify the rest of these fields.
-	expect.equalsString("Server.State", ResourceStatusNormal, server.State)
+	expect.equalsString("Server.State", ResourceStatusPendingChange, server.State)
 }
 
 const deployServerTestResponse = `
