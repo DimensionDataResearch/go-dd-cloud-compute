@@ -51,6 +51,12 @@ func (config *ServerDeploymentConfiguration) ApplyImage(image *OSImage) error {
 	return nil
 }
 
+// DeleteServer represents a request to delete a compute virtual machine.
+type DeleteServer struct {
+	// The server Id.
+	ID string `json:"id"`
+}
+
 // GetServer retrieves the server with the specified Id.
 // id is the Id of the server to retrieve.
 // Returns nil if no server is found with the specified Id.
@@ -120,4 +126,31 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// DeleteServer deletes an existing Server.
+// Returns an error if the operation was not successful.
+func (client *Client) DeleteServer(id string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/deleteServer", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteServer{id})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return fmt.Errorf("Request to delete server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }

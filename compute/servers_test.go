@@ -71,6 +71,42 @@ func TestClient_DeployServer_Success(test *testing.T) {
 	expect.equalsString("serverID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", serverID)
 }
 
+// Delete Server (successful).
+func TestClient_DeleteServer_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody, err := readRequestBodyAsString(request)
+		if err != nil {
+			test.Fatal("Failed to read request body: ", err)
+		}
+
+		expect.equalsString("Request.Body",
+			`{"id":"5b00a2ab-c665-4cd6-8291-0b931374fb3d"}`,
+			requestBody,
+		)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, deleteServerTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	err := client.DeleteServer("5b00a2ab-c665-4cd6-8291-0b931374fb3d")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	// Pass
+}
+
 /*
  * Test requests.
  */
@@ -159,7 +195,7 @@ const getServerTestResponse = `
 			"privateIpv4": "10.0.4.8",
 			"ipv6": "2607:f480:1111:1282:2960:fb72:7154:6160",
 			"vlanId": "bc529e20-dc6f-42ba-be20-0ffe44d1993f",
-			"vlanName": "Production VLAN",
+			"vlanName": "Production Server",
 			"state": "NORMAL"
 		},
 		"additionalNic": [],
@@ -234,5 +270,27 @@ func verifyDeployServerTestResponse(test *testing.T, response *APIResponse) {
 	expect.equalsString("Response.Operation", "DEPLOY_SERVER", response.Operation)
 	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
 	expect.equalsString("Response.Message", "Request to deploy Server 'Production FTPS Server' has been accepted and is being processed.", response.Message)
+	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+var deleteServerTestResponse = `
+	{
+		"operation": "DELETE_SERVER",
+		"responseCode": "IN_PROGRESS",
+		"message": "Request to Delete Server (Id:5b00a2ab-c665-4cd6-8291-0b931374fb3d) has been accepted and is being processed",
+		"info": [],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyDeleteServerTestResponse(test *testing.T, response *APIResponse) {
+	expect := expect(test)
+
+	expect.notNil("APIResponse", response)
+	expect.equalsString("Response.Operation", "DELETE_SERVER", response.Operation)
+	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.equalsString("Response.Message", "Request to Delete Server (Id:5b00a2ab-c665-4cd6-8291-0b931374fb3d) has been accepted and is being processed.", response.Message)
 	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
