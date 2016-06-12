@@ -86,3 +86,18 @@ type VirtualMachineNetworkAdapter struct {
 	PrivateIPv6Address *string `json:"ipv6,omitempty"`
 	State              *string `json:"state,omitempty"`
 }
+
+// Resource represents a compute resource.
+type Resource interface {
+	// The resource ID.
+	GetID() string
+
+	// The resource name.
+	GetName() string
+
+	// The resource's current state (e.g. ResourceStatusNormal, etc).
+	GetState() string
+
+	// Has the resource been deleted (i.e. the underlying struct is nil)?
+	IsDeleted() bool
+}

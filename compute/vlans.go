@@ -42,6 +42,26 @@ type VLAN struct {
 	DataCenterID string `json:"datacenterId"`
 }
 
+// GetID returns the VLAN's Id.
+func (vlan *VLAN) GetID() string {
+	return vlan.ID
+}
+
+// GetName returns the VLAN's name.
+func (vlan *VLAN) GetName() string {
+	return vlan.Name
+}
+
+// GetState returns the VLAN's current state.
+func (vlan *VLAN) GetState() string {
+	return vlan.State
+}
+
+// IsDeleted determines whether the VLAN has been deleted (is nil).
+func (vlan *VLAN) IsDeleted() bool {
+	return vlan == nil
+}
+
 // VLANs represents the response to a "List VLANs" API call.
 type VLANs struct {
 	// The current page of network domains.

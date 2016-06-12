@@ -36,6 +36,26 @@ type NetworkDomain struct {
 	DatacenterID string `json:"datacenterId"`
 }
 
+// GetID returns the network domain's Id.
+func (domain *NetworkDomain) GetID() string {
+	return domain.ID
+}
+
+// GetName returns the network domain's name.
+func (domain *NetworkDomain) GetName() string {
+	return domain.Name
+}
+
+// GetState returns the network domain's current state.
+func (domain *NetworkDomain) GetState() string {
+	return domain.State
+}
+
+// IsDeleted determines whether the network domain has been deleted (is nil).
+func (domain *NetworkDomain) IsDeleted() bool {
+	return domain == nil
+}
+
 // NetworkDomains represents the response to a "List Network Domains" API call.
 type NetworkDomains struct {
 	// The current page of network domains.

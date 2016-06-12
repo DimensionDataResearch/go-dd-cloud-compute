@@ -19,6 +19,26 @@ type Server struct {
 	State           string                `json:"state"`
 }
 
+// GetID returns the server's Id.
+func (server *Server) GetID() string {
+	return server.ID
+}
+
+// GetName returns the server's name.
+func (server *Server) GetName() string {
+	return server.Name
+}
+
+// GetState returns the server's current state.
+func (server *Server) GetState() string {
+	return server.State
+}
+
+// IsDeleted determines whether the server has been deleted (is nil).
+func (server *Server) IsDeleted() bool {
+	return server == nil
+}
+
 // ServerDeploymentConfiguration represents the configuration for deploying a virtual machine.
 type ServerDeploymentConfiguration struct {
 	Name                  string                `json:"name"`
