@@ -1,9 +1,23 @@
 package compute
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
+
+// Server represents a virtual machine.
+type Server struct {
+	ID              string                `json:"id"`
+	Name            string                `json:"name"`
+	Description     string                `json:"description"`
+	OperatingSystem OperatingSystem       `json:"operatingSystem"`
+	CPU             VirtualMachineCPU     `json:"cpu"`
+	MemoryGB        int                   `json:"memoryGb"`
+	Disks           []VirtualMachineDisk  `json:"disk"`
+	Network         VirtualMachineNetwork `json:"networkInfo"`
+	State           string                `json:"state"`
+}
 
 // ServerDeploymentConfiguration represents the configuration for deploying a virtual machine.
 type ServerDeploymentConfiguration struct {
@@ -35,6 +49,46 @@ func (config *ServerDeploymentConfiguration) ApplyImage(image *OSImage) error {
 	}
 
 	return nil
+}
+
+// GetServer retrieves the server with the specified Id.
+// id is the Id of the server to retrieve.
+// Returns nil if no server is found with the specified Id.
+func (client *Client) GetServer(id string) (server *Server, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/server/%s", organizationID, id)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponse
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
+			return nil, nil // Not an error, but was not found.
+		}
+
+		return nil, fmt.Errorf("Request to retrieve Server failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	server = &Server{}
+	err = json.Unmarshal(responseBody, server)
+
+	return server, err
 }
 
 // DeployServer deploys a new virtual machine.

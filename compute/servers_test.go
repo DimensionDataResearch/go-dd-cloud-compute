@@ -7,6 +7,29 @@ import (
 	"testing"
 )
 
+func TestClient_GetServer_ById_Success(test *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, getServerTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	server, err := client.GetServer("5a32d6e4-9707-4813-a269-56ab4d989f4d")
+	if err != nil {
+		test.Fatal("Unable to deploy server: ", err)
+	}
+
+	verifyGetServerTestResponse(test, server)
+}
+
 // Deploy server (successful).
 func TestClient_DeployServer_Success(test *testing.T) {
 	expect := expect(test)
@@ -106,7 +129,88 @@ func verifyDeployServerRequest(test *testing.T, deploymentConfiguration *ServerD
  * Test responses.
  */
 
-var deployServerTestResponse = `
+const getServerTestResponse = `
+	{
+		"name": "Production Web Server",
+		"description": "Server to host our main web application.",
+		"operatingSystem": {
+			"id": "WIN2008S32",
+			"displayName": "WIN2008S/32",
+			"family": "WINDOWS"
+		},
+		"cpu": {
+			"count": 2,
+			"speed": "STANDARD",
+			"coresPerSocket": 1
+		},
+		"memoryGb": 4,
+		"disk": [
+			{
+				"id": "c2e1f199-116e-4dbc-9960-68720b832b0a",
+				"scsiId": 0,
+				"sizeGb": 50,
+				"speed": "STANDARD",
+				"state": "NORMAL"
+			}
+		],
+		"networkInfo": {
+			"primaryNic": {
+			"id": "5e869800-df7b-4626-bcbf-8643b8be11fd",
+			"privateIpv4": "10.0.4.8",
+			"ipv6": "2607:f480:1111:1282:2960:fb72:7154:6160",
+			"vlanId": "bc529e20-dc6f-42ba-be20-0ffe44d1993f",
+			"vlanName": "Production VLAN",
+			"state": "NORMAL"
+		},
+		"additionalNic": [],
+		"networkDomainId": "553f26b6-2a73-42c3-a78b-6116f11291d0" },
+		"backup": {
+			"assetId": "91002e08-8dc1-47a1-ad33-04f501c06f87",
+			"servicePlan": "Advanced",
+			"state": "NORMAL"
+		},
+		"monitoring": {
+			"monitoringId": "11049",
+			"servicePlan": "ESSENTIALS",
+			"state": "NORMAL"
+		},
+		"softwareLabel": [
+			"MSSQL2008R2S"
+		],
+		"sourceImageId": "3ebf3c0f-90fe-4a8b-8585-6e65b316592c",
+		"createTime": "2015-12-02T10:31:33.000Z",
+		"deployed": true,
+		"started": true,
+		"state": "PENDING_CHANGE",
+		"progress": {
+			"action": "SHUTDOWN_SERVER",
+			"requestTime": "2015-12-02T11:07:40.000Z",
+			"userName": "devuser1"
+		},
+		"vmwareTools": {
+			"versionStatus": "CURRENT",
+			"runningStatus": "RUNNING",
+			"apiVersion": 9354
+		},
+		"virtualHardware": {
+			"version": "vmx-08",
+			"upToDate": false
+		},
+		"id": "5a32d6e4-9707-4813-a269-56ab4d989f4d",
+		"datacenterId": "NA9"
+	}
+`
+
+func verifyGetServerTestResponse(test *testing.T, server *Server) {
+	expect := expect(test)
+
+	expect.notNil("Server", server)
+	expect.equalsString("Server.Name", "Production Web Server", server.Name)
+	// TODO: Verify the rest of these fields.
+	expect.equalsString("Server.State", ResourceStatusNormal, server.State)
+}
+
+const deployServerTestResponse = `
 	{
 		"operation": "DEPLOY_SERVER",
 		"responseCode": "IN_PROGRESS",

@@ -63,10 +63,10 @@ type VirtualMachineCPU struct {
 
 // VirtualMachineDisk represents the disk configuration for a virtual machine.
 type VirtualMachineDisk struct {
-	ID         string `json:"id,omitempty"`
-	SCSIUnitID int    `json:"scsiId"`
-	SizeGB     int    `json:"sizeGb"`
-	Speed      string `json:"speed"`
+	ID         *string `json:"id,omitempty"`
+	SCSIUnitID int     `json:"scsiId"`
+	SizeGB     int     `json:"sizeGb"`
+	Speed      string  `json:"speed"`
 }
 
 // VirtualMachineNetwork represents the networking configuration for a virtual machine.
@@ -77,8 +77,12 @@ type VirtualMachineNetwork struct {
 }
 
 // VirtualMachineNetworkAdapter represents the configuration for a virtual machine's network adapter.
-// Exactly one of VLANID / PrivateIPv4Address must be specified.
+// If deploying a new VM, exactly one of VLANID / PrivateIPv4Address must be specified.
 type VirtualMachineNetworkAdapter struct {
-	VLANID             *string `json:"vlanId"`
-	PrivateIPv4Address *string `json:"privateIpv4"`
+	ID                 *string `json:"id,omitempty"`
+	VLANID             *string `json:"vlanId,omitempty"`
+	VLANName           *string `json:"vlanName,omitempty"`
+	PrivateIPv4Address *string `json:"privateIpv4,omitempty"`
+	PrivateIPv6Address *string `json:"privateIpv6,omitempty"`
+	State              *string `json:"state,omitempty"`
 }

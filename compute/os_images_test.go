@@ -93,7 +93,8 @@ func verifyFindOSImageTestResponse(test *testing.T, image *OSImage) {
 	expect.notNil("OSImage.Disks", image.Disks)
 
 	disk1 := image.Disks[0]
-	expect.equalsString("OSImage.Disks[0].ID", "55f6780c-bcc6-49d5-8e9b-26c26b6381fa", disk1.ID)
+	expect.notNil("OSImage.Disks[0].ID", disk1.ID)
+	expect.equalsString("OSImage.Disks[0].ID", "55f6780c-bcc6-49d5-8e9b-26c26b6381fa", *disk1.ID)
 	expect.equalsInt("OSImage.Disks[0].SCSIUnitID", 0, disk1.SCSIUnitID)
 	expect.equalsInt("OSImage.Disks[0].SizeGB", 10, disk1.SizeGB)
 	expect.equalsString("OSImage.Disks[0].Speed", "STANDARD", disk1.Speed)
