@@ -17,7 +17,24 @@ type ServerDeploymentConfiguration struct {
 	Network               VirtualMachineNetwork `json:"networkInfo"`
 	PrimaryDNS            string                `json:"primaryDns"`
 	SecondaryDNS          string                `json:"secondaryDns"`
-	Start                 *bool                 `json:"start"`
+	Start                 bool                  `json:"start"`
+}
+
+// ApplyImage applies the specified image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
+func (config *ServerDeploymentConfiguration) ApplyImage(image *OSImage) error {
+	if image == nil {
+		return fmt.Errorf("Cannot apply image defaults (no image was supplied).")
+	}
+
+	config.ImageID = image.ID
+	config.CPU = &image.CPU
+	config.MemoryGB = &image.MemoryGB
+	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
+	for index, disk := range image.Disks {
+		config.Disks[index] = disk
+	}
+
+	return nil
 }
 
 // DeployServer deploys a new virtual machine.

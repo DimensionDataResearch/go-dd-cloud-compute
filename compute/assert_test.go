@@ -2,7 +2,7 @@ package compute
 
 import (
 	"testing"
- )
+)
 
 type expectHelper struct {
 	test *testing.T
