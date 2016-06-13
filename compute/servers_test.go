@@ -182,6 +182,29 @@ func verifyNotifyServerIPAddressChangeRequest(test *testing.T, request *NotifySe
 	expect.equalsString("NotifyServerIPAddressChange.IPv6Address", "fdfe::5a55:caff:fefa::1:9089", *request.IPv6Address)
 }
 
+const reconfigureServerRequest = `
+	{
+		"memoryGb": 8,
+		"cpuCount": 5,
+		"cpuSpeed": "STANDARD",
+		"coresPerSocket": 1,
+		"id": "f8fe7965-3b7c-4cee-827e-f1e0b40a72e0"
+	}
+`
+
+func verifyReconfigureServerRequest(test *testing.T, request *ReconfigureServer) {
+	expect := expect(test)
+
+	expect.notNil("ReconfigureServer", request)
+	expect.equalsString("ReconfigureServer.ServerID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", request.ServerID)
+
+	expect.notNil("ReconfigureServer.MemoryGB", request.MemoryGB)
+	expect.equalsInt("ReconfigureServer.MemoryGB", 8, *request.MemoryGB)
+
+	expect.notNil("ReconfigureServer.CPUCount", request.CPUCount)
+	expect.equalsInt("ReconfigureServer.CPUCount", 5, *request.CPUCount)
+}
+
 /*
  * Test responses.
  */

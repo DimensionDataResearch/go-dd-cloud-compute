@@ -69,6 +69,13 @@ type NotifyServerIPAddressChange struct {
 	IPv6Address *string `json:"ipv6,omitempty"`
 }
 
+// ReconfigureServer represents the request body when updating a server's configuration (e.g. memory, CPU count).
+type ReconfigureServer struct {
+	ServerID string `json:"id"`
+	MemoryGB *int   `json:"memoryGb,omitempty"`
+	CPUCount *int   `json:"cpuCount,omitempty"`
+}
+
 // ApplyImage applies the specified image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
 func (config *ServerDeploymentConfiguration) ApplyImage(image *OSImage) error {
 	if image == nil {
@@ -217,6 +224,38 @@ func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIP
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
 		return fmt.Errorf("Request to notify change of server IP address failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// ReconfigureServer updates the configuration for a server.
+// serverID is the Id of the server.
+// Must specify at least one of newIPv4Address / newIPv6Address.
+func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount *int) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/reconfigureServer", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &ReconfigureServer{
+		ServerID: serverID,
+		MemoryGB: memoryGB,
+		CPUCount: cpuCount,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return fmt.Errorf("Request to reconfigure server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
