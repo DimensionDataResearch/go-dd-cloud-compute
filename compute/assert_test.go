@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -25,8 +26,7 @@ func (expect expectHelper) isFalse(description string, condition bool) {
 }
 
 func (expect expectHelper) notNil(description string, actual interface{}) {
-	switch actual.(type) {
-	case nil:
+	if reflect.ValueOf(actual).IsNil() {
 		expect.test.Fatalf("%s was nil.", description)
 	}
 }

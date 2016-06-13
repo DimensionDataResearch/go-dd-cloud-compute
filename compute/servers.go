@@ -16,6 +16,7 @@ type Server struct {
 	MemoryGB        int                   `json:"memoryGb"`
 	Disks           []VirtualMachineDisk  `json:"disk"`
 	Network         VirtualMachineNetwork `json:"networkInfo"`
+	SourceImageID   string                `json:"sourceImageId"`
 	State           string                `json:"state"`
 }
 
@@ -254,7 +255,7 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 		return err
 	}
 
-	if apiResponse.ResponseCode != ResponseCodeInProgress {
+	if apiResponse.ResponseCode != ResponseCodeOK && apiResponse.ResponseCode != ResponseCodeInProgress {
 		return fmt.Errorf("Request to reconfigure server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
