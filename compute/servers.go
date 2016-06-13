@@ -39,6 +39,8 @@ func (server *Server) IsDeleted() bool {
 	return server == nil
 }
 
+var _ Resource = &Server{}
+
 // ServerDeploymentConfiguration represents the configuration for deploying a virtual machine.
 type ServerDeploymentConfiguration struct {
 	Name                  string                `json:"name"`
@@ -52,6 +54,19 @@ type ServerDeploymentConfiguration struct {
 	PrimaryDNS            string                `json:"primaryDns"`
 	SecondaryDNS          string                `json:"secondaryDns"`
 	Start                 bool                  `json:"start"`
+}
+
+// NotifyServerIPAddressChange represents the request body when notifying the system that the IP address for a server's network adapter has changed.
+// Exactly at least 1 of IPv4Address or IPv6Address must be specified.
+type NotifyServerIPAddressChange struct {
+	// The server's network adapter Id.
+	AdapterID string `json:"nicId"`
+
+	// The server's new private IPv4 address.
+	IPv4Address *string `json:"privateIpv4,omitempty"`
+
+	// The server's new private IPv6 address.
+	IPv6Address *string `json:"ipv6,omitempty"`
 }
 
 // ApplyImage applies the specified image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
@@ -170,6 +185,38 @@ func (client *Client) DeleteServer(id string) (err error) {
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
 		return fmt.Errorf("Request to delete server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// NotifyServerIPAddressChange notifies the system that the IP address for a server's network adapter has changed.
+// serverNetworkAdapterID is the Id of the server's network adapter.
+// Must specify at least one of newIPv4Address / newIPv6Address.
+func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIPv4Address *string, newIPv6Address *string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/notifyNicIpChange", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &NotifyServerIPAddressChange{
+		AdapterID:   networkAdapterID,
+		IPv4Address: newIPv4Address,
+		IPv6Address: newIPv6Address,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return fmt.Errorf("Request to notify change of server IP address failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

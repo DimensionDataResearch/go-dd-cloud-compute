@@ -62,6 +62,8 @@ func (vlan *VLAN) IsDeleted() bool {
 	return vlan == nil
 }
 
+var _ Resource = &VLAN{}
+
 // VLANs represents the response to a "List VLANs" API call.
 type VLANs struct {
 	// The current page of network domains.

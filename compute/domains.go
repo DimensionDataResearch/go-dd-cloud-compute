@@ -56,6 +56,8 @@ func (domain *NetworkDomain) IsDeleted() bool {
 	return domain == nil
 }
 
+var _ Resource = &NetworkDomain{}
+
 // NetworkDomains represents the response to a "List Network Domains" API call.
 type NetworkDomains struct {
 	// The current page of network domains.

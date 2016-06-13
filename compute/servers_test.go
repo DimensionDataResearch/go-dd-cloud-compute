@@ -161,6 +161,27 @@ func verifyDeployServerRequest(test *testing.T, deploymentConfiguration *ServerD
 	expect.isTrue("ServerDeploymentConfiguration.CPU == nil", deploymentConfiguration.CPU == nil)
 }
 
+const notifyServerIPAddressChangeRequest = `
+	{
+		"nicId": "5999db1d-725c-46ba-9d4e-d33991e61ab1",
+		"privateIpv4": "10.0.1.5",
+		"ipv6": "fdfe::5a55:caff:fefa::1:9089"
+	}
+`
+
+func verifyNotifyServerIPAddressChangeRequest(test *testing.T, request *NotifyServerIPAddressChange) {
+	expect := expect(test)
+
+	expect.notNil("NotifyServerIPAddressChange", request)
+	expect.equalsString("NotifyServerIPAddressChange.AdapterID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", request.AdapterID)
+
+	expect.notNil("NotifyServerIPAddressChange.IPv4Address", request.IPv4Address)
+	expect.equalsString("NotifyServerIPAddressChange.IPv4Address", "10.0.1.5", *request.IPv4Address)
+
+	expect.notNil("NotifyServerIPAddressChange.IPv4Address", request.IPv6Address)
+	expect.equalsString("NotifyServerIPAddressChange.IPv6Address", "fdfe::5a55:caff:fefa::1:9089", *request.IPv6Address)
+}
+
 /*
  * Test responses.
  */

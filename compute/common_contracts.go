@@ -87,17 +87,32 @@ type VirtualMachineNetworkAdapter struct {
 	State              *string `json:"state,omitempty"`
 }
 
-// Resource represents a compute resource.
-type Resource interface {
-	// The resource ID.
-	GetID() string
+// GetID returns the network adapter's Id.
+func (server *VirtualMachineNetworkAdapter) GetID() string {
+	if server.ID == nil {
+		return ""
+	}
 
-	// The resource name.
-	GetName() string
-
-	// The resource's current state (e.g. ResourceStatusNormal, etc).
-	GetState() string
-
-	// Has the resource been deleted (i.e. the underlying struct is nil)?
-	IsDeleted() bool
+	return *server.ID
 }
+
+// GetName returns the network adapter's name (actually Id, since adapters don't have names).
+func (server *VirtualMachineNetworkAdapter) GetName() string {
+	return server.GetID()
+}
+
+// GetState returns the network adapter's current state.
+func (server *VirtualMachineNetworkAdapter) GetState() string {
+	if server.State == nil {
+		return ""
+	}
+
+	return *server.State
+}
+
+// IsDeleted determines whether the network adapter has been deleted (is nil).
+func (server *VirtualMachineNetworkAdapter) IsDeleted() bool {
+	return server == nil
+}
+
+var _ Resource = &VirtualMachineNetworkAdapter{}

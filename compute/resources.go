@@ -1,19 +1,41 @@
 package compute
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Resources are an abstraction over the various types of entities in the DD compute API
 
 const (
 	// ResourceTypeNetworkDomain represents a network domain.
-	ResourceTypeNetworkDomain = "network_domain"
+	ResourceTypeNetworkDomain = "NetworkDomain"
 
 	// ResourceTypeVLAN represents a VLAN.
-	ResourceTypeVLAN = "vlan"
+	ResourceTypeVLAN = "VLAN"
 
 	// ResourceTypeServer represents a virtual machine.
-	ResourceTypeServer = "server"
+	ResourceTypeServer = "Server"
+
+	// ResourceTypeNetworkAdapter represents a network adapter in a virtual machine.
+	// Note that when calling methods such as WaitForChange, the Id must be of the form 'serverId/networkAdapterId'.
+	ResourceTypeNetworkAdapter = "NetworkAdapter"
 )
+
+// Resource represents a compute resource.
+type Resource interface {
+	// The resource ID.
+	GetID() string
+
+	// The resource name.
+	GetName() string
+
+	// The resource's current state (e.g. ResourceStatusNormal, etc).
+	GetState() string
+
+	// Has the resource been deleted (i.e. the underlying struct is nil)?
+	IsDeleted() bool
+}
 
 // GetResourceDescription retrieves a textual description of the specified resource type.
 func GetResourceDescription(resourceType string) (string, error) {
@@ -26,6 +48,9 @@ func GetResourceDescription(resourceType string) (string, error) {
 
 	case ResourceTypeServer:
 		return "Server", nil
+
+	case ResourceTypeNetworkAdapter:
+		return "Network adapter", nil
 
 	default:
 		return "", fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
@@ -48,6 +73,9 @@ func (client *Client) GetResource(id string, resourceType string) (Resource, err
 	case ResourceTypeServer:
 		resourceLoader = getServerByID
 
+	case ResourceTypeNetworkAdapter:
+		resourceLoader = getNetworkAdapterByID
+
 	default:
 		return nil, fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
 	}
@@ -65,4 +93,32 @@ func getVLANByID(client *Client, id string) (Resource, error) {
 
 func getServerByID(client *Client, id string) (Resource, error) {
 	return client.GetServer(id)
+}
+
+func getNetworkAdapterByID(client *Client, id string) (Resource, error) {
+	compositeIDComponents := strings.Split(id, "/")
+	if len(compositeIDComponents) != 2 {
+		return nil, fmt.Errorf("'%s' is not a valid network adapter Id (when loading as a resource, the Id must be of the form 'serverId/networkAdapterId')", id)
+	}
+
+	server, err := client.GetServer(compositeIDComponents[0])
+	if err != nil {
+		return nil, err
+	}
+	if server == nil {
+		return nil, fmt.Errorf("No server found with Id '%s.'", compositeIDComponents)
+	}
+
+	var targetAdapterID = compositeIDComponents[1]
+	if *server.Network.PrimaryAdapter.ID == targetAdapterID {
+		return &server.Network.PrimaryAdapter, nil
+	}
+
+	for _, adapter := range server.Network.AdditionalNetworkAdapters {
+		if *adapter.ID == targetAdapterID {
+			return &adapter, nil
+		}
+	}
+
+	return nil, nil
 }
