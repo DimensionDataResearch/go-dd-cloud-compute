@@ -48,7 +48,7 @@ type ServerDeploymentConfiguration struct {
 	ImageID               string                `json:"imageId"`
 	AdministratorPassword string                `json:"administratorPassword"`
 	CPU                   *VirtualMachineCPU    `json:"cpu,omitempty"`
-	MemoryGB              *int                  `json:"memoryGb,omitempty"`
+	MemoryGB              int                   `json:"memoryGb,omitempty"`
 	Disks                 []VirtualMachineDisk  `json:"disk"`
 	Network               VirtualMachineNetwork `json:"networkInfo"`
 	PrimaryDNS            string                `json:"primaryDns"`
@@ -77,7 +77,7 @@ func (config *ServerDeploymentConfiguration) ApplyImage(image *OSImage) error {
 
 	config.ImageID = image.ID
 	config.CPU = &image.CPU
-	config.MemoryGB = &image.MemoryGB
+	config.MemoryGB = image.MemoryGB
 	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
 	for index, disk := range image.Disks {
 		config.Disks[index] = disk
