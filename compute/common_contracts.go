@@ -10,6 +10,21 @@ type EntitySummary struct {
 	Name string `json:"name"`
 }
 
+// PagedResult represents the common fields for all paged results from the compute API.
+type PagedResult struct {
+	// The current page number.
+	PageNumber int `json:"pageNumber"`
+
+	// The number of items in the current page of results.
+	PageCount int `json:"pageCount"`
+
+	// The total number of results that match the requested filter criteria (if any).
+	TotalCount int `json:"totalCount"`
+
+	// The maximum number of results per page.
+	PageSize int `json:"pageSize"`
+}
+
 // IPRange represents an IPvX range.
 type IPRange interface {
 	// Convert the IPvX range to a display string.

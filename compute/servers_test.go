@@ -61,6 +61,7 @@ func TestClient_DeployServer_Success(test *testing.T) {
 		Description:           "This is the main FTPS Server",
 		ImageID:               "02250336-de2b-4e99-ab96-78511b7f8f4b",
 		AdministratorPassword: "password",
+		CPU: VirtualMachineCPU{Count: 2},
 	}
 
 	serverID, err := client.DeployServer(serverConfiguration)
