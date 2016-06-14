@@ -61,6 +61,16 @@ type ReservedPublicIPs struct {
 	PagedResult
 }
 
+// Request body for adding a public IPv4 address block.
+type addPublicAddressBlock struct {
+	NetworkDomainID string `json:"networkDomainId"`
+}
+
+// Request body for removing a public IPv4 address block.
+type removePublicAddressBlock struct {
+	IPBlockID string `json:"id"`
+}
+
 // GetPublicIPBlock retrieves the public IPv4 address block with the specified Id.
 // Returns nil if no IPv4 address block is found with the specified Id.
 func (client *Client) GetPublicIPBlock(id string) (block *PublicIPBlock, err error) {
@@ -136,6 +146,68 @@ func (client *Client) ListPublicIPBlocks(networkDomainID string) (blocks *Public
 	err = json.Unmarshal(responseBody, blocks)
 
 	return blocks, err
+}
+
+// AddPublicIPBlock adds a new block of public IPv4 addresses to the specified network domain.
+func (client *Client) AddPublicIPBlock(networkDomainID string) (blockID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/addPublicIpBlock", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost,
+		&addPublicAddressBlock{networkDomainID},
+	)
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return "", fmt.Errorf("Request to add IPv4 address block to network domain '%s' failed with unexpected status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	// Expected: "info" { "name": "publicIpBlockId", "value": "the-Id-of-the-new-IP-block" }
+	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "publicIpBlockId" {
+		return "", fmt.Errorf("Received an unexpected response (missing 'publicIpBlockId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// RemovePublicIPBlock removes the specified block of public IPv4 addresses from its network domain.
+// This operation is synchronous.
+func (client *Client) RemovePublicIPBlock(id string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/removePublicIpBlock", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost,
+		&removePublicAddressBlock{id},
+	)
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return fmt.Errorf("Request to remove IPv4 address block '%s' failed with unexpected status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // ListReservedPublicIPAddresses retrieves all public IPv4 addresses in the specified network domain that have been reserved in the specified network domain.

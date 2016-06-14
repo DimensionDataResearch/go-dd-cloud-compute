@@ -31,6 +31,30 @@ func TestClient_GetPublicIPBlock_ById_Success(test *testing.T) {
 	verifyGetPublicIPBlockResponse(test, block)
 }
 
+// Get public IPv4 address block by Id (successful).
+func TestClient_AddPublicIPBlock_Success(test *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, addPublicIPBlockResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	blockID, err := client.AddPublicIPBlock("484174a2-ae74-4658-9e56-50fc90e086cf")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	expect(test).equalsString("PublicIPBlockID", "4487241a-f0ca-11e3-9315-d4bed9b167ba", blockID)
+}
+
 // List reserved public IPv4 addresses (successful).
 func TestClient_ListReservedPublicIPAddresses_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -79,6 +103,23 @@ func verifyGetPublicIPBlockResponse(test *testing.T, block *PublicIPBlock) {
 	expect.equalsString("PublicIPBlock.ID", "cacc028a-7f12-11e4-a91c-0030487e0302", block.ID)
 	expect.equalsString("PublicIPBlock.NetworkDomainID", "802abc9f-45a7-4efb-9d5a-810082368708", block.NetworkDomainID)
 }
+
+const addPublicIPBlockResponse = `
+	{
+		"operation": "ADD_PUBLIC_IP_BLOCK",
+		"responseCode": "OK",
+		"message": "Public IPv4 Address Block has been added successfully to Network Domain '484174a2-ae74-4658-9e56-50fc90e086cf'.",
+		"info": [
+			{
+				"name": "publicIpBlockId",
+				"value": "4487241a-f0ca-11e3-9315-d4bed9b167ba"
+			}
+		],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
 
 const listReservedPublicIPAddressesResponse = `
 	{
