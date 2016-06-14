@@ -118,7 +118,10 @@ var deployServerTestRequest = `
 		"imageId":"02250336-de2b-4e99-ab96-78511b7f8f4b",
 		"start":true,
 		"administratorPassword":"P$$ssWwrrdGoDd!",
-		"memoryGb":4,
+		"memoryGb": 4,
+		"cpu": {
+			"count": 2
+		},
 		"primaryDns":"10.20.255.12",
 		"secondaryDns":"10.20.255.13",
 		"networkInfo": {
@@ -158,7 +161,7 @@ func verifyDeployServerRequest(test *testing.T, deploymentConfiguration *ServerD
 	expect.equalsString("ServerDeploymentConfiguration.ImageID", "02250336-de2b-4e99-ab96-78511b7f8f4b", deploymentConfiguration.ImageID)
 	expect.equalsString("ServerDeploymentConfiguration.AdministratorPassword", "password", deploymentConfiguration.AdministratorPassword)
 
-	expect.isTrue("ServerDeploymentConfiguration.CPU == nil", deploymentConfiguration.CPU == nil)
+	expect.equalsInt("ServerDeploymentConfiguration.CPU.Count", 2, deploymentConfiguration.CPU.Count)
 }
 
 const notifyServerIPAddressChangeRequest = `
