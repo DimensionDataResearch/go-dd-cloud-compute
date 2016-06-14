@@ -63,17 +63,7 @@ type NetworkDomains struct {
 	// The current page of network domains.
 	Domains []NetworkDomain `json:"networkDomain"`
 
-	// The current page number.
-	PageNumber int `json:"pageNumber"`
-
-	// The number of network domains in the current page of results.
-	PageCount int `json:"pageCount"`
-
-	// The total number of network domains that match the requested filter criteria (if any).
-	TotalCount int `json:"totalCount"`
-
-	// The maximum number of network domains per page.
-	PageSize int `json:"pageSize"`
+	PagedResult
 }
 
 // DeployNetworkDomain represents a request to deploy a compute network domain.

@@ -69,17 +69,7 @@ type VLANs struct {
 	// The current page of network domains.
 	VLANs []VLAN `json:"vlan"`
 
-	// The current page number.
-	PageNumber int `json:"pageNumber"`
-
-	// The number of VLANs in the current page of results.
-	PageCount int `json:"pageCount"`
-
-	// The total number of VLANs that match the requested filter criteria (if any).
-	TotalCount int `json:"totalCount"`
-
-	// The maximum number of VLANs per page.
-	PageSize int `json:"pageSize"`
+	PagedResult
 }
 
 // DeployVLAN represents the request body when deploying a cloud compute VLAN.

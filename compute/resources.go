@@ -20,6 +20,9 @@ const (
 	// ResourceTypeNetworkAdapter represents a network adapter in a virtual machine.
 	// Note that when calling methods such as WaitForChange, the Id must be of the form 'serverId/networkAdapterId'.
 	ResourceTypeNetworkAdapter = "NetworkAdapter"
+
+	// ResourceTypePublicIPBlock represents a block of public IP addresses.
+	ResourceTypePublicIPBlock = "PublicIPBlock"
 )
 
 // Resource represents a compute resource.
@@ -52,6 +55,9 @@ func GetResourceDescription(resourceType string) (string, error) {
 	case ResourceTypeNetworkAdapter:
 		return "Network adapter", nil
 
+	case ResourceTypePublicIPBlock:
+		return "Public IPv4 address block", nil
+
 	default:
 		return "", fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
 	}
@@ -75,6 +81,9 @@ func (client *Client) GetResource(id string, resourceType string) (Resource, err
 
 	case ResourceTypeNetworkAdapter:
 		resourceLoader = getNetworkAdapterByID
+
+	case ResourceTypePublicIPBlock:
+		resourceLoader = getPublicIPBlockByID
 
 	default:
 		return nil, fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
@@ -121,4 +130,8 @@ func getNetworkAdapterByID(client *Client, id string) (Resource, error) {
 	}
 
 	return nil, nil
+}
+
+func getPublicIPBlockByID(client *Client, id string) (Resource, error) {
+	return client.GetPublicIPBlock(id)
 }
