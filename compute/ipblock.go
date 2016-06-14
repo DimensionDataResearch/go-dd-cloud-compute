@@ -173,9 +173,9 @@ func (client *Client) AddPublicIPBlock(networkDomainID string) (blockID string, 
 		return "", fmt.Errorf("Request to add IPv4 address block to network domain '%s' failed with unexpected status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	// Expected: "info" { "name": "publicIpBlockId", "value": "the-Id-of-the-new-IP-block" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "publicIpBlockId" {
-		return "", fmt.Errorf("Received an unexpected response (missing 'publicIpBlockId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	// Expected: "info" { "name": "ipBlockId", "value": "the-Id-of-the-new-IP-block" }
+	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "ipBlockId" {
+		return "", fmt.Errorf("Received an unexpected response (missing 'ipBlockId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
