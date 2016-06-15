@@ -7,7 +7,7 @@ type EntitySummary struct {
 	// The entity Id.
 	ID string `json:"id"`
 	// The entity name.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 }
 
 // PagedResult represents the common fields for all paged results from the compute API.
