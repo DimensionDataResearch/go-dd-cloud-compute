@@ -18,6 +18,13 @@ type IPAddressList struct {
 	ChildLists  []EntitySummary      `json:"childIpAddressList"`
 }
 
+// IPAddressLists represents a page of IPAddressList results.
+type IPAddressLists struct {
+	AddressLists []IPAddressList `json:"ipAddressList"`
+
+	PagedResult
+}
+
 // IPAddressListEntry represents an entry in an IP address list.
 type IPAddressListEntry struct {
 	Begin      string  `json:"begin"`
@@ -63,4 +70,39 @@ func (client *Client) GetIPAddressList(id string) (addressList *IPAddressList, e
 	err = json.Unmarshal(responseBody, addressList)
 
 	return addressList, err
+}
+
+// ListIPAddressLists retrieves all IP address lists associated with the specified network domain.
+func (client *Client) ListIPAddressLists(networkDomainID string) (addressLists *IPAddressLists, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/ipAddressList?networkDomainId=%s", organizationID, networkDomainID)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponse
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, apiResponse.ToError("Request to list IP address lists failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	addressLists = &IPAddressLists{}
+	err = json.Unmarshal(responseBody, addressLists)
+
+	return addressLists, err
 }
