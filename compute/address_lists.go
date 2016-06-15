@@ -18,6 +18,20 @@ type IPAddressList struct {
 	ChildLists  []EntitySummary      `json:"childIpAddressList"`
 }
 
+// BuildEditRequest creates an EditIPAddressList using the existing addresses and child list references in the IP address list.
+func (addressList *IPAddressList) BuildEditRequest() EditIPAddressList {
+	edit := &EditIPAddressList{
+		Description:  addressList.Description,
+		Addresses:    addressList.Addresses,
+		ChildListIDs: make([]string, len(addressList.ChildLists)),
+	}
+	for index, childList := range addressList.ChildLists {
+		edit.ChildListIDs[index] = childList.ID
+	}
+
+	return *edit
+}
+
 // IPAddressListEntry represents an entry in an IP address list.
 type IPAddressListEntry struct {
 	Begin      string  `json:"begin"`
@@ -40,6 +54,14 @@ type createIPAddressList struct {
 	NetworkDomainID string               `json:"networkDomainId"`
 	Addresses       []IPAddressListEntry `json:"ipAddress"`
 	ChildListIDs    []string             `json:"childIpAddressListId"`
+}
+
+// EditIPAddressList represents the request body for editing an IP address list.
+type EditIPAddressList struct {
+	ID           string               `json:"id"`
+	Description  string               `json:"description"`
+	Addresses    []IPAddressListEntry `json:"ipAddress"`
+	ChildListIDs []string             `json:"childIpAddressList"`
 }
 
 // Request body for deleting an IP address list.
@@ -160,6 +182,37 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// EditIPAddressList updates the configuration for a IP address list.
+//
+// Note that this operation is not additive; it *replaces* the configuration for the IP address list.
+// You can IPAddressList.BuildEditRequest() to create an EditIPAddressList request that copies the current state of the IPAddressList (and then apply customisations).
+//
+// This operation is synchronous.
+func (client *Client) EditIPAddressList(id string, edit EditIPAddressList) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/editIpAddressList", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, edit)
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to edit IP address list failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // DeleteIPAddressList deletes an existing IP address list.
