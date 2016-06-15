@@ -101,7 +101,7 @@ func (client *Client) GetPublicIPBlock(id string) (block *PublicIPBlock, err err
 			return nil, nil // Not an error, but was not found.
 		}
 
-		return nil, fmt.Errorf("Request to retrieve public IPv4 address block failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to retrieve public IPv4 address block failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	block = &PublicIPBlock{}
@@ -139,7 +139,7 @@ func (client *Client) ListPublicIPBlocks(networkDomainID string) (blocks *Public
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("Request to list public IPv4 address blocks failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to list public IPv4 address blocks failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	blocks = &PublicIPBlocks{}
@@ -170,12 +170,12 @@ func (client *Client) AddPublicIPBlock(networkDomainID string) (blockID string, 
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
-		return "", fmt.Errorf("Request to add IPv4 address block to network domain '%s' failed with unexpected status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Request to add IPv4 address block to network domain '%s' failed with unexpected status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "ipBlockId", "value": "the-Id-of-the-new-IP-block" }
 	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "ipBlockId" {
-		return "", fmt.Errorf("Received an unexpected response (missing 'ipBlockId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Received an unexpected response (missing 'ipBlockId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
@@ -204,7 +204,7 @@ func (client *Client) RemovePublicIPBlock(id string) error {
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
-		return fmt.Errorf("Request to remove IPv4 address block '%s' failed with unexpected status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to remove IPv4 address block '%s' failed with unexpected status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
@@ -236,7 +236,7 @@ func (client *Client) ListReservedPublicIPAddresses(networkDomainID string) (res
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("Request to list reserved public IPv4 addresses failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to list reserved public IPv4 addresses failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	reservedPublicIPs = &ReservedPublicIPs{}

@@ -133,7 +133,7 @@ func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err er
 			return nil, nil // Not an error, but was not found.
 		}
 
-		return nil, fmt.Errorf("Request to retrieve network domain failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to retrieve network domain failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	domain = &NetworkDomain{}
@@ -172,7 +172,7 @@ func (client *Client) ListNetworkDomains() (domains *NetworkDomains, err error) 
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	domains = &NetworkDomains{}
@@ -210,12 +210,12 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return "", fmt.Errorf("Request to deploy network domain '%s' failed with status code %d (%s): %s", name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Request to deploy network domain '%s' failed with status code %d (%s): %s", name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "networkDomainId", "value": "the-Id-of-the-new-network-domain" }
 	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "networkDomainId" {
-		return "", fmt.Errorf("Received an unexpected response (missing 'networkDomainId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Received an unexpected response (missing 'networkDomainId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
@@ -248,7 +248,7 @@ func (client *Client) EditNetworkDomain(id string, name *string, description *st
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
-		return fmt.Errorf("Request to edit VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to edit VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
@@ -275,7 +275,7 @@ func (client *Client) DeleteNetworkDomain(id string) (err error) {
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return fmt.Errorf("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

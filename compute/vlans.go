@@ -139,7 +139,7 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 			return nil, nil // Not an error, but was not found.
 		}
 
-		return nil, fmt.Errorf("Request to retrieve VLAN failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to retrieve VLAN failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	vlan = &VLAN{}
@@ -175,7 +175,7 @@ func (client *Client) ListVLANs(networkDomainID string) (vlans *VLANs, err error
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("Request to list VLANs failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to list VLANs failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	vlans = &VLANs{}
@@ -210,12 +210,12 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return "", fmt.Errorf("Request to deploy VLAN '%s' failed with status code %d (%s): %s", name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Request to deploy VLAN '%s' failed with status code %d (%s): %s", name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "vlanId", "value": "the-Id-of-the-new-VLAN" }
 	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "vlanId" {
-		return "", fmt.Errorf("Received an unexpected response (missing 'vlanId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Received an unexpected response (missing 'vlanId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
@@ -247,7 +247,7 @@ func (client *Client) EditVLAN(id string, name *string, description *string) (er
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
-		return fmt.Errorf("Request to edit VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to edit VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
@@ -274,7 +274,7 @@ func (client *Client) DeleteVLAN(id string) (err error) {
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return fmt.Errorf("Request to delete VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to delete VLAN failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

@@ -79,7 +79,7 @@ func (client *Client) GetNATRule(id string) (rule *NATRule, err error) {
 			return nil, nil // Not an error, but was not found.
 		}
 
-		return nil, fmt.Errorf("Request to retrieve NAT rule failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to retrieve NAT rule failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	rule = &NATRule{}
@@ -117,7 +117,7 @@ func (client *Client) ListNATRules(networkDomainID string) (rules *NATRules, err
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("Request to list NAT rules for network domain '%s' failed with status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to list NAT rules for network domain '%s' failed with status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	rules = &NATRules{}
@@ -153,12 +153,12 @@ func (client *Client) AddNATRule(networkDomainID string, internalIPAddress strin
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
-		return "", fmt.Errorf("Request to create NAT rule in network domain '%s' failed with unexpected status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Request to create NAT rule in network domain '%s' failed with unexpected status code %d (%s): %s", networkDomainID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "natRuleId", "value": "the-Id-of-the-new-NAT-rule" }
 	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "natRuleId" {
-		return "", fmt.Errorf("Received an unexpected response (missing 'natRuleId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Received an unexpected response (missing 'natRuleId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
@@ -187,7 +187,7 @@ func (client *Client) DeleteNATRule(id string) error {
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK {
-		return fmt.Errorf("Request to delete NAT rule '%s' failed with unexpected status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to delete NAT rule '%s' failed with unexpected status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

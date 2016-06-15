@@ -131,7 +131,7 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 			return nil, nil // Not an error, but was not found.
 		}
 
-		return nil, fmt.Errorf("Request to retrieve Server failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to retrieve Server failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	server = &Server{}
@@ -160,12 +160,12 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return "", fmt.Errorf("Request to deploy server '%s' failed with status code %d (%s): %s", serverConfiguration.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Request to deploy server '%s' failed with status code %d (%s): %s", serverConfiguration.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "serverId", "value": "the-Id-of-the-new-server" }
 	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "serverId" {
-		return "", fmt.Errorf("Received an unexpected response (missing 'serverId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Received an unexpected response (missing 'serverId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
@@ -192,7 +192,7 @@ func (client *Client) DeleteServer(id string) (err error) {
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return fmt.Errorf("Request to delete server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to delete server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
@@ -224,7 +224,7 @@ func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIP
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return fmt.Errorf("Request to notify change of server IP address failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to notify change of server IP address failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
@@ -256,7 +256,7 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeOK && apiResponse.ResponseCode != ResponseCodeInProgress {
-		return fmt.Errorf("Request to reconfigure server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to reconfigure server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

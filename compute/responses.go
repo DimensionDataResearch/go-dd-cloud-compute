@@ -1,5 +1,7 @@
 package compute
 
+import "fmt"
+
 // APIResponse represents the basic response most commonly received when making API calls.
 type APIResponse struct {
 	// The operation that was performed.
@@ -24,6 +26,14 @@ type APIResponse struct {
 	RequestID string `json:"requestId"`
 }
 
+// ToError creates an error representing the API response.
+func (response *APIResponse) ToError(errorMessageOrFormat string, formatArgs ...interface{}) error {
+	return &APIError{
+		Message: fmt.Sprintf(errorMessageOrFormat, formatArgs...),
+		Response: *response,
+	}
+}
+
 // FieldMessage represents a field name together with an associated message.
 type FieldMessage struct {
 	// The field name.
@@ -32,6 +42,24 @@ type FieldMessage struct {
 	// The field message.
 	Message string `json:"value"`
 }
+
+// APIError is an error representing an error response from an API.
+type APIError struct {
+	Message string
+	Response APIResponse
+}
+
+// Error returns the error message associated with the APIError.
+func (apiError *APIError) Error() string {
+	return apiError.Message
+}
+
+// ResponseCode returns the response code associated with the APIError.
+func (apiError *APIError) ResponseCode() string {
+	return apiError.Response.ResponseCode
+}
+
+var _ error = &APIError{}
 
 // Well-known API response codes
 
