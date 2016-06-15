@@ -197,7 +197,7 @@ type FirewallRulePlacement struct {
 }
 
 type deleteFirewallRule struct {
-	ID string `string:"id"`
+	ID string `json:"id"`
 }
 
 // GetFirewallRule retrieves the Firewall rule with the specified Id.
@@ -312,8 +312,8 @@ func (client *Client) CreateFirewallRule(configuration FirewallRuleConfiguration
 	return apiResponse.FieldMessages[0].Message, nil
 }
 
-// DeleteFirewallRuleRule deletes the specified FirewallRule rule.
-func (client *Client) DeleteFirewallRuleRule(id string) error {
+// DeleteFirewallRule deletes the specified FirewallRule rule.
+func (client *Client) DeleteFirewallRule(id string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
