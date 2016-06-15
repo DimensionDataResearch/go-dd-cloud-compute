@@ -196,6 +196,11 @@ type FirewallRulePlacement struct {
 	RelativeToRuleName *string `json:"relativeToRule,omitempty"`
 }
 
+type editFirewallRule struct {
+	ID string `json:"id"`
+	Enabled bool `json:"enabled"`
+}
+
 type deleteFirewallRule struct {
 	ID string `json:"id"`
 }
@@ -310,6 +315,36 @@ func (client *Client) CreateFirewallRule(configuration FirewallRuleConfiguration
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// EditFirewallRule updates the configuration for a firewall rule (enable / disable).
+// This operation is synchronous.
+func (client *Client) EditFirewallRule(id string, enabled bool) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/editFirewallRule", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &editFirewallRule{
+		ID:   id,
+		Enabled: enabled,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to edit firewall rule failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // DeleteFirewallRule deletes the specified FirewallRule rule.
