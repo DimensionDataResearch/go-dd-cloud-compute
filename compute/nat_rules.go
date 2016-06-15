@@ -6,18 +6,6 @@ import (
 	"net/http"
 )
 
-/*
-	{
-		"networkDomainId": "484174a2-ae74-4658-9e56-50fc90e086cf",
-		"internalIp": "10.0.0.16",
-		"externalIp": "165.180.12.19",
-		"createTime": "2015-03-06T13:45:10.000Z",
-		"state": "NORMAL",
-		"id": "2169a38e-5692-497e-a22a-701a838a6539",
-		"datacenterId": "NA9"
-	}
-*/
-
 // NATRule represents a Network Address Translation (NAT) rule.
 // NAT rules are used to forward IPv4 traffic from a public IP address to a server's private IP address.
 type NATRule struct {

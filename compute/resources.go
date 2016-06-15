@@ -23,6 +23,9 @@ const (
 
 	// ResourceTypePublicIPBlock represents a block of public IP addresses.
 	ResourceTypePublicIPBlock = "PublicIPBlock"
+
+	// ResourceTypeFirewallRule represents a firewall rule.
+	ResourceTypeFirewallRule = "FirewallRule"
 )
 
 // Resource represents a compute resource.
@@ -58,6 +61,9 @@ func GetResourceDescription(resourceType string) (string, error) {
 	case ResourceTypePublicIPBlock:
 		return "Public IPv4 address block", nil
 
+	case ResourceTypeFirewallRule:
+		return "Firewall rule", nil
+
 	default:
 		return "", fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
 	}
@@ -84,6 +90,9 @@ func (client *Client) GetResource(id string, resourceType string) (Resource, err
 
 	case ResourceTypePublicIPBlock:
 		resourceLoader = getPublicIPBlockByID
+
+	case ResourceTypeFirewallRule:
+		resourceLoader = getFirewallRuleByID
 
 	default:
 		return nil, fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
@@ -134,4 +143,8 @@ func getNetworkAdapterByID(client *Client, id string) (Resource, error) {
 
 func getPublicIPBlockByID(client *Client, id string) (Resource, error) {
 	return client.GetPublicIPBlock(id)
+}
+
+func getFirewallRuleByID(client *Client, id string) (Resource, error) {
+	return client.GetFirewallRule(id)
 }

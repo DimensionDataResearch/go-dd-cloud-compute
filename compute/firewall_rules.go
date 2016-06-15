@@ -3,7 +3,9 @@ package compute
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 )
 
 // FirewallRule represents a firewall rule.
@@ -21,6 +23,28 @@ type FirewallRule struct {
 	DataCenterID    string            `json:"datacenterId"`
 	RuleType        string            `json:"ruleType"`
 }
+
+// GetID returns the firewall rule's Id.
+func (rule *FirewallRule) GetID() string {
+	return rule.ID
+}
+
+// GetName returns the firewall rule's name.
+func (rule *FirewallRule) GetName() string {
+	return rule.Name
+}
+
+// GetState returns the firewall rule's current state.
+func (rule *FirewallRule) GetState() string {
+	return rule.State
+}
+
+// IsDeleted determines whether the firewall rule has been deleted (is nil).
+func (rule *FirewallRule) IsDeleted() bool {
+	return rule == nil
+}
+
+var _ Resource = &FirewallRule{}
 
 // FirewallRuleScope represents a scope (IP and / or port) for firewall configuration (source or destination).
 type FirewallRuleScope struct {
@@ -47,6 +71,8 @@ type FirewallRules struct {
 
 	PagedResult
 }
+
+const firewallMatchAny = "ANY"
 
 // FirewallRuleConfiguration represents the configuration for a new firewall rule.
 type FirewallRuleConfiguration struct {
@@ -88,7 +114,7 @@ func (configuration *FirewallRuleConfiguration) PlaceAfter(afterRuleName string)
 func (configuration *FirewallRuleConfiguration) MatchAnySource() {
 	configuration.Source = FirewallRuleScope{
 		IPAddress: &FirewallRuleIPAddress{
-			Address: "ANY",
+			Address: firewallMatchAny,
 		},
 		Port: nil,
 	}
@@ -98,7 +124,7 @@ func (configuration *FirewallRuleConfiguration) MatchAnySource() {
 func (configuration *FirewallRuleConfiguration) MatchSourceAddressAndPort(address string, port *int) {
 	sourceScope := &FirewallRuleScope{
 		IPAddress: &FirewallRuleIPAddress{
-			Address: address,
+			Address: strings.ToUpper(address),
 		},
 	}
 	if port != nil {
@@ -113,7 +139,7 @@ func (configuration *FirewallRuleConfiguration) MatchSourceAddressAndPort(addres
 func (configuration *FirewallRuleConfiguration) MatchDestinationAddressAndPort(address string, port *int) {
 	destinationScope := &FirewallRuleScope{
 		IPAddress: &FirewallRuleIPAddress{
-			Address: address,
+			Address: strings.ToUpper(address),
 		},
 	}
 	if port != nil {
@@ -137,6 +163,16 @@ func (configuration *FirewallRuleConfiguration) MatchSourceAddressListAndPort(ad
 		}
 	}
 	configuration.Source = *sourceScope
+}
+
+// MatchAnyDestination modifies the configuration so that the firewall rule will match any combination of destination IP and port.
+func (configuration *FirewallRuleConfiguration) MatchAnyDestination() {
+	configuration.Destination = FirewallRuleScope{
+		IPAddress: &FirewallRuleIPAddress{
+			Address: firewallMatchAny,
+		},
+		Port: nil,
+	}
 }
 
 // MatchDestinationAddressListAndPort modifies the configuration so that the firewall rule will match a specific destination IP address list (and, optionall, port).
@@ -247,6 +283,10 @@ func (client *Client) CreateFirewallRule(configuration FirewallRuleConfiguration
 	if err != nil {
 		return "", err
 	}
+
+	log.Printf("Request = '%#v'", configuration)
+	temp, _ := json.Marshal(&configuration)
+	log.Printf("Request body = '%s'", string(temp))
 
 	requestURI := fmt.Sprintf("%s/network/createFirewallRule", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &configuration)
