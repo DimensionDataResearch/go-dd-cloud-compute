@@ -59,7 +59,6 @@ type FirewallRuleConfiguration struct {
 	Source          FirewallRuleScope     `json:"source"`
 	Destination     FirewallRuleScope     `json:"destination"`
 	NetworkDomainID string                `json:"networkDomainId"`
-	DataCenterID    string                `json:"datacenterId"`
 }
 
 // PlaceFirst modifies the configuration so that the firewall rule will be placed in the first available position.
@@ -84,8 +83,6 @@ func (configuration *FirewallRuleConfiguration) PlaceAfter(afterRuleName string)
 		RelativeToRuleName: &afterRuleName,
 	}
 }
-
-
 
 // MatchAnySource modifies the configuration so that the firewall rule will match any combination of source IP and port.
 func (configuration *FirewallRuleConfiguration) MatchAnySource() {
@@ -161,6 +158,10 @@ func (configuration *FirewallRuleConfiguration) MatchDestinationAddressListAndPo
 type FirewallRulePlacement struct {
 	Position           string  `json:"position"`
 	RelativeToRuleName *string `json:"relativeToRule,omitempty"`
+}
+
+type deleteFirewallRule struct {
+	ID string `string:"id"`
 }
 
 // GetFirewallRule retrieves the Firewall rule with the specified Id.
@@ -269,4 +270,32 @@ func (client *Client) CreateFirewallRule(configuration FirewallRuleConfiguration
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// DeleteFirewallRuleRule deletes the specified FirewallRule rule.
+func (client *Client) DeleteFirewallRuleRule(id string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/deleteFirewallRule", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost,
+		&deleteFirewallRule{id},
+	)
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to delete firewall rule '%s' failed with unexpected status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
