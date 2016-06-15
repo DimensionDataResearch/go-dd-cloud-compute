@@ -18,6 +18,13 @@ type IPAddressList struct {
 	ChildLists  []EntitySummary      `json:"childIpAddressList"`
 }
 
+// IPAddressListEntry represents an entry in an IP address list.
+type IPAddressListEntry struct {
+	Begin      string  `json:"begin"`
+	End        *string `json:"end,omitempty"`
+	PrefixSize *int    `json:"prefixSize,omitempty"`
+}
+
 // IPAddressLists represents a page of IPAddressList results.
 type IPAddressLists struct {
 	AddressLists []IPAddressList `json:"ipAddressList"`
@@ -25,11 +32,19 @@ type IPAddressLists struct {
 	PagedResult
 }
 
-// IPAddressListEntry represents an entry in an IP address list.
-type IPAddressListEntry struct {
-	Begin      string  `json:"begin"`
-	End        *string `json:"end,omitempty"`
-	PrefixSize *int    `json:"prefixSize,omitempty"`
+// Request body for creating an IP address list.
+type createIPAddressList struct {
+	Name            string               `json:"name"`
+	Description     string               `json:"description"`
+	IPVersion       string               `json:"ipVersion"`
+	NetworkDomainID string               `json:"networkDomainId"`
+	Addresses       []IPAddressListEntry `json:"ipAddress"`
+	ChildListIDs    []string             `json:"childIpAddressListId"`
+}
+
+// Request body for deleting an IP address list.
+type deleteIPAddressList struct {
+	ID string `json:"id"`
 }
 
 // GetIPAddressList retrieves the IP address list with the specified Id.
@@ -105,4 +120,73 @@ func (client *Client) ListIPAddressLists(networkDomainID string) (addressLists *
 	err = json.Unmarshal(responseBody, addressLists)
 
 	return addressLists, err
+}
+
+// CreateIPAddressList creates a new IP address list.
+// Returns the Id of the new IP address list.
+//
+// This operation is synchronous.
+func (client *Client) CreateIPAddressList(name string, description string, ipVersion string, networkDomainID string, addresses []IPAddressListEntry, childListIDs []string) (addressListID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/createIpAddressList", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &createIPAddressList{
+		Name:            name,
+		Description:     description,
+		Addresses:       addresses,
+		ChildListIDs:    childListIDs,
+		NetworkDomainID: networkDomainID,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return "", apiResponse.ToError("Request to create IP address list '%s' failed with status code %d (%s): %s", name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	// Expected: "info" { "name": "ipAddressListId", "value": "the-Id-of-the-new-IP-address-list" }
+	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "ipAddressListId" {
+		return "", apiResponse.ToError("Received an unexpected response (missing 'ipAddressListId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// DeleteIPAddressList deletes an existing IP address list.
+// Returns an error if the operation was not successful.
+//
+// This operation is synchronous.
+func (client *Client) DeleteIPAddressList(id string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/deleteIpAddressList", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteIPAddressList{id})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to delete IP address list failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }

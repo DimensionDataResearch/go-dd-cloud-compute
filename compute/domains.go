@@ -66,8 +66,8 @@ type NetworkDomains struct {
 	PagedResult
 }
 
-// DeployNetworkDomain represents a request to deploy a compute network domain.
-type DeployNetworkDomain struct {
+// Request body for deploying a compute network domain.
+type deployNetworkDomain struct {
 	// The network domain name.
 	Name string `json:"name"`
 
@@ -81,8 +81,8 @@ type DeployNetworkDomain struct {
 	DatacenterID string `json:"datacenterId"`
 }
 
-// EditNetworkDomain represents a request to edit a compute network domain.
-type EditNetworkDomain struct {
+// Request body for editing a compute network domain.
+type editNetworkDomain struct {
 	// The network domain ID.
 	ID string `json:"id"`
 
@@ -96,8 +96,8 @@ type EditNetworkDomain struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// DeleteNetworkDomain represents a request to delete a compute network domain.
-type DeleteNetworkDomain struct {
+// Request body for deleting a compute network domain.
+type deleteNetworkDomain struct {
 	// The network domain ID.
 	ID string `json:"id"`
 }
@@ -193,7 +193,7 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 	}
 
 	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployNetworkDomain{
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &deployNetworkDomain{
 		Name:         name,
 		Description:  description,
 		Type:         plan,
@@ -231,7 +231,7 @@ func (client *Client) EditNetworkDomain(id string, name *string, description *st
 	}
 
 	requestURI := fmt.Sprintf("%s/network/editNetworkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditNetworkDomain{
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &editNetworkDomain{
 		ID:          id,
 		Name:        name,
 		Description: description,
@@ -263,7 +263,7 @@ func (client *Client) DeleteNetworkDomain(id string) (err error) {
 	}
 
 	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain", organizationID)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteNetworkDomain{id})
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteNetworkDomain{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -275,7 +275,7 @@ func (client *Client) DeleteNetworkDomain(id string) (err error) {
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return apiResponse.ToError("Request failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to delete network domain failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
