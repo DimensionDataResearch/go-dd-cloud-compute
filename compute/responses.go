@@ -29,7 +29,7 @@ type APIResponse struct {
 // ToError creates an error representing the API response.
 func (response *APIResponse) ToError(errorMessageOrFormat string, formatArgs ...interface{}) error {
 	return &APIError{
-		Message: fmt.Sprintf(errorMessageOrFormat, formatArgs...),
+		Message:  fmt.Sprintf(errorMessageOrFormat, formatArgs...),
 		Response: *response,
 	}
 }
@@ -45,7 +45,7 @@ type FieldMessage struct {
 
 // APIError is an error representing an error response from an API.
 type APIError struct {
-	Message string
+	Message  string
 	Response APIResponse
 }
 
