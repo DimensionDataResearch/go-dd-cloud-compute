@@ -83,25 +83,25 @@ var accountTestResponse = `
 func verifyAccountTestResponse(test *testing.T, account *Account) {
 	expect := expect(test)
 
-	expect.notNil("Account", account)
+	expect.NotNil("Account", account)
 
-	expect.equalsString("Account.UserName", "user1", account.UserName)
-	expect.equalsString("Account.FullName", "User One", account.FullName)
-	expect.equalsString("Account.FirstName", "User", account.FirstName)
-	expect.equalsString("Account.LastName", "One", account.LastName)
-	expect.equalsString("Account.Department", "Some Department", account.Department)
-	expect.equalsString("Account.EmailAddress", "user1@corp.com", account.EmailAddress)
-	expect.equalsString("Account.OrganizationID", "cc309bfe-1234-43b7-a6a6-2b7a1965cf63", account.OrganizationID)
+	expect.EqualsString("Account.UserName", "user1", account.UserName)
+	expect.EqualsString("Account.FullName", "User One", account.FullName)
+	expect.EqualsString("Account.FirstName", "User", account.FirstName)
+	expect.EqualsString("Account.LastName", "One", account.LastName)
+	expect.EqualsString("Account.Department", "Some Department", account.Department)
+	expect.EqualsString("Account.EmailAddress", "user1@corp.com", account.EmailAddress)
+	expect.EqualsString("Account.OrganizationID", "cc309bfe-1234-43b7-a6a6-2b7a1965cf63", account.OrganizationID)
 
-	expect.notNil("Account.AssignedRoles", account.AssignedRoles)
-	expect.equalsInt("Account.AssignedRoles size", 3, len(account.AssignedRoles))
+	expect.NotNil("Account.AssignedRoles", account.AssignedRoles)
+	expect.EqualsInt("Account.AssignedRoles size", 3, len(account.AssignedRoles))
 
 	role1 := account.AssignedRoles[0]
-	expect.equalsString("AssignedRoles[0].Name", "server", role1.Name)
+	expect.EqualsString("AssignedRoles[0].Name", "server", role1.Name)
 
 	role2 := account.AssignedRoles[1]
-	expect.equalsString("AssignedRoles[1].Name", "network", role2.Name)
+	expect.EqualsString("AssignedRoles[1].Name", "network", role2.Name)
 
 	role3 := account.AssignedRoles[2]
-	expect.equalsString("AssignedRoles[2].Name", "create image", role3.Name)
+	expect.EqualsString("AssignedRoles[2].Name", "create image", role3.Name)
 }

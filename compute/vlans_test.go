@@ -65,7 +65,7 @@ func TestClient_DeployVlan_Success(test *testing.T) {
 			test.Fatal("Failed to read request body: ", err)
 		}
 
-		expect.equalsString("Request.Body",
+		expect.EqualsString("Request.Body",
 			`{"networkDomainId":"484174a2-ae74-4658-9e56-50fc90e086cf","name":"Production VLAN","description":"For hosting our Production Cloud Servers","privateIpv4BaseAddress":"10.0.3.0","privateIpv4PrefixSize":23}`,
 			requestBody,
 		)
@@ -94,7 +94,7 @@ func TestClient_DeployVlan_Success(test *testing.T) {
 		test.Fatal(err)
 	}
 
-	expect.equalsString("VLANID", "0e56433f-d808-4669-821d-812769517ff8", vlanID)
+	expect.EqualsString("VLANID", "0e56433f-d808-4669-821d-812769517ff8", vlanID)
 }
 
 // Edit VLAN (successful).
@@ -107,7 +107,7 @@ func TestClient_EditVlan_Success(test *testing.T) {
 			test.Fatal("Failed to read request body: ", err)
 		}
 
-		expect.equalsString("Request.Body",
+		expect.EqualsString("Request.Body",
 			`{"id":"0e56433f-d808-4669-821d-812769517ff8","name":"Production VLAN","description":"For hosting our Production Cloud Servers"}`,
 			requestBody,
 		)
@@ -145,7 +145,7 @@ func TestClient_DeleteVLAN_Success(test *testing.T) {
 			test.Fatal("Failed to read request body: ", err)
 		}
 
-		expect.equalsString("Request.Body",
+		expect.EqualsString("Request.Body",
 			`{"id":"0e56433f-d808-4669-821d-812769517ff8"}`,
 			requestBody,
 		)
@@ -188,12 +188,12 @@ var deployVLANTestRequest = `
 func verifyDeployVLANTestRequest(test *testing.T, request *DeployVLAN) {
 	expect := expect(test)
 
-	expect.notNil("DeployVLAN", request)
-	expect.equalsString("DeployVLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", request.VLANID)
-	expect.equalsString("DeployVLAN.Name", "Production VLAN", request.Name)
-	expect.equalsString("DeployVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
-	expect.equalsString("DeployVLAN.IPv4BaseAddress", "10.0.3.0", request.IPv4BaseAddress)
-	expect.equalsInt("DeployVLAN.IPv4PrefixSize", 23, request.IPv4PrefixSize)
+	expect.NotNil("DeployVLAN", request)
+	expect.EqualsString("DeployVLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", request.VLANID)
+	expect.EqualsString("DeployVLAN.Name", "Production VLAN", request.Name)
+	expect.EqualsString("DeployVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
+	expect.EqualsString("DeployVLAN.IPv4BaseAddress", "10.0.3.0", request.IPv4BaseAddress)
+	expect.EqualsInt("DeployVLAN.IPv4PrefixSize", 23, request.IPv4PrefixSize)
 }
 
 var editVLANTestRequest = `
@@ -207,12 +207,12 @@ var editVLANTestRequest = `
 func verifyEditVLANTestRequest(test *testing.T, request *EditVLAN) {
 	expect := expect(test)
 
-	expect.notNil("EditVLAN", request)
-	expect.equalsString("EditVLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", request.ID)
-	expect.notNil("EditVLAN.Name", request.Name)
-	expect.equalsString("EditVLAN.Name", "Production VLAN", *request.Name)
-	expect.notNil("EditVLAN.Description", request.Description)
-	expect.equalsString("EditVLAN.Description", "For hosting our Production Cloud Servers", *request.Description)
+	expect.NotNil("EditVLAN", request)
+	expect.EqualsString("EditVLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", request.ID)
+	expect.NotNil("EditVLAN.Name", request.Name)
+	expect.EqualsString("EditVLAN.Name", "Production VLAN", *request.Name)
+	expect.NotNil("EditVLAN.Description", request.Description)
+	expect.EqualsString("EditVLAN.Description", "For hosting our Production Cloud Servers", *request.Description)
 }
 
 /*
@@ -247,19 +247,19 @@ var getVLANTestResponse = `
 func verifyGetVLANTestResponse(test *testing.T, vlan *VLAN) {
 	expect := expect(test)
 
-	expect.notNil("VLAN", vlan)
-	expect.equalsString("VLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", vlan.ID)
-	expect.equalsString("VLAN.Name", "Production VLAN", vlan.Name)
-	expect.equalsString("VLAN.Description", "For hosting our Production Cloud Servers", vlan.Description)
-	expect.equalsString("VLAN.IPv4Range.BaseAddress", "10.0.3.0", vlan.IPv4Range.BaseAddress)
-	expect.equalsInt("VLAN.IPv4Range.PrefixSize", 24, vlan.IPv4Range.PrefixSize)
-	expect.equalsString("VLAN.IPv4GatewayAddress", "10.0.3.1", vlan.IPv4GatewayAddress)
-	expect.equalsString("VLAN.IPv6Range.BaseAddress", "2607:f480:1111:1153:0:0:0:0", vlan.IPv6Range.BaseAddress)
-	expect.equalsInt("VLAN.IPv6Range.PrefixSize", 64, vlan.IPv6Range.PrefixSize)
-	expect.equalsString("VLAN.IPv6GatewayAddress", "2607:f480:1111:1153:0:0:0:1", vlan.IPv6GatewayAddress)
-	expect.equalsString("VLAN.CreateTime", "2016-06-09T07:21:34.000Z", vlan.CreateTime)
-	expect.equalsString("VLAN.State", "NORMAL", vlan.State)
-	expect.equalsString("VLAN.DataCenterID", "NA9", vlan.DataCenterID)
+	expect.NotNil("VLAN", vlan)
+	expect.EqualsString("VLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", vlan.ID)
+	expect.EqualsString("VLAN.Name", "Production VLAN", vlan.Name)
+	expect.EqualsString("VLAN.Description", "For hosting our Production Cloud Servers", vlan.Description)
+	expect.EqualsString("VLAN.IPv4Range.BaseAddress", "10.0.3.0", vlan.IPv4Range.BaseAddress)
+	expect.EqualsInt("VLAN.IPv4Range.PrefixSize", 24, vlan.IPv4Range.PrefixSize)
+	expect.EqualsString("VLAN.IPv4GatewayAddress", "10.0.3.1", vlan.IPv4GatewayAddress)
+	expect.EqualsString("VLAN.IPv6Range.BaseAddress", "2607:f480:1111:1153:0:0:0:0", vlan.IPv6Range.BaseAddress)
+	expect.EqualsInt("VLAN.IPv6Range.PrefixSize", 64, vlan.IPv6Range.PrefixSize)
+	expect.EqualsString("VLAN.IPv6GatewayAddress", "2607:f480:1111:1153:0:0:0:1", vlan.IPv6GatewayAddress)
+	expect.EqualsString("VLAN.CreateTime", "2016-06-09T07:21:34.000Z", vlan.CreateTime)
+	expect.EqualsString("VLAN.State", "NORMAL", vlan.State)
+	expect.EqualsString("VLAN.DataCenterID", "NA9", vlan.DataCenterID)
 }
 
 var listVLANsTestResponse = `
@@ -298,29 +298,29 @@ var listVLANsTestResponse = `
 func verifyListVLANsTestResponse(test *testing.T, vlans *VLANs) {
 	expect := expect(test)
 
-	expect.notNil("VLANs", vlans)
+	expect.NotNil("VLANs", vlans)
 
-	expect.equalsInt("VLANs.PageCount", 1, vlans.PageCount)
-	expect.equalsInt("VLANs.VLANs size", 1, len(vlans.VLANs))
+	expect.EqualsInt("VLANs.PageCount", 1, vlans.PageCount)
+	expect.EqualsInt("VLANs.VLANs size", 1, len(vlans.VLANs))
 
 	vlan1 := vlans.VLANs[0]
-	expect.equalsString("VLANs.VLANs[0].ID", "0e56433f-d808-4669-821d-812769517ff8", vlan1.ID)
-	expect.equalsString("VLANs.VLANs[0].Name", "Production VLAN", vlan1.Name)
-	expect.equalsString("VLANs.VLANs[0].Description", "For hosting our Production Cloud Servers", vlan1.Description)
-	expect.equalsString("VLANs.VLANs[0].DataCenterID", "NA9", vlan1.DataCenterID)
+	expect.EqualsString("VLANs.VLANs[0].ID", "0e56433f-d808-4669-821d-812769517ff8", vlan1.ID)
+	expect.EqualsString("VLANs.VLANs[0].Name", "Production VLAN", vlan1.Name)
+	expect.EqualsString("VLANs.VLANs[0].Description", "For hosting our Production Cloud Servers", vlan1.Description)
+	expect.EqualsString("VLANs.VLANs[0].DataCenterID", "NA9", vlan1.DataCenterID)
 
-	expect.equalsString("VLANs.VLANs[0].VLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", vlan1.VLAN.ID)
-	expect.equalsString("VLANs.VLANs[0].VLAN.Name", "Production Network Domain", vlan1.VLAN.Name)
+	expect.EqualsString("VLANs.VLANs[0].VLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", vlan1.VLAN.ID)
+	expect.EqualsString("VLANs.VLANs[0].VLAN.Name", "Production Network Domain", vlan1.VLAN.Name)
 
-	expect.equalsString("VLANs.VLANs[0].IPv4Range.BaseAddress", "10.0.3.0", vlan1.IPv4Range.BaseAddress)
-	expect.equalsInt("VLANs.VLANs[0].IPv4Range.PrefixSize", 24, vlan1.IPv4Range.PrefixSize)
-	expect.equalsString("VLANs.VLANs[0].IPv4GatewayAddress", "10.0.3.1", vlan1.IPv4GatewayAddress)
+	expect.EqualsString("VLANs.VLANs[0].IPv4Range.BaseAddress", "10.0.3.0", vlan1.IPv4Range.BaseAddress)
+	expect.EqualsInt("VLANs.VLANs[0].IPv4Range.PrefixSize", 24, vlan1.IPv4Range.PrefixSize)
+	expect.EqualsString("VLANs.VLANs[0].IPv4GatewayAddress", "10.0.3.1", vlan1.IPv4GatewayAddress)
 
-	expect.equalsString("VLANs.VLANs[0].IPv6Range.BaseAddress", "2607:f480:1111:1153:0:0:0:0", vlan1.IPv6Range.BaseAddress)
-	expect.equalsInt("VLANs.VLANs[0].IPv6Range.PrefixSize", 64, vlan1.IPv6Range.PrefixSize)
-	expect.equalsString("VLANs.VLANs[0].IPv6GatewayAddress", "2607:f480:1111:1153:0:0:0:1", vlan1.IPv6GatewayAddress)
+	expect.EqualsString("VLANs.VLANs[0].IPv6Range.BaseAddress", "2607:f480:1111:1153:0:0:0:0", vlan1.IPv6Range.BaseAddress)
+	expect.EqualsInt("VLANs.VLANs[0].IPv6Range.PrefixSize", 64, vlan1.IPv6Range.PrefixSize)
+	expect.EqualsString("VLANs.VLANs[0].IPv6GatewayAddress", "2607:f480:1111:1153:0:0:0:1", vlan1.IPv6GatewayAddress)
 
-	expect.equalsString("VLANs.VLANs[0].CreateTime", "2016-06-09T07:21:34.000Z", vlan1.CreateTime)
+	expect.EqualsString("VLANs.VLANs[0].CreateTime", "2016-06-09T07:21:34.000Z", vlan1.CreateTime)
 }
 
 var deployVLANTestResponse = `
@@ -343,11 +343,11 @@ var deployVLANTestResponse = `
 func verifyDeployVLANTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "DEPLOY_VLAN", response.Operation)
-	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
-	expect.equalsString("Response.Message", "Request to deploy VLAN 'Production VLAN' has been accepted and is being processed.", response.Message)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "DEPLOY_VLAN", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to deploy VLAN 'Production VLAN' has been accepted and is being processed.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
 var editVLANTestResponse = `
@@ -365,10 +365,10 @@ var editVLANTestResponse = `
 func verifyEditVLANTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "EDIT_VLAN", response.Operation)
-	expect.equalsString("Response.ResponseCode", ResponseCodeOK, response.ResponseCode)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "EDIT_VLAN", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeOK, response.ResponseCode)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
 var deleteVLANTestResponse = `
@@ -386,9 +386,9 @@ var deleteVLANTestResponse = `
 func verifyDeleteVLANTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "DELETE_VLAN", response.Operation)
-	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
-	expect.equalsString("Response.Message", "Request to VLAN (Id: 0e56433f-d808-4669-821d-812769517ff8) has been accepted and is being processed.", response.Message)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "DELETE_VLAN", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to VLAN (Id: 0e56433f-d808-4669-821d-812769517ff8) has been accepted and is being processed.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }

@@ -69,7 +69,7 @@ func TestClient_DeployServer_Success(test *testing.T) {
 		test.Fatal(err)
 	}
 
-	expect.equalsString("serverID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", serverID)
+	expect.EqualsString("serverID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", serverID)
 }
 
 // Delete Server (successful).
@@ -82,7 +82,7 @@ func TestClient_DeleteServer_Success(test *testing.T) {
 			test.Fatal("Failed to read request body: ", err)
 		}
 
-		expect.equalsString("Request.Body",
+		expect.EqualsString("Request.Body",
 			`{"id":"5b00a2ab-c665-4cd6-8291-0b931374fb3d"}`,
 			requestBody,
 		)
@@ -156,13 +156,13 @@ var deployServerTestRequest = `
 func verifyDeployServerRequest(test *testing.T, deploymentConfiguration *ServerDeploymentConfiguration) {
 	expect := expect(test)
 
-	expect.notNil("ServerDeploymentConfiguration", deploymentConfiguration)
-	expect.equalsString("ServerDeploymentConfiguration.Name", "Production FTPS Server", deploymentConfiguration.Name)
-	expect.equalsString("ServerDeploymentConfiguration.Description", "This is the main FTPS Server", deploymentConfiguration.Description)
-	expect.equalsString("ServerDeploymentConfiguration.ImageID", "02250336-de2b-4e99-ab96-78511b7f8f4b", deploymentConfiguration.ImageID)
-	expect.equalsString("ServerDeploymentConfiguration.AdministratorPassword", "password", deploymentConfiguration.AdministratorPassword)
+	expect.NotNil("ServerDeploymentConfiguration", deploymentConfiguration)
+	expect.EqualsString("ServerDeploymentConfiguration.Name", "Production FTPS Server", deploymentConfiguration.Name)
+	expect.EqualsString("ServerDeploymentConfiguration.Description", "This is the main FTPS Server", deploymentConfiguration.Description)
+	expect.EqualsString("ServerDeploymentConfiguration.ImageID", "02250336-de2b-4e99-ab96-78511b7f8f4b", deploymentConfiguration.ImageID)
+	expect.EqualsString("ServerDeploymentConfiguration.AdministratorPassword", "password", deploymentConfiguration.AdministratorPassword)
 
-	expect.equalsInt("ServerDeploymentConfiguration.CPU.Count", 2, deploymentConfiguration.CPU.Count)
+	expect.EqualsInt("ServerDeploymentConfiguration.CPU.Count", 2, deploymentConfiguration.CPU.Count)
 }
 
 const notifyServerIPAddressChangeRequest = `
@@ -176,14 +176,14 @@ const notifyServerIPAddressChangeRequest = `
 func verifyNotifyServerIPAddressChangeRequest(test *testing.T, request *NotifyServerIPAddressChange) {
 	expect := expect(test)
 
-	expect.notNil("NotifyServerIPAddressChange", request)
-	expect.equalsString("NotifyServerIPAddressChange.AdapterID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", request.AdapterID)
+	expect.NotNil("NotifyServerIPAddressChange", request)
+	expect.EqualsString("NotifyServerIPAddressChange.AdapterID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", request.AdapterID)
 
-	expect.notNil("NotifyServerIPAddressChange.IPv4Address", request.IPv4Address)
-	expect.equalsString("NotifyServerIPAddressChange.IPv4Address", "10.0.1.5", *request.IPv4Address)
+	expect.NotNil("NotifyServerIPAddressChange.IPv4Address", request.IPv4Address)
+	expect.EqualsString("NotifyServerIPAddressChange.IPv4Address", "10.0.1.5", *request.IPv4Address)
 
-	expect.notNil("NotifyServerIPAddressChange.IPv4Address", request.IPv6Address)
-	expect.equalsString("NotifyServerIPAddressChange.IPv6Address", "fdfe::5a55:caff:fefa::1:9089", *request.IPv6Address)
+	expect.NotNil("NotifyServerIPAddressChange.IPv4Address", request.IPv6Address)
+	expect.EqualsString("NotifyServerIPAddressChange.IPv6Address", "fdfe::5a55:caff:fefa::1:9089", *request.IPv6Address)
 }
 
 const reconfigureServerRequest = `
@@ -199,14 +199,14 @@ const reconfigureServerRequest = `
 func verifyReconfigureServerRequest(test *testing.T, request *ReconfigureServer) {
 	expect := expect(test)
 
-	expect.notNil("ReconfigureServer", request)
-	expect.equalsString("ReconfigureServer.ServerID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", request.ServerID)
+	expect.NotNil("ReconfigureServer", request)
+	expect.EqualsString("ReconfigureServer.ServerID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", request.ServerID)
 
-	expect.notNil("ReconfigureServer.MemoryGB", request.MemoryGB)
-	expect.equalsInt("ReconfigureServer.MemoryGB", 8, *request.MemoryGB)
+	expect.NotNil("ReconfigureServer.MemoryGB", request.MemoryGB)
+	expect.EqualsInt("ReconfigureServer.MemoryGB", 8, *request.MemoryGB)
 
-	expect.notNil("ReconfigureServer.CPUCount", request.CPUCount)
-	expect.equalsInt("ReconfigureServer.CPUCount", 5, *request.CPUCount)
+	expect.NotNil("ReconfigureServer.CPUCount", request.CPUCount)
+	expect.EqualsInt("ReconfigureServer.CPUCount", 5, *request.CPUCount)
 }
 
 /*
@@ -288,10 +288,10 @@ const getServerTestResponse = `
 func verifyGetServerTestResponse(test *testing.T, server *Server) {
 	expect := expect(test)
 
-	expect.notNil("Server", server)
-	expect.equalsString("Server.Name", "Production Web Server", server.Name)
+	expect.NotNil("Server", server)
+	expect.EqualsString("Server.Name", "Production Web Server", server.Name)
 	// TODO: Verify the rest of these fields.
-	expect.equalsString("Server.State", ResourceStatusPendingChange, server.State)
+	expect.EqualsString("Server.State", ResourceStatusPendingChange, server.State)
 }
 
 const deployServerTestResponse = `
@@ -314,11 +314,11 @@ const deployServerTestResponse = `
 func verifyDeployServerTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "DEPLOY_SERVER", response.Operation)
-	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
-	expect.equalsString("Response.Message", "Request to deploy Server 'Production FTPS Server' has been accepted and is being processed.", response.Message)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "DEPLOY_SERVER", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to deploy Server 'Production FTPS Server' has been accepted and is being processed.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
 var deleteServerTestResponse = `
@@ -336,9 +336,9 @@ var deleteServerTestResponse = `
 func verifyDeleteServerTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "DELETE_SERVER", response.Operation)
-	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
-	expect.equalsString("Response.Message", "Request to Delete Server (Id:5b00a2ab-c665-4cd6-8291-0b931374fb3d) has been accepted and is being processed.", response.Message)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "DELETE_SERVER", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to Delete Server (Id:5b00a2ab-c665-4cd6-8291-0b931374fb3d) has been accepted and is being processed.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }

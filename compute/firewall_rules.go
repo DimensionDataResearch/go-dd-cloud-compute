@@ -197,8 +197,8 @@ type FirewallRulePlacement struct {
 }
 
 type editFirewallRule struct {
-	ID string `json:"id"`
-	Enabled bool `json:"enabled"`
+	ID      string `json:"id"`
+	Enabled bool   `json:"enabled"`
 }
 
 type deleteFirewallRule struct {
@@ -327,7 +327,7 @@ func (client *Client) EditFirewallRule(id string, enabled bool) error {
 
 	requestURI := fmt.Sprintf("%s/network/editFirewallRule", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &editFirewallRule{
-		ID:   id,
+		ID:      id,
 		Enabled: enabled,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)

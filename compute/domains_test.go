@@ -17,7 +17,7 @@ func TestClient_DeployNetworkDomain_Success(test *testing.T) {
 			test.Fatal("Failed to read request body: ", err)
 		}
 
-		expect.equalsString("Request.Body",
+		expect.EqualsString("Request.Body",
 			`{"name":"A Network Domain","description":"This is a network domain","type":"ESSENTIALS","datacenterId":"AU9"}`,
 			requestBody,
 		)
@@ -45,7 +45,7 @@ func TestClient_DeployNetworkDomain_Success(test *testing.T) {
 		test.Fatal(err)
 	}
 
-	expect.equalsString("NetworkDomainID", "f14a871f-9a25-470c-aef8-51e13202e1aa", networkDomainID)
+	expect.EqualsString("NetworkDomainID", "f14a871f-9a25-470c-aef8-51e13202e1aa", networkDomainID)
 }
 
 // Edit network domain (successful).
@@ -58,7 +58,7 @@ func TestClient_EditNetworkDomain_Success(test *testing.T) {
 			test.Fatal("Failed to read request body: ", err)
 		}
 
-		expect.equalsString("Request.Body",
+		expect.EqualsString("Request.Body",
 			`{"id":"f14a871f-9a25-470c-aef8-51e13202e1aa","name":"A Network Domain","description":"This is a network domain","type":"ESSENTIALS"}`,
 			requestBody,
 		)
@@ -98,7 +98,7 @@ func TestClient_DeleteNetworkDomain_Success(test *testing.T) {
 			test.Fatal("Failed to read request body: ", err)
 		}
 
-		expect.equalsString("Request.Body",
+		expect.EqualsString("Request.Body",
 			`{"id":"f14a871f-9a25-470c-aef8-51e13202e1aa"}`,
 			requestBody,
 		)
@@ -210,16 +210,16 @@ var listNetworkDomainsTestResponse = `
 func verifyListNetworkDomainsTestResponse(test *testing.T, networkDomains *NetworkDomains) {
 	expect := expect(test)
 
-	expect.notNil("NetworkDomains", networkDomains)
+	expect.NotNil("NetworkDomains", networkDomains)
 
-	expect.equalsInt("NetworkDomains.PageCount", 2, networkDomains.PageCount)
-	expect.equalsInt("NetworkDomains.Domains size", 2, len(networkDomains.Domains))
+	expect.EqualsInt("NetworkDomains.PageCount", 2, networkDomains.PageCount)
+	expect.EqualsInt("NetworkDomains.Domains size", 2, len(networkDomains.Domains))
 
 	domain1 := networkDomains.Domains[0]
-	expect.equalsString("NetworkDomains.Domains[0].Name", "Domain 1", domain1.Name)
+	expect.EqualsString("NetworkDomains.Domains[0].Name", "Domain 1", domain1.Name)
 
 	domain2 := networkDomains.Domains[1]
-	expect.equalsString("NetworkDomains.Domains[1].Name", "Domain 2", domain2.Name)
+	expect.EqualsString("NetworkDomains.Domains[1].Name", "Domain 2", domain2.Name)
 }
 
 var networkDomainTestResponse = `
@@ -238,13 +238,13 @@ var networkDomainTestResponse = `
 func verifyNetworkDomainTestResponse(test *testing.T, networkDomain *NetworkDomain) {
 	expect := expect(test)
 
-	expect.notNil("NetworkDomain", networkDomain)
-	expect.equalsString("NetworkDomain.ID", "8cdfd607-f429-4df6-9352-162cfc0891be", networkDomain.ID)
-	expect.equalsString("NetworkDomain.Name", "Development Network Domain", networkDomain.Name)
-	expect.equalsString("NetworkDomain.Type", "ESSENTIALS", networkDomain.Type)
-	expect.equalsString("NetworkDomain.State", "NORMAL", networkDomain.State)
-	expect.equalsString("NetworkDomain.NatIPv4Address", "165.180.9.252", networkDomain.NatIPv4Address)
-	expect.equalsString("NetworkDomain.DatacenterID", "NA9", networkDomain.DatacenterID)
+	expect.NotNil("NetworkDomain", networkDomain)
+	expect.EqualsString("NetworkDomain.ID", "8cdfd607-f429-4df6-9352-162cfc0891be", networkDomain.ID)
+	expect.EqualsString("NetworkDomain.Name", "Development Network Domain", networkDomain.Name)
+	expect.EqualsString("NetworkDomain.Type", "ESSENTIALS", networkDomain.Type)
+	expect.EqualsString("NetworkDomain.State", "NORMAL", networkDomain.State)
+	expect.EqualsString("NetworkDomain.NatIPv4Address", "165.180.9.252", networkDomain.NatIPv4Address)
+	expect.EqualsString("NetworkDomain.DatacenterID", "NA9", networkDomain.DatacenterID)
 }
 
 var deployNetworkDomainTestResponse = `
@@ -267,14 +267,14 @@ var deployNetworkDomainTestResponse = `
 func verifyDeployNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "DEPLOY_NETWORK_DOMAIN", response.Operation)
-	expect.equalsString("Response.ResponseCode", "IN_PROGRESS", response.ResponseCode)
-	expect.equalsString("Response.Message", "Request to deploy Network Domain 'A Network Domain' has been accepted and is being processed.", response.Message)
-	expect.equalsInt("Response.FieldMessages size", 1, len(response.FieldMessages))
-	expect.equalsString("Response.FieldMessages[0].Name", "networkDomainId", response.FieldMessages[0].FieldName)
-	expect.equalsString("Response.FieldMessages[0].Message", "f14a871f-9a25-470c-aef8-51e13202e1aa", response.FieldMessages[0].Message)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "DEPLOY_NETWORK_DOMAIN", response.Operation)
+	expect.EqualsString("Response.ResponseCode", "IN_PROGRESS", response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to deploy Network Domain 'A Network Domain' has been accepted and is being processed.", response.Message)
+	expect.EqualsInt("Response.FieldMessages size", 1, len(response.FieldMessages))
+	expect.EqualsString("Response.FieldMessages[0].Name", "networkDomainId", response.FieldMessages[0].FieldName)
+	expect.EqualsString("Response.FieldMessages[0].Message", "f14a871f-9a25-470c-aef8-51e13202e1aa", response.FieldMessages[0].Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
 var editNetworkDomainTestResponse = `
@@ -292,11 +292,11 @@ var editNetworkDomainTestResponse = `
 func verifyEditNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "EDIT_NETWORK_DOMAIN", response.Operation)
-	expect.equalsString("Response.ResponseCode", ResponseCodeOK, response.ResponseCode)
-	expect.equalsString("Response.Message", "Network Domain 'Development Network Domain' was edited successfully.", response.Message)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "EDIT_NETWORK_DOMAIN", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeOK, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Network Domain 'Development Network Domain' was edited successfully.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
 var deleteNetworkDomainTestResponse = `
@@ -314,9 +314,9 @@ var deleteNetworkDomainTestResponse = `
 func verifyDeleteNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
 	expect := expect(test)
 
-	expect.notNil("APIResponse", response)
-	expect.equalsString("Response.Operation", "DELETE_NETWORK_DOMAIN", response.Operation)
-	expect.equalsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
-	expect.equalsString("Response.Message", "Request to Delete Network Domain (Id: 8cdfd607-f429-4df6-9352-162cfc0891be) has been accepted and is being processed.", response.Message)
-	expect.equalsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "DELETE_NETWORK_DOMAIN", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to Delete Network Domain (Id: 8cdfd607-f429-4df6-9352-162cfc0891be) has been accepted and is being processed.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }

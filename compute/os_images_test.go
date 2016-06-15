@@ -77,28 +77,28 @@ var findOSImageTestResponse = `
 func verifyFindOSImageTestResponse(test *testing.T, image *OSImage) {
 	expect := expect(test)
 
-	expect.notNil("OSImage", image)
-	expect.equalsString("OSImage.ID", "7e68acb4-bbb8-4206-b30b-0e6c878056bc", image.ID)
-	expect.equalsString("OSImage.Name", "CentOS 7 64-bit 2 CPU", image.Name)
-	expect.equalsString("OSImage.Description", "CentOS Release 7.1 64-bit", image.Description)
+	expect.NotNil("OSImage", image)
+	expect.EqualsString("OSImage.ID", "7e68acb4-bbb8-4206-b30b-0e6c878056bc", image.ID)
+	expect.EqualsString("OSImage.Name", "CentOS 7 64-bit 2 CPU", image.Name)
+	expect.EqualsString("OSImage.Description", "CentOS Release 7.1 64-bit", image.Description)
 
-	expect.equalsString("OSImage.OperatingSystem.ID", "CENTOS764", image.OperatingSystem.ID)
-	expect.equalsString("OSImage.OperatingSystem.DisplayName", "CENTOS7/64", image.OperatingSystem.DisplayName)
-	expect.equalsString("OSImage.OperatingSystem.Family", "UNIX", image.OperatingSystem.Family)
+	expect.EqualsString("OSImage.OperatingSystem.ID", "CENTOS764", image.OperatingSystem.ID)
+	expect.EqualsString("OSImage.OperatingSystem.DisplayName", "CENTOS7/64", image.OperatingSystem.DisplayName)
+	expect.EqualsString("OSImage.OperatingSystem.Family", "UNIX", image.OperatingSystem.Family)
 
-	expect.equalsInt("OSImage.CPU.Count", 2, image.CPU.Count)
-	expect.equalsString("OSImage.CPU.Speed", "STANDARD", image.CPU.Speed)
-	expect.equalsInt("OSImage.CPU.CoresPerSocket", 1, image.CPU.CoresPerSocket)
+	expect.EqualsInt("OSImage.CPU.Count", 2, image.CPU.Count)
+	expect.EqualsString("OSImage.CPU.Speed", "STANDARD", image.CPU.Speed)
+	expect.EqualsInt("OSImage.CPU.CoresPerSocket", 1, image.CPU.CoresPerSocket)
 
-	expect.notNil("OSImage.Disks", image.Disks)
+	expect.NotNil("OSImage.Disks", image.Disks)
 
 	disk1 := image.Disks[0]
-	expect.notNil("OSImage.Disks[0].ID", disk1.ID)
-	expect.equalsString("OSImage.Disks[0].ID", "55f6780c-bcc6-49d5-8e9b-26c26b6381fa", *disk1.ID)
-	expect.equalsInt("OSImage.Disks[0].SCSIUnitID", 0, disk1.SCSIUnitID)
-	expect.equalsInt("OSImage.Disks[0].SizeGB", 10, disk1.SizeGB)
-	expect.equalsString("OSImage.Disks[0].Speed", "STANDARD", disk1.Speed)
+	expect.NotNil("OSImage.Disks[0].ID", disk1.ID)
+	expect.EqualsString("OSImage.Disks[0].ID", "55f6780c-bcc6-49d5-8e9b-26c26b6381fa", *disk1.ID)
+	expect.EqualsInt("OSImage.Disks[0].SCSIUnitID", 0, disk1.SCSIUnitID)
+	expect.EqualsInt("OSImage.Disks[0].SizeGB", 10, disk1.SizeGB)
+	expect.EqualsString("OSImage.Disks[0].Speed", "STANDARD", disk1.Speed)
 
-	expect.equalsString("OSImage.CreateTime", "2015-10-26T10:34:40.000Z", image.CreateTime)
-	expect.equalsString("OSImage.OSImageKey", "T-CENT-7-64-2-4-10", image.OSImageKey)
+	expect.EqualsString("OSImage.CreateTime", "2015-10-26T10:34:40.000Z", image.CreateTime)
+	expect.EqualsString("OSImage.OSImageKey", "T-CENT-7-64-2-4-10", image.OSImageKey)
 }

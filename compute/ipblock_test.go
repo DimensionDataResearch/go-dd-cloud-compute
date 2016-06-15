@@ -52,7 +52,7 @@ func TestClient_AddPublicIPBlock_Success(test *testing.T) {
 		test.Fatal(err)
 	}
 
-	expect(test).equalsString("PublicIPBlockID", "4487241a-f0ca-11e3-9315-d4bed9b167ba", blockID)
+	expect(test).EqualsString("PublicIPBlockID", "4487241a-f0ca-11e3-9315-d4bed9b167ba", blockID)
 }
 
 // List reserved public IPv4 addresses (successful).
@@ -98,10 +98,10 @@ const getPublicIPBlockResponse = `
 func verifyGetPublicIPBlockResponse(test *testing.T, block *PublicIPBlock) {
 	expect := expect(test)
 
-	expect.notNil("PublicIPBlock", block)
+	expect.NotNil("PublicIPBlock", block)
 
-	expect.equalsString("PublicIPBlock.ID", "cacc028a-7f12-11e4-a91c-0030487e0302", block.ID)
-	expect.equalsString("PublicIPBlock.NetworkDomainID", "802abc9f-45a7-4efb-9d5a-810082368708", block.NetworkDomainID)
+	expect.EqualsString("PublicIPBlock.ID", "cacc028a-7f12-11e4-a91c-0030487e0302", block.ID)
+	expect.EqualsString("PublicIPBlock.NetworkDomainID", "802abc9f-45a7-4efb-9d5a-810082368708", block.NetworkDomainID)
 }
 
 const addPublicIPBlockResponse = `
@@ -111,7 +111,7 @@ const addPublicIPBlockResponse = `
 		"message": "Public IPv4 Address Block has been added successfully to Network Domain '484174a2-ae74-4658-9e56-50fc90e086cf'.",
 		"info": [
 			{
-				"name": "publicIpBlockId",
+				"name": "ipBlockId",
 				"value": "4487241a-f0ca-11e3-9315-d4bed9b167ba"
 			}
 		],
@@ -141,14 +141,14 @@ const listReservedPublicIPAddressesResponse = `
 func verifyListReservedPublicIPAddressesResponse(test *testing.T, reservedIPs *ReservedPublicIPs) {
 	expect := expect(test)
 
-	expect.notNil("ReservedPublicIPs", reservedIPs)
+	expect.NotNil("ReservedPublicIPs", reservedIPs)
 
-	expect.equalsInt("ReservedPublicIPs.PageCount", 1, reservedIPs.PageCount)
-	expect.equalsInt("ReservedPublicIPs.IPs size", 1, len(reservedIPs.IPs))
+	expect.EqualsInt("ReservedPublicIPs.PageCount", 1, reservedIPs.PageCount)
+	expect.EqualsInt("ReservedPublicIPs.IPs size", 1, len(reservedIPs.IPs))
 
 	ip1 := reservedIPs.IPs[0]
-	expect.equalsString("ReservedPublicIPs.IPs[0].Address", "165.180.12.12", ip1.Address)
-	expect.equalsString("ReservedPublicIPs.IPs[0].IPBlockID", "cacc028a-7f12-11e4-a91c-0030487e0302", ip1.IPBlockID)
-	expect.equalsString("ReservedPublicIPs.IPs[0].NetworkDomainID", "802abc9f-45a7-4efb-9d5a-810082368708", ip1.NetworkDomainID)
-	expect.equalsString("ReservedPublicIPs.IPs[0].DataCenterID", "NA9", ip1.DataCenterID)
+	expect.EqualsString("ReservedPublicIPs.IPs[0].Address", "165.180.12.12", ip1.Address)
+	expect.EqualsString("ReservedPublicIPs.IPs[0].IPBlockID", "cacc028a-7f12-11e4-a91c-0030487e0302", ip1.IPBlockID)
+	expect.EqualsString("ReservedPublicIPs.IPs[0].NetworkDomainID", "802abc9f-45a7-4efb-9d5a-810082368708", ip1.NetworkDomainID)
+	expect.EqualsString("ReservedPublicIPs.IPs[0].DataCenterID", "NA9", ip1.DataCenterID)
 }
