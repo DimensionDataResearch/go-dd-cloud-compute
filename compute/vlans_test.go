@@ -309,8 +309,8 @@ func verifyListVLANsTestResponse(test *testing.T, vlans *VLANs) {
 	expect.EqualsString("VLANs.VLANs[0].Description", "For hosting our Production Cloud Servers", vlan1.Description)
 	expect.EqualsString("VLANs.VLANs[0].DataCenterID", "NA9", vlan1.DataCenterID)
 
-	expect.EqualsString("VLANs.VLANs[0].VLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", vlan1.VLAN.ID)
-	expect.EqualsString("VLANs.VLANs[0].VLAN.Name", "Production Network Domain", vlan1.VLAN.Name)
+	expect.EqualsString("VLANs.VLANs[0].NetworkDomain.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", vlan1.NetworkDomain.ID)
+	expect.EqualsString("VLANs.VLANs[0].NetworkDomain.Name", "Production Network Domain", vlan1.NetworkDomain.Name)
 
 	expect.EqualsString("VLANs.VLANs[0].IPv4Range.BaseAddress", "10.0.3.0", vlan1.IPv4Range.BaseAddress)
 	expect.EqualsInt("VLANs.VLANs[0].IPv4Range.PrefixSize", 24, vlan1.IPv4Range.PrefixSize)
