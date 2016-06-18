@@ -173,7 +173,7 @@ const notifyServerIPAddressChangeRequest = `
 	}
 `
 
-func verifyNotifyServerIPAddressChangeRequest(test *testing.T, request *NotifyServerIPAddressChange) {
+func verifyNotifyServerIPAddressChangeRequest(test *testing.T, request *notifyServerIPAddressChange) {
 	expect := expect(test)
 
 	expect.NotNil("NotifyServerIPAddressChange", request)
@@ -196,7 +196,7 @@ const reconfigureServerRequest = `
 	}
 `
 
-func verifyReconfigureServerRequest(test *testing.T, request *ReconfigureServer) {
+func verifyReconfigureServerRequest(test *testing.T, request *reconfigureServer) {
 	expect := expect(test)
 
 	expect.NotNil("ReconfigureServer", request)
