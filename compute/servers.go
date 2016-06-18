@@ -18,6 +18,8 @@ type Server struct {
 	Network         VirtualMachineNetwork `json:"networkInfo"`
 	SourceImageID   string                `json:"sourceImageId"`
 	State           string                `json:"state"`
+	Deployed        bool                  `json:"deployed"`
+	Started         bool                  `json:"started"`
 }
 
 // GetID returns the server's Id.
