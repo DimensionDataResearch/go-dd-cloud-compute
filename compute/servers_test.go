@@ -72,6 +72,40 @@ func TestClient_DeployServer_Success(test *testing.T) {
 	expect.EqualsString("serverID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", serverID)
 }
 
+// Add disk to server (successful).
+func TestClient_AddServerDisk_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody := &addDiskToServer{}
+		err := readRequestBodyAsJSON(request, requestBody)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		verifyAddDiskToServerRequest(test, requestBody)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, addDiskToServerTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	diskID, err := client.AddDiskToServer("7b62aae5-bdbe-4595-b58d-c78f95db2a7f", 4, 20, "ECONOMY")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	expect.EqualsString("diskID", "9e6b496d-5261-4542-91aa-b50c7f569c54", diskID)
+}
+
 // Delete Server (successful).
 func TestClient_DeleteServer_Success(test *testing.T) {
 	expect := expect(test)
@@ -163,6 +197,24 @@ func verifyDeployServerRequest(test *testing.T, deploymentConfiguration *ServerD
 	expect.EqualsString("ServerDeploymentConfiguration.AdministratorPassword", "password", deploymentConfiguration.AdministratorPassword)
 
 	expect.EqualsInt("ServerDeploymentConfiguration.CPU.Count", 2, deploymentConfiguration.CPU.Count)
+}
+
+var addDiskToServerTestRequest = `
+	{
+		"id": "7b62aae5-bdbe-4595-b58d-c78f95db2a7f",
+		"sizeGb": 20,
+		"speed": "ECONOMY",
+		"scsiId": 4
+	}
+`
+
+func verifyAddDiskToServerRequest(test *testing.T, request *addDiskToServer) {
+	expect := expect(test)
+
+	expect.EqualsString("addDiskToServer.ServerID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", request.ServerID)
+	expect.EqualsString("addDiskToServer.Speed", "ECONOMY", request.Speed)
+	expect.EqualsInt("addDiskToServer.SizeGB", 20, request.SizeGB)
+	expect.EqualsInt("addDiskToServer.SCSIUnitID", 4, request.SCSIUnitID)
 }
 
 const notifyServerIPAddressChangeRequest = `
@@ -318,6 +370,39 @@ func verifyDeployServerTestResponse(test *testing.T, response *APIResponse) {
 	expect.EqualsString("Response.Operation", "DEPLOY_SERVER", response.Operation)
 	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
 	expect.EqualsString("Response.Message", "Request to deploy Server 'Production FTPS Server' has been accepted and is being processed.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+const addDiskToServerTestResponse = `
+	{
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad",
+		"operation": "ADD_DISK",
+		"responseCode": "IN_PROGRESS",
+		"message": "The request to add 20GB Standard Speed Disk to Server 'SERVER-1' has been accepted and is being processed.",
+		"info": [
+			{
+				"name": "diskId",
+				"value": "9e6b496d-5261-4542-91aa-b50c7f569c54"
+			},
+			{
+				"name": "scsiId",
+				"value": "4"
+			},
+			{
+				"name": "speed",
+				"value": "STANDARD"
+			}
+		]
+	}
+`
+
+func verifyAddDiskToServerTestResponse(test *testing.T, response *APIResponse) {
+	expect := expect(test)
+
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "ADD_DISK", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "The request to add 20GB Standard Speed Disk to Server 'SERVER-1' has been accepted and is being processed.", response.Message)
 	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
