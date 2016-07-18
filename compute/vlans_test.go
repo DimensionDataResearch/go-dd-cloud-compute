@@ -340,7 +340,7 @@ var deployVLANTestResponse = `
 	}
 `
 
-func verifyDeployVLANTestResponse(test *testing.T, response *APIResponse) {
+func verifyDeployVLANTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
@@ -362,7 +362,7 @@ var editVLANTestResponse = `
 	}
 `
 
-func verifyEditVLANTestResponse(test *testing.T, response *APIResponse) {
+func verifyEditVLANTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
@@ -383,7 +383,7 @@ var deleteVLANTestResponse = `
 	}
 `
 
-func verifyDeleteVLANTestResponse(test *testing.T, response *APIResponse) {
+func verifyDeleteVLANTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)

@@ -41,7 +41,7 @@ func TestClient_DeployServer_Success(test *testing.T) {
 			test.Fatal(err.Error())
 		}
 
-		verifyDeployServerRequest(test, deploymentConfiguration)
+		verifyDeployServerTestRequest(test, deploymentConfiguration)
 
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
@@ -83,7 +83,7 @@ func TestClient_AddServerDisk_Success(test *testing.T) {
 			test.Fatal(err.Error())
 		}
 
-		verifyAddDiskToServerRequest(test, requestBody)
+		verifyAddDiskToServerTestRequest(test, requestBody)
 
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
@@ -104,6 +104,46 @@ func TestClient_AddServerDisk_Success(test *testing.T) {
 	}
 
 	expect.EqualsString("diskID", "9e6b496d-5261-4542-91aa-b50c7f569c54", diskID)
+}
+
+// Resize server disk (successful).
+func TestClient_ResizeServerDisk_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		expect.EqualsString(
+			"Request.URL",
+			"/oec/0.9/dummy-organization-id/server/7b62aae5-bdbe-4595-b58d-c78f95db2a7f/disk/92b1819e-6f91-4abe-88c7-607841959f90/changeSize",
+			request.URL.Path,
+		)
+
+		requestBody := &resizeServerDisk{}
+		err := readRequestBodyAsXML(request, requestBody)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		verifyResizeServerDiskRequest(test, requestBody)
+
+		writer.Header().Set("Content-Type", "application/xml")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, resizeServerDiskTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	response, err := client.ResizeServerDisk("7b62aae5-bdbe-4595-b58d-c78f95db2a7f", "92b1819e-6f91-4abe-88c7-607841959f90", 23)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	verifyResizeServerDiskTestResponse(test, response)
 }
 
 // Delete Server (successful).
@@ -146,7 +186,7 @@ func TestClient_DeleteServer_Success(test *testing.T) {
  * Test requests.
  */
 
-var deployServerTestRequest = `
+const deployServerTestRequest = `
 	{
 		"name":"Production FTPS Server",
 		"description":"This is the main FTPS Server",
@@ -187,7 +227,7 @@ var deployServerTestRequest = `
 	}
 `
 
-func verifyDeployServerRequest(test *testing.T, deploymentConfiguration *ServerDeploymentConfiguration) {
+func verifyDeployServerTestRequest(test *testing.T, deploymentConfiguration *ServerDeploymentConfiguration) {
 	expect := expect(test)
 
 	expect.NotNil("ServerDeploymentConfiguration", deploymentConfiguration)
@@ -199,7 +239,7 @@ func verifyDeployServerRequest(test *testing.T, deploymentConfiguration *ServerD
 	expect.EqualsInt("ServerDeploymentConfiguration.CPU.Count", 2, deploymentConfiguration.CPU.Count)
 }
 
-var addDiskToServerTestRequest = `
+const addDiskToServerTestRequest = `
 	{
 		"id": "7b62aae5-bdbe-4595-b58d-c78f95db2a7f",
 		"sizeGb": 20,
@@ -208,7 +248,7 @@ var addDiskToServerTestRequest = `
 	}
 `
 
-func verifyAddDiskToServerRequest(test *testing.T, request *addDiskToServer) {
+func verifyAddDiskToServerTestRequest(test *testing.T, request *addDiskToServer) {
 	expect := expect(test)
 
 	expect.EqualsString("addDiskToServer.ServerID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", request.ServerID)
@@ -217,7 +257,20 @@ func verifyAddDiskToServerRequest(test *testing.T, request *addDiskToServer) {
 	expect.EqualsInt("addDiskToServer.SCSIUnitID", 4, request.SCSIUnitID)
 }
 
-const notifyServerIPAddressChangeRequest = `
+const resizeServerDiskTestRequest = `
+	<ChangeDiskSize xmlns="http://oec.api.opsource.net/schemas/server">
+		<newSizeGb>23</newSizeGb>
+	</ChangeDiskSize>
+`
+
+func verifyResizeServerDiskRequest(test *testing.T, request *resizeServerDisk) {
+	expect := expect(test)
+
+	expect.NotNil("ReconfigureServer", request)
+	expect.EqualsInt("ReconfigureServer.NewSizeGB", 23, request.NewSizeGB)
+}
+
+const notifyServerIPAddressChangeTestRequest = `
 	{
 		"nicId": "5999db1d-725c-46ba-9d4e-d33991e61ab1",
 		"privateIpv4": "10.0.1.5",
@@ -225,7 +278,7 @@ const notifyServerIPAddressChangeRequest = `
 	}
 `
 
-func verifyNotifyServerIPAddressChangeRequest(test *testing.T, request *notifyServerIPAddressChange) {
+func verifyNotifyServerIPAddressChangeTestRequest(test *testing.T, request *notifyServerIPAddressChange) {
 	expect := expect(test)
 
 	expect.NotNil("NotifyServerIPAddressChange", request)
@@ -238,7 +291,7 @@ func verifyNotifyServerIPAddressChangeRequest(test *testing.T, request *notifySe
 	expect.EqualsString("NotifyServerIPAddressChange.IPv6Address", "fdfe::5a55:caff:fefa::1:9089", *request.IPv6Address)
 }
 
-const reconfigureServerRequest = `
+const reconfigureServerTestRequest = `
 	{
 		"memoryGb": 8,
 		"cpuCount": 5,
@@ -248,7 +301,7 @@ const reconfigureServerRequest = `
 	}
 `
 
-func verifyReconfigureServerRequest(test *testing.T, request *reconfigureServer) {
+func verifyReconfigureServerTestRequest(test *testing.T, request *reconfigureServer) {
 	expect := expect(test)
 
 	expect.NotNil("ReconfigureServer", request)
@@ -363,7 +416,7 @@ const deployServerTestResponse = `
 	}
 `
 
-func verifyDeployServerTestResponse(test *testing.T, response *APIResponse) {
+func verifyDeployServerTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
@@ -396,7 +449,7 @@ const addDiskToServerTestResponse = `
 	}
 `
 
-func verifyAddDiskToServerTestResponse(test *testing.T, response *APIResponse) {
+func verifyAddDiskToServerTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
@@ -406,7 +459,26 @@ func verifyAddDiskToServerTestResponse(test *testing.T, response *APIResponse) {
 	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
-var deleteServerTestResponse = `
+const resizeServerDiskTestResponse = `
+	<Status>
+		<operation>Change Server Disk Size</operation>
+		<result>SUCCESS</result>
+		<resultDetail>Server 'Change Server Disk Size' Issued</resultDetail>
+		<resultCode>RESULT_0</resultCode>
+	</Status>
+`
+
+func verifyResizeServerDiskTestResponse(test *testing.T, response *APIResponseV1) {
+	expect := expect(test)
+
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "Change Server Disk Size", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResultSuccess, response.Result)
+	expect.EqualsString("Response.Message", "Server 'Change Server Disk Size' Issued", response.Message)
+	expect.EqualsString("Response.ResultCode", "RESULT_0", response.ResultCode)
+}
+
+const deleteServerTestResponse = `
 	{
 		"operation": "DELETE_SERVER",
 		"responseCode": "IN_PROGRESS",
@@ -418,7 +490,7 @@ var deleteServerTestResponse = `
 	}
 `
 
-func verifyDeleteServerTestResponse(test *testing.T, response *APIResponse) {
+func verifyDeleteServerTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)

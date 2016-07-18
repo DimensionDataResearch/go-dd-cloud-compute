@@ -264,7 +264,7 @@ var deployNetworkDomainTestResponse = `
 	}
 `
 
-func verifyDeployNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
+func verifyDeployNetworkDomainTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
@@ -289,7 +289,7 @@ var editNetworkDomainTestResponse = `
 	}
 `
 
-func verifyEditNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
+func verifyEditNetworkDomainTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
@@ -311,7 +311,7 @@ var deleteNetworkDomainTestResponse = `
 	}
 `
 
-func verifyDeleteNetworkDomainTestResponse(test *testing.T, response *APIResponse) {
+func verifyDeleteNetworkDomainTestResponse(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
