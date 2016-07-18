@@ -9,7 +9,7 @@ import (
 // Tag represents a tag applied to an asset.
 type Tag struct {
 	Name  string `json:"tagKeyName"`
-	Value string `json:"tagKeyValue"`
+	Value string `json:"value"`
 }
 
 // TagDetail represents detailed information about a tag applied to an asset.
