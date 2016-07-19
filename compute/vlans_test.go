@@ -1,174 +1,96 @@
 package compute
 
-import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-)
+import "testing"
 
 // Get VLAN by Id (successful).
 func TestClient_GetVLAN_ById_Success(test *testing.T) {
-	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK)
+	testClientRequest(test, &ClientTestConfig{
+		Request: func(test *testing.T, client *Client) {
+			vlan, err := client.GetVLAN("0e56433f-d808-4669-821d-812769517ff8")
+			if err != nil {
+				test.Fatal(err)
+			}
 
-		fmt.Fprintln(writer, getVLANTestResponse)
-	}))
-	defer testServer.Close()
-
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
-	client.setAccount(&Account{
-		OrganizationID: "dummy-organization-id",
+			verifyGetVLANTestResponse(test, vlan)
+		},
+		Respond: testRespondOK(getVLANTestResponse),
 	})
-
-	networkDomain, err := client.GetVLAN("0e56433f-d808-4669-821d-812769517ff8")
-	if err != nil {
-		test.Fatal(err)
-	}
-
-	verifyGetVLANTestResponse(test, networkDomain)
 }
 
 // List VLANs (successful).
 func TestClient_ListVLANs_Success(test *testing.T) {
-	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK)
+	testClientRequest(test, &ClientTestConfig{
+		Request: func(test *testing.T, client *Client) {
+			vlans, err := client.ListVLANs("484174a2-ae74-4658-9e56-50fc90e086cf")
+			if err != nil {
+				test.Fatal(err)
+			}
 
-		fmt.Fprintln(writer, listVLANsTestResponse)
-	}))
-	defer testServer.Close()
-
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
-	client.setAccount(&Account{
-		OrganizationID: "dummy-organization-id",
+			verifyListVLANsTestResponse(test, vlans)
+		},
+		Respond: testRespondOK(listVLANsTestResponse),
 	})
-
-	vlans, err := client.ListVLANs("484174a2-ae74-4658-9e56-50fc90e086cf")
-	if err != nil {
-		test.Fatal(err)
-	}
-
-	verifyListVLANsTestResponse(test, vlans)
 }
 
 // Deploy VLAN (successful).
 func TestClient_DeployVlan_Success(test *testing.T) {
 	expect := expect(test)
 
-	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		requestBody, err := readRequestBodyAsString(request)
-		if err != nil {
-			test.Fatal("Failed to read request body: ", err)
-		}
+	testClientRequest(test, &ClientTestConfig{
+		Request: func(test *testing.T, client *Client) {
+			vlanID, err := client.DeployVLAN(
+				"484174a2-ae74-4658-9e56-50fc90e086cf",
+				"Production VLAN",
+				"For hosting our Production Cloud Servers",
+				"10.0.3.0",
+				23,
+			)
+			if err != nil {
+				test.Fatal(err)
+			}
 
-		expect.EqualsString("Request.Body",
-			`{"networkDomainId":"484174a2-ae74-4658-9e56-50fc90e086cf","name":"Production VLAN","description":"For hosting our Production Cloud Servers","privateIpv4BaseAddress":"10.0.3.0","privateIpv4PrefixSize":23}`,
-			requestBody,
-		)
-
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK)
-
-		fmt.Fprintln(writer, deployVLANTestResponse)
-	}))
-	defer testServer.Close()
-
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
-	client.setAccount(&Account{
-		OrganizationID: "dummy-organization-id",
+			expect.EqualsString("VLANID", "0e56433f-d808-4669-821d-812769517ff8", vlanID)
+		},
+		Respond: testValidateJSONRequestAndRespondOK(deployVLANTestResponse, &DeployVLAN{}, func(test *testing.T, requestBody interface{}) {
+			verifyDeployVLANTestRequest(test, requestBody.(*DeployVLAN))
+		}),
 	})
-
-	vlanID, err := client.DeployVLAN(
-		"484174a2-ae74-4658-9e56-50fc90e086cf",
-		"Production VLAN",
-		"For hosting our Production Cloud Servers",
-		"10.0.3.0",
-		23,
-	)
-	if err != nil {
-		test.Fatal(err)
-	}
-
-	expect.EqualsString("VLANID", "0e56433f-d808-4669-821d-812769517ff8", vlanID)
 }
 
 // Edit VLAN (successful).
 func TestClient_EditVlan_Success(test *testing.T) {
-	expect := expect(test)
+	testClientRequest(test, &ClientTestConfig{
+		Request: func(test *testing.T, client *Client) {
+			name := "Production VLAN"
+			description := "For hosting our Production Cloud Servers"
+			err := client.EditVLAN("0e56433f-d808-4669-821d-812769517ff8", &name, &description)
+			if err != nil {
+				test.Fatal(err)
+			}
 
-	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		requestBody, err := readRequestBodyAsString(request)
-		if err != nil {
-			test.Fatal("Failed to read request body: ", err)
-		}
-
-		expect.EqualsString("Request.Body",
-			`{"id":"0e56433f-d808-4669-821d-812769517ff8","name":"Production VLAN","description":"For hosting our Production Cloud Servers"}`,
-			requestBody,
-		)
-
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK)
-
-		fmt.Fprintln(writer, editVLANTestResponse)
-	}))
-	defer testServer.Close()
-
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
-	client.setAccount(&Account{
-		OrganizationID: "dummy-organization-id",
+			// Pass
+		},
+		Respond: testValidateJSONRequestAndRespondOK(editVLANTestResponse, &EditVLAN{}, func(test *testing.T, requestBody interface{}) {
+			verifyEditVLANTestRequest(test, requestBody.(*EditVLAN))
+		}),
 	})
-
-	name := "Production VLAN"
-	description := "For hosting our Production Cloud Servers"
-	err := client.EditVLAN("0e56433f-d808-4669-821d-812769517ff8", &name, &description)
-	if err != nil {
-		test.Fatal(err)
-	}
-
-	// Pass
 }
 
 // Delete VLAN (successful).
 func TestClient_DeleteVLAN_Success(test *testing.T) {
-	expect := expect(test)
+	testClientRequest(test, &ClientTestConfig{
+		Request: func(test *testing.T, client *Client) {
+			err := client.DeleteVLAN("0e56433f-d808-4669-821d-812769517ff8")
+			if err != nil {
+				test.Fatal(err)
+			}
 
-	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		requestBody, err := readRequestBodyAsString(request)
-		if err != nil {
-			test.Fatal("Failed to read request body: ", err)
-		}
-
-		expect.EqualsString("Request.Body",
-			`{"id":"0e56433f-d808-4669-821d-812769517ff8"}`,
-			requestBody,
-		)
-
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK)
-
-		fmt.Fprintln(writer, deleteVLANTestResponse)
-	}))
-	defer testServer.Close()
-
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
-	client.setAccount(&Account{
-		OrganizationID: "dummy-organization-id",
+			// Pass
+		},
+		Respond: testValidateJSONRequestAndRespondOK(deleteVLANTestResponse, &DeleteVLAN{}, func(test *testing.T, requestBody interface{}) {
+			verifyDeleteVLANTestRequest(test, requestBody.(*DeleteVLAN))
+		}),
 	})
-
-	err := client.DeleteVLAN("0e56433f-d808-4669-821d-812769517ff8")
-	if err != nil {
-		test.Fatal(err)
-	}
-
-	// Pass
 }
 
 /*
@@ -213,6 +135,19 @@ func verifyEditVLANTestRequest(test *testing.T, request *EditVLAN) {
 	expect.EqualsString("EditVLAN.Name", "Production VLAN", *request.Name)
 	expect.NotNil("EditVLAN.Description", request.Description)
 	expect.EqualsString("EditVLAN.Description", "For hosting our Production Cloud Servers", *request.Description)
+}
+
+var deleteVLANTestRequest = `
+	{
+		"id":"0e56433f-d808-4669-821d-812769517ff8"
+	}
+`
+
+func verifyDeleteVLANTestRequest(test *testing.T, request *DeleteVLAN) {
+	expect := expect(test)
+
+	expect.NotNil("DeleteVLAN", request)
+	expect.EqualsString("DeleteVLAN.ID", "0e56433f-d808-4669-821d-812769517ff8", request.ID)
 }
 
 /*
