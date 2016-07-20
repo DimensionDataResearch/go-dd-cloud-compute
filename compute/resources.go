@@ -7,25 +7,28 @@ import (
 
 // Resources are an abstraction over the various types of entities in the DD compute API
 
+// ResourceType represents a well-known DD compute resource type.
+type ResourceType int
+
 const (
 	// ResourceTypeNetworkDomain represents a network domain.
-	ResourceTypeNetworkDomain = "NetworkDomain"
+	ResourceTypeNetworkDomain ResourceType = iota
 
 	// ResourceTypeVLAN represents a VLAN.
-	ResourceTypeVLAN = "VLAN"
+	ResourceTypeVLAN
 
 	// ResourceTypeServer represents a virtual machine.
-	ResourceTypeServer = "Server"
+	ResourceTypeServer
 
 	// ResourceTypeNetworkAdapter represents a network adapter in a virtual machine.
 	// Note that when calling methods such as WaitForChange, the Id must be of the form 'serverId/networkAdapterId'.
-	ResourceTypeNetworkAdapter = "NetworkAdapter"
+	ResourceTypeNetworkAdapter
 
 	// ResourceTypePublicIPBlock represents a block of public IP addresses.
-	ResourceTypePublicIPBlock = "PublicIPBlock"
+	ResourceTypePublicIPBlock
 
 	// ResourceTypeFirewallRule represents a firewall rule.
-	ResourceTypeFirewallRule = "FirewallRule"
+	ResourceTypeFirewallRule
 )
 
 // Resource represents a compute resource.
@@ -44,7 +47,7 @@ type Resource interface {
 }
 
 // GetResourceDescription retrieves a textual description of the specified resource type.
-func GetResourceDescription(resourceType string) (string, error) {
+func GetResourceDescription(resourceType ResourceType) (string, error) {
 	switch resourceType {
 	case ResourceTypeNetworkDomain:
 		return "Network domain", nil
@@ -65,14 +68,14 @@ func GetResourceDescription(resourceType string) (string, error) {
 		return "Firewall rule", nil
 
 	default:
-		return "", fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
+		return "", fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
 	}
 }
 
 // GetResource retrieves a compute resource of the specified type by Id.
 // id is the resource Id.
 // resourceType is the resource type (e.g. ResourceTypeNetworkDomain, ResourceTypeVLAN, etc).
-func (client *Client) GetResource(id string, resourceType string) (Resource, error) {
+func (client *Client) GetResource(id string, resourceType ResourceType) (Resource, error) {
 	var resourceLoader func(client *Client, id string) (resource Resource, err error)
 
 	switch resourceType {
@@ -95,7 +98,7 @@ func (client *Client) GetResource(id string, resourceType string) (Resource, err
 		resourceLoader = getFirewallRuleByID
 
 	default:
-		return nil, fmt.Errorf("Unrecognised resource type '%s'.", resourceType)
+		return nil, fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
 	}
 
 	return resourceLoader(client, id)

@@ -7,36 +7,36 @@ import (
 )
 
 // WaitForDeploy waits for a resource's pending deployment operation to complete.
-func (client *Client) WaitForDeploy(resourceType string, id string, timeout time.Duration) (resource Resource, err error) {
+func (client *Client) WaitForDeploy(resourceType ResourceType, id string, timeout time.Duration) (resource Resource, err error) {
 	return client.waitForPendingOperation(resourceType, id, "Deploy", ResourceStatusPendingAdd, timeout)
 }
 
 // WaitForEdit waits for a resource's pending edit operation to complete.
-func (client *Client) WaitForEdit(resourceType string, id string, timeout time.Duration) (resource Resource, err error) {
+func (client *Client) WaitForEdit(resourceType ResourceType, id string, timeout time.Duration) (resource Resource, err error) {
 	return client.WaitForChange(resourceType, id, "Edit", timeout)
 }
 
 // WaitForChange waits for a resource's pending change operation to complete.
-func (client *Client) WaitForChange(resourceType string, id string, actionDescription string, timeout time.Duration) (resource Resource, err error) {
+func (client *Client) WaitForChange(resourceType ResourceType, id string, actionDescription string, timeout time.Duration) (resource Resource, err error) {
 	return client.waitForPendingOperation(resourceType, id, actionDescription, ResourceStatusPendingChange, timeout)
 }
 
 // WaitForDelete waits for a resource's pending deletion to complete.
-func (client *Client) WaitForDelete(resourceType string, id string, timeout time.Duration) error {
+func (client *Client) WaitForDelete(resourceType ResourceType, id string, timeout time.Duration) error {
 	_, err := client.waitForPendingOperation(resourceType, id, "Delete", ResourceStatusPendingDelete, timeout)
 
 	return err
 }
 
 // waitForPendingOperation waits for a resource's pending operation to complete (i.e. for its status to become ResourceStatusNormal or the resource to disappear if expectedStatus is ResourceStatusPendingDelete).
-func (client *Client) waitForPendingOperation(resourceType string, id string, actionDescription string, expectedStatus string, timeout time.Duration) (resource Resource, err error) {
+func (client *Client) waitForPendingOperation(resourceType ResourceType, id string, actionDescription string, expectedStatus string, timeout time.Duration) (resource Resource, err error) {
 	return client.waitForResourceStatus(resourceType, id, actionDescription, expectedStatus, ResourceStatusNormal, timeout)
 }
 
 // waitForResourceStatus polls a resource for its status (which is expected to initially be expectedStatus) until it becomes expectedStatus.
 // getResource is a function that, given the resource Id, will retrieve the resource.
 // timeout is the length of time before the wait times out.
-func (client *Client) waitForResourceStatus(resourceType string, id string, actionDescription string, expectedStatus string, targetStatus string, timeout time.Duration) (resource Resource, err error) {
+func (client *Client) waitForResourceStatus(resourceType ResourceType, id string, actionDescription string, expectedStatus string, targetStatus string, timeout time.Duration) (resource Resource, err error) {
 	waitTimeout := time.NewTimer(timeout)
 	defer waitTimeout.Stop()
 
