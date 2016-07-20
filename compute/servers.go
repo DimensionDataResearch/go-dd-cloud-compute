@@ -45,6 +45,13 @@ func (server *Server) IsDeleted() bool {
 
 var _ Resource = &Server{}
 
+// Servers represents a page of Server results.
+type Servers struct {
+	Items []Server `json:"server"`
+
+	PagedResult
+}
+
 // ServerDeploymentConfiguration represents the configuration for deploying a virtual machine.
 type ServerDeploymentConfiguration struct {
 	Name                  string                `json:"name"`
@@ -170,6 +177,61 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 	err = json.Unmarshal(responseBody, server)
 
 	return server, err
+}
+
+// ListServersInNetworkDomain retrieves a page of servers in the specified network domain.
+func (client *Client) ListServersInNetworkDomain(networkDomainID string, paging *PagingInfo) (servers Servers, err error) {
+	if paging == nil {
+		paging = &PagingInfo{
+			PageNumber: 1,
+		}
+	}
+	paging.ensureValidPageSize()
+
+	var organizationID string
+	organizationID, err = client.getOrganizationID()
+	if err != nil {
+		return
+	}
+
+	requestURI := fmt.Sprintf("%s/server/server?networkDomainId=%s&pageNumber=%d&pageSize=%d",
+		organizationID,
+		networkDomainID,
+		paging.PageNumber,
+		paging.PageSize,
+	)
+
+	var request *http.Request
+	request, err = client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return
+	}
+
+	var (
+		responseBody []byte
+		statusCode int
+	)
+	responseBody, statusCode, err = client.executeRequest(request)
+	if err != nil {
+		return
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return
+		}
+
+		err = apiResponse.ToError("Request to retrieve Server failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+
+		return
+	}
+
+	servers = Servers{}
+	err = json.Unmarshal(responseBody, &servers)
+
+	return
 }
 
 // DeployServer deploys a new virtual machine.

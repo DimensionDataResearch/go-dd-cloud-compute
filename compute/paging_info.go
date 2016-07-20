@@ -15,6 +15,11 @@ type PagedResult struct {
 	PageSize int `json:"pageSize"`
 }
 
+// IsEmpty determines whether the page contains no results.
+func (page *PagedResult) IsEmpty() bool {
+	return page.PageCount == 0
+}
+
 // NextPage creates a PagingInfo for the next page of results.
 func (page *PagedResult) NextPage() *PagingInfo {
 	return &PagingInfo{
