@@ -34,6 +34,23 @@ type PagingInfo struct {
 	PageSize   int
 }
 
+// DefaultPaging creates PagingInfo with default settings (page 1, 50 records per page).
+func DefaultPaging() *PagingInfo {
+	return &PagingInfo{
+		PageNumber: 1,
+		PageSize:   50,
+	}
+}
+
+// EnsurePaging always returns a paging configuration (if the supplied PagingInfo is nil, it returns the default configuration).
+func EnsurePaging(paging *PagingInfo) *PagingInfo {
+	if paging != nil {
+		return paging
+	}
+
+	return DefaultPaging()
+}
+
 func (pagingInfo *PagingInfo) ensureValidPageSize() {
 	if pagingInfo.PageSize < 5 {
 		pagingInfo.PageSize = 5

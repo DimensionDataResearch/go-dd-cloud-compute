@@ -80,13 +80,20 @@ func (client *Client) GetNATRule(id string) (rule *NATRule, err error) {
 }
 
 // ListNATRules retrieves all NAT rules defined for the specified network domain.
-func (client *Client) ListNATRules(networkDomainID string) (rules *NATRules, err error) {
+func (client *Client) ListNATRules(networkDomainID string, page *PagingInfo) (rules *NATRules, err error) {
+	page = EnsurePaging(page)
+
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/natRule?networkDomainId=%s", organizationID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/network/natRule?networkDomainId=%s&pageNumber=%d&pageSize=%d",
+		organizationID,
+		networkDomainID,
+		page.PageNumber,
+		page.PageSize,
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
