@@ -74,7 +74,7 @@ type deleteTagKey struct {
 }
 
 // GetAssetTags gets all tags applied to the specified asset.
-func (client *Client) GetAssetTags(assetID string, assetType string, paging *PagingInfo) (tags *TagDetails, err error) {
+func (client *Client) GetAssetTags(assetID string, assetType string, paging *Paging) (tags *TagDetails, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err

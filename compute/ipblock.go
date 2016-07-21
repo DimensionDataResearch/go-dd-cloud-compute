@@ -114,13 +114,17 @@ func (client *Client) GetPublicIPBlock(id string) (block *PublicIPBlock, err err
 }
 
 // ListPublicIPBlocks retrieves all blocks of public IPv4 addresses that have been allocated to the specified network domain.
-func (client *Client) ListPublicIPBlocks(networkDomainID string) (blocks *PublicIPBlocks, err error) {
+func (client *Client) ListPublicIPBlocks(networkDomainID string, paging *Paging) (blocks *PublicIPBlocks, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/publicIpBlock?networkDomainId=%s", organizationID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/network/publicIpBlock?networkDomainId=%s&%s",
+		organizationID,
+		networkDomainID,
+		paging.EnsurePaging().toQueryParameters(),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err

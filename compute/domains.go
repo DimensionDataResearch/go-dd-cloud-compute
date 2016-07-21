@@ -104,13 +104,16 @@ type deleteNetworkDomain struct {
 
 // ListNetworkDomains retrieves a list of all network domains.
 // TODO: Support filtering and sorting.
-func (client *Client) ListNetworkDomains() (domains *NetworkDomains, err error) {
+func (client *Client) ListNetworkDomains(paging *Paging) (domains *NetworkDomains, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomain", organizationID)
+	requestURI := fmt.Sprintf("%s/network/networkDomain?%s",
+		organizationID,
+		paging.EnsurePaging().toQueryParameters(),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err

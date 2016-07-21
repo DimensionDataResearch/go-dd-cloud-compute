@@ -7,26 +7,26 @@ import (
 	"net/url"
 )
 
-// OSImages represents a page of OSImage results.
-type OSImages struct {
+// CustomerImages represents a page of CustomerImage results.
+type CustomerImages struct {
 	// The current page of network domains.
-	Images []OSImage `json:"osImage"`
+	Images []CustomerImage `json:"customerImage"`
 
 	// The current page number.
 	PageNumber int `json:"pageNumber"`
 
-	// The number of OS images in the current page of results.
+	// The number of customer images in the current page of results.
 	PageCount int `json:"pageCount"`
 
-	// The total number of OS images that match the requested filter criteria (if any).
+	// The total number of customer images that match the requested filter criteria (if any).
 	TotalCount int `json:"totalCount"`
 
-	// The maximum number of OS images per page.
+	// The maximum number of customer images per page.
 	PageSize int `json:"pageSize"`
 }
 
-// OSImage represents a DD-provided virtual machine image.
-type OSImage struct {
+// CustomerImage represents a custom virtual machine image.
+type CustomerImage struct {
 	ID              string               `json:"id"`
 	Name            string               `json:"name"`
 	Description     string               `json:"description"`
@@ -36,17 +36,16 @@ type OSImage struct {
 	MemoryGB        int                  `json:"memoryGb"`
 	Disks           []VirtualMachineDisk `json:"disk"`
 	CreateTime      string               `json:"createTime"`
-	OSImageKey      string               `json:"osImageKey"`
 }
 
-// FindOSImage finds an OS image by name in a given data centre.
-func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSImage, err error) {
+// FindCustomerImage finds a customer image by name in a given data centre.
+func (client *Client) FindCustomerImage(name string, dataCenterID string) (image *CustomerImage, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/image/osImage?name=%s&datacenterId=%s", organizationID, url.QueryEscape(name), url.QueryEscape(dataCenterID))
+	requestURI := fmt.Sprintf("%s/image/customerImage?name=%s&datacenterId=%s", organizationID, url.QueryEscape(name), url.QueryEscape(dataCenterID))
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -65,10 +64,10 @@ func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSIm
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("Request to find OS image '%s' in data centre '%s' failed with status code %d (%s): %s", name, dataCenterID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, fmt.Errorf("Request to find customer image '%s' in data centre '%s' failed with status code %d (%s): %s", name, dataCenterID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	images := &OSImages{}
+	images := &CustomerImages{}
 	err = json.Unmarshal(responseBody, images)
 	if err != nil {
 		return nil, err
@@ -85,14 +84,14 @@ func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSIm
 	return &images.Images[0], err
 }
 
-// ListOSImagesInDatacenter lists all OS images in a given data centre.
-func (client *Client) ListOSImagesInDatacenter(dataCenterID string, paging *Paging) (images *OSImages, err error) {
+// ListCustomerImagesInDatacenter lists all customer images in a given data centre.
+func (client *Client) ListCustomerImagesInDatacenter(dataCenterID string, paging *Paging) (images *CustomerImages, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/image/osImage?datacenterId=%s&%s",
+	requestURI := fmt.Sprintf("%s/image/customerImage?datacenterId=%s&%s",
 		organizationID,
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
@@ -115,10 +114,10 @@ func (client *Client) ListOSImagesInDatacenter(dataCenterID string, paging *Pagi
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("Request to list OS images in data centre '%s' failed with status code %d (%s): %s", dataCenterID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, fmt.Errorf("Request to list customer images in data centre '%s' failed with status code %d (%s): %s", dataCenterID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	images = &OSImages{}
+	images = &CustomerImages{}
 	err = json.Unmarshal(responseBody, images)
 
 	return

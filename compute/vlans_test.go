@@ -21,7 +21,7 @@ func TestClient_GetVLAN_ById_Success(test *testing.T) {
 func TestClient_ListVLANs_Success(test *testing.T) {
 	testClientRequest(test, &ClientTestConfig{
 		Request: func(test *testing.T, client *Client) {
-			vlans, err := client.ListVLANs("484174a2-ae74-4658-9e56-50fc90e086cf")
+			vlans, err := client.ListVLANs("484174a2-ae74-4658-9e56-50fc90e086cf", nil)
 			if err != nil {
 				test.Fatal(err)
 			}

@@ -150,13 +150,17 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 
 // ListVLANs retrieves a list of all VLANs in the specified network domain.
 // TODO: Support filtering and sorting.
-func (client *Client) ListVLANs(networkDomainID string) (vlans *VLANs, err error) {
+func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *VLANs, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/vlan?networkDomainId=%s", organizationID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/network/vlan?networkDomainId=%s&%s",
+		organizationID,
+		networkDomainID,
+		paging.EnsurePaging().toQueryParameters(),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err

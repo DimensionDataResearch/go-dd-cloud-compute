@@ -164,7 +164,7 @@ func TestClient_ListNetworkDomains_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	networkDomains, err := client.ListNetworkDomains()
+	networkDomains, err := client.ListNetworkDomains(nil)
 	if err != nil {
 		test.Fatal(err)
 	}

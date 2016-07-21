@@ -303,13 +303,17 @@ func (client *Client) GetFirewallRule(id string) (rule *FirewallRule, err error)
 }
 
 // ListFirewallRules lists all firewall rules that apply to the specified network domain.
-func (client *Client) ListFirewallRules(networkDomainID string) (rules *FirewallRules, err error) {
+func (client *Client) ListFirewallRules(networkDomainID string, paging *Paging) (rules *FirewallRules, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/firewallRule?networkDomainId=%s", organizationID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/network/firewallRule?networkDomainId=%s&%s",
+		organizationID,
+		networkDomainID,
+		paging.EnsurePaging().toQueryParameters(),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err

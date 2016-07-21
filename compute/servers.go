@@ -180,9 +180,9 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 }
 
 // ListServersInNetworkDomain retrieves a page of servers in the specified network domain.
-func (client *Client) ListServersInNetworkDomain(networkDomainID string, paging *PagingInfo) (servers Servers, err error) {
+func (client *Client) ListServersInNetworkDomain(networkDomainID string, paging *Paging) (servers Servers, err error) {
 	if paging == nil {
-		paging = &PagingInfo{
+		paging = &Paging{
 			PageNumber: 1,
 		}
 	}
@@ -209,7 +209,7 @@ func (client *Client) ListServersInNetworkDomain(networkDomainID string, paging 
 
 	var (
 		responseBody []byte
-		statusCode int
+		statusCode   int
 	)
 	responseBody, statusCode, err = client.executeRequest(request)
 	if err != nil {
