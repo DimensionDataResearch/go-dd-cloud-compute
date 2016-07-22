@@ -38,6 +38,47 @@ type CustomerImage struct {
 	CreateTime      string               `json:"createTime"`
 }
 
+// GetCustomerImage retrieves a specific customer image by Id.
+func (client *Client) GetCustomerImage(id string) (image *OSImage, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/image/customerImage/%s", organizationID, id)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
+			return nil, nil // Not an error, but was not found.
+		}
+
+		return nil, apiResponse.ToError("Request to retrieve customer image '%s' failed with status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	image = &OSImage{}
+	err = json.Unmarshal(responseBody, image)
+	if err != nil {
+		return nil, err
+	}
+
+	return image, nil
+}
+
 // FindCustomerImage finds a customer image by name in a given data centre.
 func (client *Client) FindCustomerImage(name string, dataCenterID string) (image *CustomerImage, err error) {
 	organizationID, err := client.getOrganizationID()

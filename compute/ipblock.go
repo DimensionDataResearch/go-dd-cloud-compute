@@ -215,13 +215,17 @@ func (client *Client) RemovePublicIPBlock(id string) error {
 }
 
 // ListReservedPublicIPAddresses retrieves all public IPv4 addresses in the specified network domain that have been reserved in the specified network domain.
-func (client *Client) ListReservedPublicIPAddresses(networkDomainID string) (reservedPublicIPs *ReservedPublicIPs, err error) {
+func (client *Client) ListReservedPublicIPAddresses(networkDomainID string, paging *Paging) (reservedPublicIPs *ReservedPublicIPs, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/reservedPublicIpv4Address?networkDomainId=%s", organizationID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/network/reservedPublicIpv4Address?networkDomainId=%s&%s",
+		organizationID,
+		networkDomainID,
+		paging.EnsurePaging().toQueryParameters(),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err

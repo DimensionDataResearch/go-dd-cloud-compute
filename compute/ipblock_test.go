@@ -71,7 +71,7 @@ func TestClient_ListReservedPublicIPAddresses_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	networkDomains, err := client.ListReservedPublicIPAddresses("802abc9f-45a7-4efb-9d5a-810082368708")
+	networkDomains, err := client.ListReservedPublicIPAddresses("802abc9f-45a7-4efb-9d5a-810082368708", nil)
 	if err != nil {
 		test.Fatal(err)
 	}
