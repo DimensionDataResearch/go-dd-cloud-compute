@@ -104,8 +104,25 @@ type resizeServerDisk struct {
 	NewSizeGB int `xml:"newSizeGb"`
 }
 
-// ApplyImage applies the specified image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
-func (config *ServerDeploymentConfiguration) ApplyImage(image *OSImage) error {
+// ApplyOSImage applies the specified OS image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
+func (config *ServerDeploymentConfiguration) ApplyOSImage(image *OSImage) error {
+	if image == nil {
+		return fmt.Errorf("Cannot apply image defaults (no image was supplied).")
+	}
+
+	config.ImageID = image.ID
+	config.CPU = image.CPU
+	config.MemoryGB = image.MemoryGB
+	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
+	for index, disk := range image.Disks {
+		config.Disks[index] = disk
+	}
+
+	return nil
+}
+
+// ApplyCustomerImage applies the specified OS image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
+func (config *ServerDeploymentConfiguration) ApplyCustomerImage(image *CustomerImage) error {
 	if image == nil {
 		return fmt.Errorf("Cannot apply image defaults (no image was supplied).")
 	}

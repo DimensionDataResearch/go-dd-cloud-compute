@@ -39,7 +39,7 @@ type CustomerImage struct {
 }
 
 // GetCustomerImage retrieves a specific customer image by Id.
-func (client *Client) GetCustomerImage(id string) (image *OSImage, err error) {
+func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (client *Client) GetCustomerImage(id string) (image *OSImage, err error) {
 		return nil, apiResponse.ToError("Request to retrieve customer image '%s' failed with status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	image = &OSImage{}
+	image = &CustomerImage{}
 	err = json.Unmarshal(responseBody, image)
 	if err != nil {
 		return nil, err
