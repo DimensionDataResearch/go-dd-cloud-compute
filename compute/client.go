@@ -8,18 +8,22 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 // Client is the client for Dimension Data's cloud compute API.
 type Client struct {
-	baseAddress string
-	username    string
-	password    string
-	stateLock   *sync.Mutex
-	httpClient  *http.Client
-	account     *Account
+	baseAddress   string
+	username      string
+	password      string
+	maxRetryCount int
+	retryDelay    time.Duration
+	stateLock     *sync.Mutex
+	httpClient    *http.Client
+	account       *Account
 }
 
 // NewClient creates a new cloud compute API client.
@@ -31,6 +35,8 @@ func NewClient(region string, username string, password string) *Client {
 		baseAddress,
 		username,
 		password,
+		0,
+		0 * time.Second,
 		&sync.Mutex{},
 		&http.Client{},
 		nil,
@@ -43,6 +49,16 @@ func (client *Client) Reset() {
 	defer client.stateLock.Unlock()
 
 	client.account = nil
+}
+
+// ConfigureRetry configures the client's retry facility.
+// Set maxRetryCount to 0 (the default) to disable retry.
+func (client *Client) ConfigureRetry(maxRetryCount int, retryDelay time.Duration) {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	client.maxRetryCount = maxRetryCount
+	client.retryDelay = retryDelay
 }
 
 // getOrganizationID gets the current user's organisation Id.
@@ -91,9 +107,55 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 		defer request.Body.Close()
 	}
 
+	log.Printf("Invoking '%s' request to '%s'...",
+		request.Method,
+		request.URL.String(),
+	)
+
 	response, err := client.httpClient.Do(request)
 	if err != nil {
-		return nil, 0, err
+		log.Printf("Unexpected error while performing '%s' request to '%s': %s.",
+			request.Method,
+			request.URL.String(),
+			err.Error(),
+		)
+
+		for retryCount := 0; retryCount < client.maxRetryCount; retryCount++ {
+			log.Printf("Retrying '%s' request to '%s' (%d retries remaining)...",
+				request.Method,
+				request.URL.String(),
+				retryCount-client.maxRetryCount,
+			)
+
+			response, err = client.httpClient.Do(request)
+
+			if err != nil {
+				log.Printf("Still failing - '%s' request to '%s': %s.",
+					request.Method,
+					request.URL.String(),
+					err.Error(),
+				)
+
+				continue
+			}
+
+			log.Printf("'%s' request to '%s' succeeded.",
+				request.Method,
+				request.URL.String(),
+			)
+
+			break
+		}
+
+		if err != nil {
+			err = fmt.Errorf("Unexpected error while performing '%s' request to '%s': %s",
+				request.Method,
+				request.URL.String(),
+				err.Error(),
+			)
+
+			return
+		}
 	}
 	defer response.Body.Close()
 
