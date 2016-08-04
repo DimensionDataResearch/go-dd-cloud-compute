@@ -23,7 +23,7 @@ type NetworkDomain struct {
 	// Network domain's NAT IPv4 address.
 	NatIPv4Address string `json:"snatIpv4Address"`
 
-	// The network domain creation timestamp.
+	// The network domain's creation timestamp.
 	CreateTime string `json:"createTime"`
 
 	// The network domain's current state.
