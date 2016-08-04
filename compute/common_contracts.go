@@ -88,31 +88,36 @@ type VirtualMachineNetworkAdapter struct {
 }
 
 // GetID returns the network adapter's Id.
-func (server *VirtualMachineNetworkAdapter) GetID() string {
-	if server.ID == nil {
+func (networkAdapter *VirtualMachineNetworkAdapter) GetID() string {
+	if networkAdapter.ID == nil {
 		return ""
 	}
 
-	return *server.ID
+	return *networkAdapter.ID
+}
+
+// GetResourceType returns the network domain's resource type.
+func (networkAdapter *VirtualMachineNetworkAdapter) GetResourceType() ResourceType {
+	return ResourceTypeNetworkAdapter
 }
 
 // GetName returns the network adapter's name (actually Id, since adapters don't have names).
-func (server *VirtualMachineNetworkAdapter) GetName() string {
-	return server.GetID()
+func (networkAdapter *VirtualMachineNetworkAdapter) GetName() string {
+	return networkAdapter.GetID()
 }
 
 // GetState returns the network adapter's current state.
-func (server *VirtualMachineNetworkAdapter) GetState() string {
-	if server.State == nil {
+func (networkAdapter *VirtualMachineNetworkAdapter) GetState() string {
+	if networkAdapter.State == nil {
 		return ""
 	}
 
-	return *server.State
+	return *networkAdapter.State
 }
 
 // IsDeleted determines whether the network adapter has been deleted (is nil).
-func (server *VirtualMachineNetworkAdapter) IsDeleted() bool {
-	return server == nil
+func (networkAdapter *VirtualMachineNetworkAdapter) IsDeleted() bool {
+	return networkAdapter == nil
 }
 
 var _ Resource = &VirtualMachineNetworkAdapter{}

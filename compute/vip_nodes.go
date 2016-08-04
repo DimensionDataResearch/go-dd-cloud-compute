@@ -68,6 +68,11 @@ func (node *VIPNode) GetID() string {
 	return node.ID
 }
 
+// GetResourceType returns the node's resource type.
+func (node *VIPNode) GetResourceType() ResourceType {
+	return ResourceTypeVIPNode
+}
+
 // GetName returns the node's name.
 func (node *VIPNode) GetName() string {
 	return node.Name

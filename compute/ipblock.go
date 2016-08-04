@@ -22,6 +22,11 @@ func (block *PublicIPBlock) GetID() string {
 	return block.ID
 }
 
+// GetResourceType returns the public IP block's resource type.
+func (block *PublicIPBlock) GetResourceType() ResourceType {
+	return ResourceTypePublicIPBlock
+}
+
 // GetName returns the public IPv4 address block's name.
 func (block *PublicIPBlock) GetName() string {
 	return fmt.Sprintf("%s+%d", block.BaseIP, block.Size)

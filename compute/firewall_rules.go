@@ -28,6 +28,11 @@ func (rule *FirewallRule) GetID() string {
 	return rule.ID
 }
 
+// GetResourceType returns the firewall rule's resource type.
+func (rule *FirewallRule) GetResourceType() ResourceType {
+	return ResourceTypeFirewallRule
+}
+
 // GetName returns the firewall rule's name.
 func (rule *FirewallRule) GetName() string {
 	return rule.Name

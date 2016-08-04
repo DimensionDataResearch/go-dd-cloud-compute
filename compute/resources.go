@@ -29,12 +29,18 @@ const (
 
 	// ResourceTypeFirewallRule represents a firewall rule.
 	ResourceTypeFirewallRule
+
+	// ResourceTypeVIPNode represents a VIP node.
+	ResourceTypeVIPNode
 )
 
 // Resource represents a compute resource.
 type Resource interface {
 	// The resource ID.
 	GetID() string
+
+	// The resource type.
+	GetResourceType() ResourceType
 
 	// The resource name.
 	GetName() string
@@ -67,6 +73,9 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeFirewallRule:
 		return "Firewall rule", nil
 
+	case ResourceTypeVIPNode:
+		return "VIP node", nil
+
 	default:
 		return "", fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
 	}
@@ -76,47 +85,33 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 // id is the resource Id.
 // resourceType is the resource type (e.g. ResourceTypeNetworkDomain, ResourceTypeVLAN, etc).
 func (client *Client) GetResource(id string, resourceType ResourceType) (Resource, error) {
-	var resourceLoader func(client *Client, id string) (resource Resource, err error)
-
 	switch resourceType {
 	case ResourceTypeNetworkDomain:
-		resourceLoader = getNetworkDomainByID
+		return client.GetNetworkDomain(id)
 
 	case ResourceTypeVLAN:
-		resourceLoader = getVLANByID
+		return client.GetVLAN(id)
 
 	case ResourceTypeServer:
-		resourceLoader = getServerByID
+		return client.GetServer(id)
 
 	case ResourceTypeNetworkAdapter:
-		resourceLoader = getNetworkAdapterByID
+		return client.getNetworkAdapterByID(id)
 
 	case ResourceTypePublicIPBlock:
-		resourceLoader = getPublicIPBlockByID
+		return client.GetPublicIPBlock(id)
 
 	case ResourceTypeFirewallRule:
-		resourceLoader = getFirewallRuleByID
+		return client.GetFirewallRule(id)
 
-	default:
-		return nil, fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
+	case ResourceTypeVIPNode:
+		return client.GetVIPNode(id)
 	}
 
-	return resourceLoader(client, id)
+	return nil, fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
 }
 
-func getNetworkDomainByID(client *Client, id string) (networkDomain Resource, err error) {
-	return client.GetNetworkDomain(id)
-}
-
-func getVLANByID(client *Client, id string) (Resource, error) {
-	return client.GetVLAN(id)
-}
-
-func getServerByID(client *Client, id string) (Resource, error) {
-	return client.GetServer(id)
-}
-
-func getNetworkAdapterByID(client *Client, id string) (Resource, error) {
+func (client *Client) getNetworkAdapterByID(id string) (Resource, error) {
 	compositeIDComponents := strings.Split(id, "/")
 	if len(compositeIDComponents) != 2 {
 		return nil, fmt.Errorf("'%s' is not a valid network adapter Id (when loading as a resource, the Id must be of the form 'serverId/networkAdapterId')", id)

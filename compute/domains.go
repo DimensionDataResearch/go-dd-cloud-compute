@@ -41,6 +41,11 @@ func (domain *NetworkDomain) GetID() string {
 	return domain.ID
 }
 
+// GetResourceType returns the network domain's resource type.
+func (domain *NetworkDomain) GetResourceType() ResourceType {
+	return ResourceTypeNetworkDomain
+}
+
 // GetName returns the network domain's name.
 func (domain *NetworkDomain) GetName() string {
 	return domain.Name

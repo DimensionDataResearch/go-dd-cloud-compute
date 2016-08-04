@@ -28,6 +28,11 @@ func (server *Server) GetID() string {
 	return server.ID
 }
 
+// GetResourceType returns the network domain's resource type.
+func (server *Server) GetResourceType() ResourceType {
+	return ResourceTypeServer
+}
+
 // GetName returns the server's name.
 func (server *Server) GetName() string {
 	return server.Name

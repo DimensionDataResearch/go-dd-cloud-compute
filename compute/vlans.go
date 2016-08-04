@@ -47,6 +47,11 @@ func (vlan *VLAN) GetID() string {
 	return vlan.ID
 }
 
+// GetResourceType returns the network domain's resource type.
+func (vlan *VLAN) GetResourceType() ResourceType {
+	return ResourceTypeVLAN
+}
+
 // GetName returns the VLAN's name.
 func (vlan *VLAN) GetName() string {
 	return vlan.Name
