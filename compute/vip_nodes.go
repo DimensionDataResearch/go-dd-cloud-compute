@@ -98,8 +98,8 @@ type VIPNodes struct {
 	PagedResult
 }
 
-// VIPNodeConfiguration represents the configuration for a new VIP node.
-type VIPNodeConfiguration struct {
+// NewVIPNodeConfiguration represents the configuration for a new VIP node.
+type NewVIPNodeConfiguration struct {
 	// The VIP node name.
 	Name string `json:"name"`
 
@@ -129,6 +129,27 @@ type VIPNodeConfiguration struct {
 
 	// The Id of the data centre where the node is located.
 	DatacenterID string `json:"datacenterId"`
+}
+
+// EditVIPNodeConfiguration represents the request body when editing a VIP node.
+type EditVIPNodeConfiguration struct {
+	// The VIP node Id.
+	ID string `json:"id"`
+
+	// The VIP node description.
+	Description *string `json:"description,omitempty"`
+
+	// The node status (VIPNodeStatusEnabled, VIPNodeStatusDisabled, or VIPNodeStatusForcedOffline).
+	Status *string `json:"status,omitempty"`
+
+	// The Id of the node's associated health monitor (if any).
+	HealthMonitorID *string `json:"healthMonitorId,omitempty"`
+
+	// The node's connection limit (must be greater than 0).
+	ConnectionLimit *int `json:"connectionLimit,omitempty"`
+
+	// The node's connection rate limit (must be greater than 0).
+	ConnectionRateLimit *int `json:"connectionRateLimit,omitempty"`
 }
 
 // Request body for deleting a VIP node.
@@ -223,7 +244,7 @@ func (client *Client) GetVIPNode(id string) (node *VIPNode, err error) {
 
 // CreateVIPNode creates a new VIP node.
 // Returns the Id of the new node.
-func (client *Client) CreateVIPNode(nodeConfiguration VIPNodeConfiguration) (nodeID string, err error) {
+func (client *Client) CreateVIPNode(nodeConfiguration NewVIPNodeConfiguration) (nodeID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -241,7 +262,7 @@ func (client *Client) CreateVIPNode(nodeConfiguration VIPNodeConfiguration) (nod
 		return "", err
 	}
 
-	if apiResponse.ResponseCode != ResponseCodeInProgress {
+	if apiResponse.ResponseCode != ResponseCodeOK {
 		return "", apiResponse.ToError("Request to create VIP node '%s' failed with status code %d (%s): %s", nodeConfiguration.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
@@ -251,6 +272,35 @@ func (client *Client) CreateVIPNode(nodeConfiguration VIPNodeConfiguration) (nod
 	}
 
 	return apiResponse.FieldMessages[0].Message, nil
+}
+
+// EditVIPNode updates an existing VIP node.
+func (client *Client) EditVIPNode(id string, nodeConfiguration EditVIPNodeConfiguration) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	editNodeConfiguration := &nodeConfiguration
+	editNodeConfiguration.ID = id
+
+	requestURI := fmt.Sprintf("%s/network/networkDomainVip/editNode", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, editNodeConfiguration)
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if statusCode != http.StatusOK {
+		return apiResponse.ToError("Request to create VIP node '%s' failed with status code %d (%s): %s", nodeConfiguration.ID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // DeleteVIPNode deletes an existing VIP node.
