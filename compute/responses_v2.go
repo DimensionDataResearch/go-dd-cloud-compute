@@ -41,6 +41,45 @@ func (response *APIResponseV2) GetAPIVersion() string {
 	return "v2"
 }
 
+// GetFieldError retrieves the value of the specified field error message (if any).
+// Returns nil if the no field error message with the specified name is present in the API response.
+func (response *APIResponseV2) GetFieldError(fieldName string) *string {
+	for index := range response.FieldErrors {
+		errorMessage := response.FieldErrors[index]
+		if errorMessage.FieldName == fieldName {
+			return &errorMessage.Message
+		}
+	}
+
+	return nil
+}
+
+// GetFieldWarning retrieves the value of the specified field warning message (if any).
+// Returns nil if the no field warning message with the specified name is present in the API response.
+func (response *APIResponseV2) GetFieldWarning(fieldName string) *string {
+	for index := range response.FieldWarnings {
+		warningMessage := response.FieldWarnings[index]
+		if warningMessage.FieldName == fieldName {
+			return &warningMessage.Message
+		}
+	}
+
+	return nil
+}
+
+// GetFieldMessage retrieves the value of the specified field message (if any).
+// Returns nil if the no field message with the specified name is present in the API response.
+func (response *APIResponseV2) GetFieldMessage(fieldName string) *string {
+	for index := range response.FieldMessages {
+		fieldMessage := response.FieldMessages[index]
+		if fieldMessage.FieldName == fieldName {
+			return &fieldMessage.Message
+		}
+	}
+
+	return nil
+}
+
 var _ APIResponse = &APIResponseV2{}
 
 // ToError creates an error representing the API response.

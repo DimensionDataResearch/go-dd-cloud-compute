@@ -222,11 +222,12 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 	}
 
 	// Expected: "info" { "name": "networkDomainId", "value": "the-Id-of-the-new-network-domain" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "networkDomainId" {
+	networkDomainIDMessage := apiResponse.GetFieldMessage("networkDomainId")
+	if networkDomainIDMessage == nil {
 		return "", apiResponse.ToError("Received an unexpected response (missing 'networkDomainId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	return apiResponse.FieldMessages[0].Message, nil
+	return *networkDomainIDMessage, nil
 }
 
 // EditNetworkDomain updates an existing network domain.

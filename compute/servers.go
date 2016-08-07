@@ -280,11 +280,12 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 	}
 
 	// Expected: "info" { "name": "serverId", "value": "the-Id-of-the-new-server" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "serverId" {
+	serverIDMessage := apiResponse.GetFieldMessage("serverId")
+	if serverIDMessage == nil {
 		return "", apiResponse.ToError("Received an unexpected response (missing 'serverId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	return apiResponse.FieldMessages[0].Message, nil
+	return *serverIDMessage, nil
 }
 
 // AddDiskToServer adds a disk to an existing server.

@@ -223,11 +223,12 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 	}
 
 	// Expected: "info" { "name": "vlanId", "value": "the-Id-of-the-new-VLAN" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "vlanId" {
+	vlanIDMessage := apiResponse.GetFieldMessage("vlanId")
+	if vlanIDMessage == nil {
 		return "", apiResponse.ToError("Received an unexpected response (missing 'vlanId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	return apiResponse.FieldMessages[0].Message, nil
+	return *vlanIDMessage, nil
 }
 
 // EditVLAN updates an existing VLAN.

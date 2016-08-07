@@ -177,11 +177,12 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 	}
 
 	// Expected: "info" { "name": "ipAddressListId", "value": "the-Id-of-the-new-IP-address-list" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "ipAddressListId" {
+	ipAddressListIDMessage := apiResponse.GetFieldMessage("ipAddressListId")
+	if ipAddressListIDMessage == nil {
 		return "", apiResponse.ToError("Received an unexpected response (missing 'ipAddressListId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	return apiResponse.FieldMessages[0].Message, nil
+	return *ipAddressListIDMessage, nil
 }
 
 // EditIPAddressList updates the configuration for a IP address list.

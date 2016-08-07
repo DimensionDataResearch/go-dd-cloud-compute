@@ -183,11 +183,12 @@ func (client *Client) AddPublicIPBlock(networkDomainID string) (blockID string, 
 	}
 
 	// Expected: "info" { "name": "ipBlockId", "value": "the-Id-of-the-new-IP-block" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "ipBlockId" {
+	ipBlockIDMessage := apiResponse.GetFieldMessage("ipBlockId")
+	if ipBlockIDMessage == nil {
 		return "", apiResponse.ToError("Received an unexpected response (missing 'ipBlockId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	return apiResponse.FieldMessages[0].Message, nil
+	return *ipBlockIDMessage, nil
 }
 
 // RemovePublicIPBlock removes the specified block of public IPv4 addresses from its network domain.

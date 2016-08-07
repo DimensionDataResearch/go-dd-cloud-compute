@@ -57,6 +57,31 @@ type FirewallRuleScope struct {
 	Port        *FirewallRulePort      `json:"port,omitempty"`
 }
 
+// IsScopeHost determines whether the firewall rule scope matches a host.
+func (scope *FirewallRuleScope) IsScopeHost() bool {
+	return scope.IPAddress != nil && scope.IPAddress.PrefixSize == nil
+}
+
+// IsScopeNetwork determines whether the firewall rule scope matches a network.
+func (scope *FirewallRuleScope) IsScopeNetwork() bool {
+	return scope.IPAddress != nil && scope.IPAddress.PrefixSize != nil
+}
+
+// IsScopePort determines whether the firewall rule scope matches a single port.
+func (scope *FirewallRuleScope) IsScopePort() bool {
+	return scope.Port != nil && scope.Port.End == nil
+}
+
+// IsScopePortRange determines whether the firewall rule scope matches a port range.
+func (scope *FirewallRuleScope) IsScopePortRange() bool {
+	return scope.Port != nil && scope.Port.End != nil
+}
+
+// IsScopeAddressList determines whether the firewall rule scope matches an IP address list.
+func (scope *FirewallRuleScope) IsScopeAddressList() bool {
+	return scope.AddressList != nil
+}
+
 // FirewallRuleIPAddress represents represents an IP address for firewall configuration.
 type FirewallRuleIPAddress struct {
 	Address    string `json:"address"`
@@ -370,11 +395,12 @@ func (client *Client) CreateFirewallRule(configuration FirewallRuleConfiguration
 	}
 
 	// Expected: "info" { "name": "firewallRuleId", "value": "the-Id-of-the-new-firewall-rule" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "firewallRuleId" {
+	firewallRuleIDMessage := apiResponse.GetFieldMessage("firewallRuleId")
+	if firewallRuleIDMessage == nil {
 		return "", apiResponse.ToError("Received an unexpected response (missing 'firewallRuleId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	return apiResponse.FieldMessages[0].Message, nil
+	return *firewallRuleIDMessage, nil
 }
 
 // EditFirewallRule updates the configuration for a firewall rule (enable / disable).
