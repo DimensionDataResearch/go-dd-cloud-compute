@@ -267,11 +267,19 @@ func (client *Client) CreateVIPNode(nodeConfiguration NewVIPNodeConfiguration) (
 	}
 
 	// Expected: "info" { "name": "nodeId", "value": "the-Id-of-the-new-node" }
-	if len(apiResponse.FieldMessages) != 1 || apiResponse.FieldMessages[0].FieldName != "nodeId" {
+	var nodeIDMessage *FieldMessage
+	for _, message := range apiResponse.FieldMessages {
+		if message.FieldName == "nodeId" {
+			nodeIDMessage = &message
+
+			break
+		}
+	}
+	if nodeIDMessage == nil {
 		return "", apiResponse.ToError("Received an unexpected response (missing 'nodeId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
-	return apiResponse.FieldMessages[0].Message, nil
+	return nodeIDMessage.Message, nil
 }
 
 // EditVIPNode updates an existing VIP node.
