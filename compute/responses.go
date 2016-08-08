@@ -8,6 +8,9 @@ type APIResponse interface {
 	// GetResponseCode gets the response code associated with the API response.
 	GetResponseCode() string
 
+	// GetRequestID returns the request correlation ID.
+	GetRequestID() string
+
 	// GetAPIVersion gets the version of the API that returned the response.
 	GetAPIVersion() string
 }

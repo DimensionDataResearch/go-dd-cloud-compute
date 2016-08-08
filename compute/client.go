@@ -166,6 +166,8 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 		err = fmt.Errorf("Error reading response body for '%s': %s", request.URL.String(), err.Error())
 	}
 
+	log.Printf("Response from '%s' (%d): '%s'", request.URL.String(), statusCode, string(responseBody))
+
 	return
 }
 

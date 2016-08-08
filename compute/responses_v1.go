@@ -33,6 +33,11 @@ func (response *APIResponseV1) GetResponseCode() string {
 	return response.Result
 }
 
+// GetRequestID gets the request correlation ID.
+func (response *APIResponseV1) GetRequestID() string {
+	return "NOT-PRESENT-IN-V1-API"
+}
+
 // GetAPIVersion gets the response code associated with the API response.
 func (response *APIResponseV1) GetAPIVersion() string {
 	return "v1"

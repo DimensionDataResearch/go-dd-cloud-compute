@@ -18,6 +18,14 @@ const (
 	VIPNodeStatusForcedOffline = "FORCED_OFFLINE"
 )
 
+// VIPNodeSummary represents summary information about a VIP node.
+type VIPNodeSummary struct {
+	EntitySummary
+
+	IPAddress string `json:"ipAddress"`
+	Status    string `json:"status"`
+}
+
 // VIPNode represents a VIP node.
 type VIPNode struct {
 	// The node Id.
@@ -126,9 +134,6 @@ type NewVIPNodeConfiguration struct {
 
 	// The Id of the network domain where the node is located.
 	NetworkDomainID string `json:"networkDomainId"`
-
-	// The Id of the data centre where the node is located.
-	DatacenterID string `json:"datacenterId"`
 }
 
 // EditVIPNodeConfiguration represents the request body when editing a VIP node.
@@ -250,7 +255,7 @@ func (client *Client) CreateVIPNode(nodeConfiguration NewVIPNodeConfiguration) (
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomainVip/createNode", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/createNode", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &nodeConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -285,7 +290,7 @@ func (client *Client) EditVIPNode(id string, nodeConfiguration EditVIPNodeConfig
 	editNodeConfiguration := &nodeConfiguration
 	editNodeConfiguration.ID = id
 
-	requestURI := fmt.Sprintf("%s/network/networkDomainVip/editNode", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/editNode", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, editNodeConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -324,7 +329,7 @@ func (client *Client) DeleteVIPNode(id string) (err error) {
 		return err
 	}
 
-	if apiResponse.ResponseCode != ResponseCodeInProgress {
+	if apiResponse.ResponseCode != ResponseCodeOK {
 		return apiResponse.ToError("Request to delete VIP node '%s' failed with unexpected status code %d (%s): %s", id, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
