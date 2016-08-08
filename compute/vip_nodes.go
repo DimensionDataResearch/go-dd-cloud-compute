@@ -106,10 +106,10 @@ type NewVIPNodeConfiguration struct {
 	// The VIP node description.
 	Description string `json:"description"`
 
-	// Network domain's IPv4 address (either IPv4 or IPv6 address must be specified).
+	// The node's IPv4 address (either IPv4 or IPv6 address must be specified).
 	IPv4Address string `json:"ipv4Address,omitempty"`
 
-	// Network domain's IPv6 address (either IPv4 or IPv6 address must be specified).
+	// The node's IPv6 address (either IPv4 or IPv6 address must be specified).
 	IPv6Address string `json:"ipv6Address,omitempty"`
 
 	// The node status (VIPNodeStatusEnabled, VIPNodeStatusDisabled, or VIPNodeStatusForcedOffline).
