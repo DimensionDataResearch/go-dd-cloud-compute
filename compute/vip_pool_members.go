@@ -181,7 +181,7 @@ func (client *Client) AddVIPPoolMember(poolID string, nodeID string, status stri
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomainVip/addPoolMember", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/addPoolMember", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &addPoolMember{
 		PoolID: poolID,
 		NodeID: nodeID,
@@ -219,7 +219,7 @@ func (client *Client) EditVIPPoolMember(id string, status string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomainVip/editPoolMember", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/editPoolMember", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &editPoolMember{
 		ID:     id,
 		Status: status,
@@ -248,7 +248,7 @@ func (client *Client) RemoveVIPPoolMember(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomainVip/removePoolMember", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/removePoolMember", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &removePoolMember{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {

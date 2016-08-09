@@ -115,7 +115,7 @@ func (client *Client) ListNetworkDomains(paging *Paging) (domains *NetworkDomain
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomain?%s",
+	requestURI := fmt.Sprintf("%s/networkDomain?%s",
 		organizationID,
 		paging.EnsurePaging().toQueryParameters(),
 	)
