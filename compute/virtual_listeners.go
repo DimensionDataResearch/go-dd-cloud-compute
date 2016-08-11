@@ -155,7 +155,7 @@ type NewVirtualListenerConfiguration struct {
 
 // EditVirtualListenerConfiguration represents the configuration for editing a virtual listener.
 type EditVirtualListenerConfiguration struct {
-	ID                     string   `json:"id"`
+	ID                     string    `json:"id"`
 	Description            *string   `json:"description,omitempty"`
 	Enabled                *bool     `json:"enabled,omitempty"`
 	ConnectionLimit        *int      `json:"connectionLimit,omitempty"`
