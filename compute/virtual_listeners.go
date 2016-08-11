@@ -144,10 +144,10 @@ type NewVirtualListenerConfiguration struct {
 	ConnectionLimit              int      `json:"connectionLimit"`
 	ConnectionRateLimit          int      `json:"connectionRateLimit"`
 	SourcePortPreservation       string   `json:"sourcePortPreservation"`
-	PoolID                       string   `json:"poolId"`
-	ClientClonePoolID            string   `json:"clientClonePoolId"`
-	PersistenceProfileID         string   `json:"persistenceProfileId"`
-	FallbackPersistenceProfileID string   `json:"fallbackPersistenceProfileId"`
+	PoolID                       *string  `json:"poolId,omitempty"`
+	ClientClonePoolID            *string  `json:"clientClonePoolId,omitempty"`
+	PersistenceProfileID         *string  `json:"persistenceProfileId,omitempty"`
+	FallbackPersistenceProfileID *string  `json:"fallbackPersistenceProfileId,omitempty"`
 	IRuleIDs                     []string `json:"iruleId"`
 	OptimizationProfiles         []string `json:"optimizationProfile"`
 	NetworkDomainID              string   `json:"networkDomainId"`
