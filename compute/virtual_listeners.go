@@ -81,7 +81,7 @@ type VirtualListener struct {
 	ClientClonePool            VirtualListenerVIPPoolRef `json:"ClientClonePool"`
 	PersistenceProfile         EntitySummary             `json:"persistenceProfile"`
 	FallbackPersistenceProfile EntitySummary             `json:"fallbackPersistenceProfile"`
-	OptimizationProfiles       []EntitySummary           `json:"optimizationProfile"`
+	OptimizationProfiles       []string                  `json:"optimizationProfile"`
 	IRules                     []EntitySummary           `json:"irule"`
 	State                      string                    `json:"state"`
 	CreateTime                 string                    `json:"createTime"`
@@ -138,7 +138,7 @@ type NewVirtualListenerConfiguration struct {
 	Description                  string   `json:"description"`
 	Type                         string   `json:"type"`
 	Protocol                     string   `json:"protocol"`
-	ListenerIPAddress            string   `json:"listenerIpAddress"`
+	ListenerIPAddress            *string  `json:"listenerIpAddress,omitempty"`
 	Port                         int      `json:"port,omitempty"`
 	Enabled                      bool     `json:"enabled"`
 	ConnectionLimit              int      `json:"connectionLimit"`
