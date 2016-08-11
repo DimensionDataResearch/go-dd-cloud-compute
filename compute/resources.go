@@ -32,6 +32,12 @@ const (
 
 	// ResourceTypeVIPNode represents a VIP node.
 	ResourceTypeVIPNode
+
+	// ResourceTypeVIPPool represents a VIP pool.
+	ResourceTypeVIPPool
+
+	// ResourceTypeVirtualListener represents a virtual listener.
+	ResourceTypeVirtualListener
 )
 
 // Resource represents a compute resource.
@@ -76,6 +82,12 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeVIPNode:
 		return "VIP node", nil
 
+	case ResourceTypeVIPPool:
+		return "VIP pool", nil
+
+	case ResourceTypeVirtualListener:
+		return "virtual listener", nil
+
 	default:
 		return "", fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
 	}
@@ -106,6 +118,12 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 
 	case ResourceTypeVIPNode:
 		return client.GetVIPNode(id)
+
+	case ResourceTypeVIPPool:
+		return client.GetVIPPool(id)
+
+	case ResourceTypeVirtualListener:
+		return client.GetVirtualListener(id)
 	}
 
 	return nil, fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)

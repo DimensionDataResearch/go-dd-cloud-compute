@@ -60,6 +60,33 @@ type VIPPool struct {
 	CreateTime        string          `json:"createTime"`
 }
 
+// GetID returns the pool's Id.
+func (pool *VIPPool) GetID() string {
+	return pool.ID
+}
+
+// GetResourceType returns the pool's resource type.
+func (pool *VIPPool) GetResourceType() ResourceType {
+	return ResourceTypeVIPPool
+}
+
+// GetName returns the pool's name.
+func (pool *VIPPool) GetName() string {
+	return pool.Name
+}
+
+// GetState returns the pool's current state.
+func (pool *VIPPool) GetState() string {
+	return pool.State
+}
+
+// IsDeleted determines whether the pool has been deleted (is nil).
+func (pool *VIPPool) IsDeleted() bool {
+	return pool == nil
+}
+
+var _ Resource = &VIPPool{}
+
 // VIPPools represents a page of VIPPool results.
 type VIPPools struct {
 	Items []VIPPool

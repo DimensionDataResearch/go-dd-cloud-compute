@@ -10,26 +10,30 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
 
 // Client is the client for Dimension Data's cloud compute API.
 type Client struct {
-	baseAddress   string
-	username      string
-	password      string
-	maxRetryCount int
-	retryDelay    time.Duration
-	stateLock     *sync.Mutex
-	httpClient    *http.Client
-	account       *Account
+	baseAddress              string
+	username                 string
+	password                 string
+	maxRetryCount            int
+	retryDelay               time.Duration
+	stateLock                *sync.Mutex
+	httpClient               *http.Client
+	account                  *Account
+	isExtendedLoggingEnabled bool
 }
 
 // NewClient creates a new cloud compute API client.
 // region is the cloud compute region identifier.
 func NewClient(region string, username string, password string) *Client {
 	baseAddress := fmt.Sprintf("https://api-%s.dimensiondata.com", region)
+
+	_, isExtendedLoggingEnabled := os.LookupEnv("DD_COMPUTE_EXTENDED_LOGGING")
 
 	return &Client{
 		baseAddress,
@@ -40,6 +44,7 @@ func NewClient(region string, username string, password string) *Client {
 		&sync.Mutex{},
 		&http.Client{},
 		nil,
+		isExtendedLoggingEnabled,
 	}
 }
 
@@ -49,6 +54,27 @@ func (client *Client) Reset() {
 	defer client.stateLock.Unlock()
 
 	client.account = nil
+}
+
+// EnableExtendedLogging enables logging of HTTP requests and responses.
+func (client *Client) EnableExtendedLogging() {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	client.isExtendedLoggingEnabled = true
+}
+
+// DisableExtendedLogging disables logging of HTTP requests and responses.
+func (client *Client) DisableExtendedLogging() {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	client.isExtendedLoggingEnabled = false
+}
+
+// IsExtendedLoggingEnabled determines if logging of HTTP requests and responses is enabled.
+func (client *Client) IsExtendedLoggingEnabled() bool {
+	return client.isExtendedLoggingEnabled
 }
 
 // ConfigureRetry configures the client's retry facility.
@@ -69,6 +95,108 @@ func (client *Client) getOrganizationID() (organizationID string, err error) {
 	}
 
 	return account.OrganizationID, nil
+}
+
+// executeRequest performs the specified request and returns the entire response body, together with the HTTP status code.
+func (client *Client) executeRequest(request *http.Request) (responseBody []byte, statusCode int, err error) {
+	if client.IsExtendedLoggingEnabled() {
+		var requestBody []byte
+		requestBody, err = getRequestBody(request)
+		if err != nil {
+			return
+		}
+
+		log.Printf("Invoking '%s' request to '%s'...",
+			request.Method,
+			request.URL.String(),
+		)
+
+		if len(requestBody) > 0 {
+			log.Printf("Request body: '%s'", string(requestBody))
+		} else {
+			switch request.Method {
+			case http.MethodGet:
+			case http.MethodHead:
+				break
+			default:
+				log.Printf("Request body is empty.")
+			}
+		}
+	}
+
+	if request.Body != nil {
+		defer request.Body.Close()
+	}
+
+	response, err := client.httpClient.Do(request)
+	if err != nil {
+		log.Printf("Unexpected error while performing '%s' request to '%s': %s.",
+			request.Method,
+			request.URL.String(),
+			err.Error(),
+		)
+
+		for retryCount := 0; retryCount < client.maxRetryCount; retryCount++ {
+			if client.IsExtendedLoggingEnabled() {
+				log.Printf("Retrying '%s' request to '%s' (%d retries remaining)...",
+					request.Method,
+					request.URL.String(),
+					retryCount-client.maxRetryCount,
+				)
+			}
+
+			response, err = client.httpClient.Do(request)
+
+			if err != nil {
+				if client.IsExtendedLoggingEnabled() {
+					log.Printf("Still failing - '%s' request to '%s': %s.",
+						request.Method,
+						request.URL.String(),
+						err.Error(),
+					)
+				}
+
+				continue
+			}
+
+			if client.IsExtendedLoggingEnabled() {
+				log.Printf("'%s' request to '%s' succeeded.",
+					request.Method,
+					request.URL.String(),
+				)
+			}
+
+			break
+		}
+
+		if err != nil {
+			err = fmt.Errorf("Unexpected error while performing '%s' request to '%s': %s",
+				request.Method,
+				request.URL.String(),
+				err.Error(),
+			)
+
+			return
+		}
+	}
+	defer response.Body.Close()
+
+	statusCode = response.StatusCode
+
+	responseBody, err = ioutil.ReadAll(response.Body)
+	if err != nil {
+		err = fmt.Errorf("Error reading response body for '%s': %s", request.URL.String(), err.Error())
+	}
+
+	if client.IsExtendedLoggingEnabled() {
+		log.Printf("Response from '%s' (%d): '%s'",
+			request.URL.String(),
+			statusCode,
+			string(responseBody),
+		)
+	}
+
+	return
 }
 
 // Create a basic request for the compute API (V1, XML).
@@ -99,76 +227,6 @@ func (client *Client) newRequestV1(relativeURI string, method string, body inter
 	}
 
 	return request, nil
-}
-
-// executeRequest performs the specified request and returns the entire response body, together with the HTTP status code.
-func (client *Client) executeRequest(request *http.Request) (responseBody []byte, statusCode int, err error) {
-	if request.Body != nil {
-		defer request.Body.Close()
-	}
-
-	log.Printf("Invoking '%s' request to '%s'...",
-		request.Method,
-		request.URL.String(),
-	)
-
-	response, err := client.httpClient.Do(request)
-	if err != nil {
-		log.Printf("Unexpected error while performing '%s' request to '%s': %s.",
-			request.Method,
-			request.URL.String(),
-			err.Error(),
-		)
-
-		for retryCount := 0; retryCount < client.maxRetryCount; retryCount++ {
-			log.Printf("Retrying '%s' request to '%s' (%d retries remaining)...",
-				request.Method,
-				request.URL.String(),
-				retryCount-client.maxRetryCount,
-			)
-
-			response, err = client.httpClient.Do(request)
-
-			if err != nil {
-				log.Printf("Still failing - '%s' request to '%s': %s.",
-					request.Method,
-					request.URL.String(),
-					err.Error(),
-				)
-
-				continue
-			}
-
-			log.Printf("'%s' request to '%s' succeeded.",
-				request.Method,
-				request.URL.String(),
-			)
-
-			break
-		}
-
-		if err != nil {
-			err = fmt.Errorf("Unexpected error while performing '%s' request to '%s': %s",
-				request.Method,
-				request.URL.String(),
-				err.Error(),
-			)
-
-			return
-		}
-	}
-	defer response.Body.Close()
-
-	statusCode = response.StatusCode
-
-	responseBody, err = ioutil.ReadAll(response.Body)
-	if err != nil {
-		err = fmt.Errorf("Error reading response body for '%s': %s", request.URL.String(), err.Error())
-	}
-
-	log.Printf("Response from '%s' (%d): '%s'", request.URL.String(), statusCode, string(responseBody))
-
-	return
 }
 
 // Create a basic request for the compute API (V2.2, JSON).

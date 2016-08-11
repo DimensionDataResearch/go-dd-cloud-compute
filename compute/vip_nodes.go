@@ -59,7 +59,7 @@ type VIPNode struct {
 	NetworkDomainID string `json:"networkDomainId"`
 
 	// The Id of the data centre where the node is located.
-	DataCenterID string `json:"dataCenterId"`
+	DataCenterID string `json:"datacenterId"`
 
 	// The node's creation timestamp.
 	CreateTime string `json:"createTime"`
@@ -303,7 +303,7 @@ func (client *Client) EditVIPNode(id string, nodeConfiguration EditVIPNodeConfig
 	}
 
 	if statusCode != http.StatusOK {
-		return apiResponse.ToError("Request to create VIP node '%s' failed with status code %d (%s): %s", nodeConfiguration.ID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return apiResponse.ToError("Request to edit VIP node '%s' failed with status code %d (%s): %s", nodeConfiguration.ID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
