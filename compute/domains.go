@@ -115,7 +115,7 @@ func (client *Client) ListNetworkDomains(paging *Paging) (domains *NetworkDomain
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomain?%s",
+	requestURI := fmt.Sprintf("%s/network/networkDomain?%s",
 		organizationID,
 		paging.EnsurePaging().toQueryParameters(),
 	)
@@ -190,6 +190,55 @@ func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err er
 	}
 
 	return domain, nil
+}
+
+// GetNetworkDomainByName retrieves the network domain (if any) with the specified name in the specified data centre.
+func (client *Client) GetNetworkDomainByName(name string, dataCenterID string) (domain *NetworkDomain, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/networkDomain?name=%s&datacenterId=%s",
+		organizationID,
+		name,
+		dataCenterID,
+	)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, apiResponse.ToError("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	domains := &NetworkDomains{}
+	err = json.Unmarshal(responseBody, domains)
+	if err != nil {
+		return nil, err
+	}
+	if domains.IsEmpty() {
+		return nil, nil // No matching network domain was found.
+	}
+
+	if len(domains.Domains) != 1 {
+		return nil, fmt.Errorf("Found multiple network domains (%d) named '%s' in data centre '%s'.", len(domains.Domains), name, dataCenterID)
+	}
+
+	return &domains.Domains[0], nil
 }
 
 // DeployNetworkDomain deploys a new network domain.
