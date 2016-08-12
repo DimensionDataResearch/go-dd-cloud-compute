@@ -63,6 +63,16 @@ func (domain *NetworkDomain) IsDeleted() bool {
 
 var _ Resource = &NetworkDomain{}
 
+// ToEntityReference creates an EntityReference representing the NetworkDomain.
+func (domain *NetworkDomain) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   domain.ID,
+		Name: domain.Name,
+	}
+}
+
+var _ NamedEntity = &NetworkDomain{}
+
 // NetworkDomains represents the response to a "List Network Domains" API call.
 type NetworkDomains struct {
 	// The current page of network domains.

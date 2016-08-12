@@ -38,6 +38,16 @@ type CustomerImage struct {
 	CreateTime      string               `json:"createTime"`
 }
 
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (image *CustomerImage) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   image.ID,
+		Name: image.Name,
+	}
+}
+
+var _ NamedEntity = &CustomerImage{}
+
 // GetCustomerImage retrieves a specific customer image by Id.
 func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err error) {
 	organizationID, err := client.getOrganizationID()

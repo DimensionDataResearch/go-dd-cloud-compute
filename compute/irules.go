@@ -15,6 +15,16 @@ type IRule struct {
 	VirtualListenerProtocol string `json:"virtualListenerProtocol"`
 }
 
+// ToEntityReference creates an EntityReference representing the IRule.
+func (iRule *IRule) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   iRule.ID,
+		Name: iRule.Name,
+	}
+}
+
+var _ NamedEntity = &IRule{}
+
 // IRules represents a page of IRule results.
 type IRules struct {
 	Items []IRule `json:"defaultIRule"`

@@ -7,6 +7,30 @@ import (
 	"net/url"
 )
 
+// OSImage represents a DD-provided virtual machine image.
+type OSImage struct {
+	ID              string               `json:"id"`
+	Name            string               `json:"name"`
+	Description     string               `json:"description"`
+	DataCenterID    string               `json:"datacenterId"`
+	OperatingSystem OperatingSystem      `json:"operatingSystem"`
+	CPU             VirtualMachineCPU    `json:"cpu"`
+	MemoryGB        int                  `json:"memoryGb"`
+	Disks           []VirtualMachineDisk `json:"disk"`
+	CreateTime      string               `json:"createTime"`
+	OSImageKey      string               `json:"osImageKey"`
+}
+
+// ToEntityReference creates an EntityReference representing the OSImage.
+func (image *OSImage) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   image.ID,
+		Name: image.Name,
+	}
+}
+
+var _ NamedEntity = &OSImage{}
+
 // OSImages represents a page of OSImage results.
 type OSImages struct {
 	// The current page of network domains.
@@ -23,20 +47,6 @@ type OSImages struct {
 
 	// The maximum number of OS images per page.
 	PageSize int `json:"pageSize"`
-}
-
-// OSImage represents a DD-provided virtual machine image.
-type OSImage struct {
-	ID              string               `json:"id"`
-	Name            string               `json:"name"`
-	Description     string               `json:"description"`
-	DataCenterID    string               `json:"datacenterId"`
-	OperatingSystem OperatingSystem      `json:"operatingSystem"`
-	CPU             VirtualMachineCPU    `json:"cpu"`
-	MemoryGB        int                  `json:"memoryGb"`
-	Disks           []VirtualMachineDisk `json:"disk"`
-	CreateTime      string               `json:"createTime"`
-	OSImageKey      string               `json:"osImageKey"`
 }
 
 // GetOSImage retrieves a specific OS image by Id.

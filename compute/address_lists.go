@@ -15,7 +15,7 @@ type IPAddressList struct {
 	State       string               `json:"state"`
 	CreateTime  string               `json:"createTime"`
 	Addresses   []IPAddressListEntry `json:"ipAddress"`
-	ChildLists  []EntitySummary      `json:"childIpAddressList"`
+	ChildLists  []EntityReference    `json:"childIpAddressList"`
 }
 
 // BuildEditRequest creates an EditIPAddressList using the existing addresses and child list references in the IP address list.

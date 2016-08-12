@@ -18,7 +18,7 @@ type VLAN struct {
 	Description string `json:"description"`
 
 	// The network domain in which the VLAN is deployed associated.
-	NetworkDomain EntitySummary `json:"networkDomain"`
+	NetworkDomain EntityReference `json:"networkDomain"`
 
 	// The VLAN's associated IPv4 network range.
 	IPv4Range IPv4Range `json:"privateIpv4Range"`
@@ -68,6 +68,16 @@ func (vlan *VLAN) IsDeleted() bool {
 }
 
 var _ Resource = &VLAN{}
+
+// ToEntityReference creates an EntityReference representing the VLAN.
+func (vlan *VLAN) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   vlan.ID,
+		Name: vlan.Name,
+	}
+}
+
+var _ NamedEntity = &VLAN{}
 
 // VLANs represents the response to a "List VLANs" API call.
 type VLANs struct {

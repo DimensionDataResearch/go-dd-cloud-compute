@@ -79,10 +79,10 @@ type VirtualListener struct {
 	SourcePortPreservation     string                    `json:"sourcePortPreservation"`
 	Pool                       VirtualListenerVIPPoolRef `json:"pool"`
 	ClientClonePool            VirtualListenerVIPPoolRef `json:"ClientClonePool"`
-	PersistenceProfile         EntitySummary             `json:"persistenceProfile"`
-	FallbackPersistenceProfile EntitySummary             `json:"fallbackPersistenceProfile"`
+	PersistenceProfile         EntityReference           `json:"persistenceProfile"`
+	FallbackPersistenceProfile EntityReference           `json:"fallbackPersistenceProfile"`
 	OptimizationProfiles       []string                  `json:"optimizationProfile"`
-	IRules                     []EntitySummary           `json:"irule"`
+	IRules                     []EntityReference         `json:"irule"`
 	State                      string                    `json:"state"`
 	CreateTime                 string                    `json:"createTime"`
 	NetworkDomainID            string                    `json:"networkDomainId"`
@@ -125,11 +125,11 @@ type VirtualListeners struct {
 
 // VirtualListenerVIPPoolRef represents a VirtualListener's reference to a VIP pool
 type VirtualListenerVIPPoolRef struct {
-	LoadBalanceMethod string          `json:"loadBalanceMethod"`
-	ServiceDownAction string          `json:"serviceDownAction"`
-	HealthMonitors    []EntitySummary `json:"healthMonitor"`
+	LoadBalanceMethod string            `json:"loadBalanceMethod"`
+	ServiceDownAction string            `json:"serviceDownAction"`
+	HealthMonitors    []EntityReference `json:"healthMonitor"`
 
-	EntitySummary
+	EntityReference
 }
 
 // NewVirtualListenerConfiguration represents the configuration for a new virtual listener.

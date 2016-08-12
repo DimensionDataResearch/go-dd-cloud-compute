@@ -2,8 +2,14 @@ package compute
 
 import "fmt"
 
-// EntitySummary is used to group an entity Id and name together for serialisation / deserialisation purposes.
-type EntitySummary struct {
+// NamedEntity represents a named Cloud Control entity.
+type NamedEntity interface {
+	// ToEntityReference creates an EntityReference representing the entity.
+	ToEntityReference() EntityReference
+}
+
+// EntityReference is used to group an entity Id and name together for serialisation / deserialisation purposes.
+type EntityReference struct {
 	// The entity Id.
 	ID string `json:"id"`
 	// The entity name.

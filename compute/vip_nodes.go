@@ -18,9 +18,9 @@ const (
 	VIPNodeStatusForcedOffline = "FORCED_OFFLINE"
 )
 
-// VIPNodeSummary represents summary information about a VIP node.
-type VIPNodeSummary struct {
-	EntitySummary
+// VIPNodeReference represents a reference to a VIP node.
+type VIPNodeReference struct {
+	EntityReference
 
 	IPAddress string `json:"ipAddress"`
 	Status    string `json:"status"`
@@ -97,6 +97,16 @@ func (node *VIPNode) IsDeleted() bool {
 }
 
 var _ Resource = &VIPNode{}
+
+// ToEntityReference creates an EntityReference representing the VIPNode.
+func (node *VIPNode) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   node.ID,
+		Name: node.Name,
+	}
+}
+
+var _ NamedEntity = &VIPNode{}
 
 // VIPNodes represents a page of VIPNode results.
 type VIPNodes struct {

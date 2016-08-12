@@ -16,6 +16,16 @@ type PersistenceProfile struct {
 	VirtualListenerProtocol string `json:"virtualListenerProtocol"`
 }
 
+// ToEntityReference creates an EntityReference representing the PersistenceProfile.
+func (profile *PersistenceProfile) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   profile.ID,
+		Name: profile.Name,
+	}
+}
+
+var _ NamedEntity = &PersistenceProfile{}
+
 // PersistenceProfiles represents a page of PersistenceProfile results.
 type PersistenceProfiles struct {
 	Items []PersistenceProfile `json:"defaultPersistenceProfile"`

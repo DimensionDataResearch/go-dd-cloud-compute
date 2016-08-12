@@ -53,7 +53,7 @@ var _ Resource = &FirewallRule{}
 // FirewallRuleScope represents a scope (IP and / or port) for firewall configuration (source or destination).
 type FirewallRuleScope struct {
 	IPAddress   *FirewallRuleIPAddress `json:"ip,omitempty"`
-	AddressList *EntitySummary         `json:"ipAddressList,omitempty"`
+	AddressList *EntityReference       `json:"ipAddressList,omitempty"`
 	Port        *FirewallRulePort      `json:"port,omitempty"`
 }
 
@@ -226,7 +226,7 @@ func (configuration *FirewallRuleConfiguration) MatchDestinationNetworkAndPort(b
 // MatchSourceAddressListAndPort modifies the configuration so that the firewall rule will match a specific source IP address list (and, optionally, port).
 func (configuration *FirewallRuleConfiguration) MatchSourceAddressListAndPort(addressListID string, port *int) {
 	sourceScope := &FirewallRuleScope{
-		AddressList: &EntitySummary{
+		AddressList: &EntityReference{
 			ID: addressListID,
 		},
 	}
@@ -263,7 +263,7 @@ func (configuration *FirewallRuleConfiguration) MatchAnyDestinationAddress(port 
 // MatchDestinationAddressListAndPort modifies the configuration so that the firewall rule will match a specific destination IP address list (and, optionally, port).
 func (configuration *FirewallRuleConfiguration) MatchDestinationAddressListAndPort(addressListID string, port *int) {
 	destinationScope := &FirewallRuleScope{
-		AddressList: &EntitySummary{
+		AddressList: &EntityReference{
 			ID: addressListID,
 		},
 	}

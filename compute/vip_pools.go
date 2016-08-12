@@ -47,17 +47,17 @@ const (
 
 // VIPPool represents a VIP pool.
 type VIPPool struct {
-	ID                string          `json:"id"`
-	Name              string          `json:"name"`
-	Description       string          `json:"description"`
-	LoadBalanceMethod string          `json:"loadBalanceMethod"`
-	HealthMonitors    []EntitySummary `json:"healthMonitor"`
-	ServiceDownAction string          `json:"serviceDownAction"`
-	SlowRampTime      int             `json:"slowRampTime"`
-	State             string          `json:"state"`
-	NetworkDomainID   string          `json:"networkDomainID"`
-	DataCenterID      string          `json:"datacenterId"`
-	CreateTime        string          `json:"createTime"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Description       string            `json:"description"`
+	LoadBalanceMethod string            `json:"loadBalanceMethod"`
+	HealthMonitors    []EntityReference `json:"healthMonitor"`
+	ServiceDownAction string            `json:"serviceDownAction"`
+	SlowRampTime      int               `json:"slowRampTime"`
+	State             string            `json:"state"`
+	NetworkDomainID   string            `json:"networkDomainID"`
+	DataCenterID      string            `json:"datacenterId"`
+	CreateTime        string            `json:"createTime"`
 }
 
 // GetID returns the pool's Id.
@@ -86,6 +86,16 @@ func (pool *VIPPool) IsDeleted() bool {
 }
 
 var _ Resource = &VIPPool{}
+
+// ToEntityReference creates an EntityReference representing the VIPNode.
+func (pool *VIPPool) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   pool.ID,
+		Name: pool.Name,
+	}
+}
+
+var _ NamedEntity = &VIPNode{}
 
 // VIPPools represents a page of VIPPool results.
 type VIPPools struct {

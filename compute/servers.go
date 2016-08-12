@@ -50,6 +50,16 @@ func (server *Server) IsDeleted() bool {
 
 var _ Resource = &Server{}
 
+// ToEntityReference creates an EntityReference representing the Server.
+func (server *Server) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   server.ID,
+		Name: server.Name,
+	}
+}
+
+var _ NamedEntity = &Server{}
+
 // Servers represents a page of Server results.
 type Servers struct {
 	Items []Server `json:"server"`

@@ -9,15 +9,15 @@ import (
 
 // VIPPoolMember represents a combination of node and port as a member of a VIP pool.
 type VIPPoolMember struct {
-	ID              string         `json:"id"`
-	Pool            EntitySummary  `json:"pool"`
-	Node            VIPNodeSummary `json:"node"`
-	Port            *int           `json:"port,omitempty"`
-	Status          string         `json:"status"`
-	State           string         `json:"state"`
-	NetworkDomainID string         `json:"networkDomainId"`
-	DatacenterID    string         `json:"datacenterId"`
-	CreateTime      string         `json:"createTime"`
+	ID              string           `json:"id"`
+	Pool            EntityReference  `json:"pool"`
+	Node            VIPNodeReference `json:"node"`
+	Port            *int             `json:"port,omitempty"`
+	Status          string           `json:"status"`
+	State           string           `json:"state"`
+	NetworkDomainID string           `json:"networkDomainId"`
+	DatacenterID    string           `json:"datacenterId"`
+	CreateTime      string           `json:"createTime"`
 }
 
 // VIPPoolMembers represents a page of VIPPoolMember results.
