@@ -83,6 +83,14 @@ func (client *Client) ConfigureRetry(maxRetryCount int, retryDelay time.Duration
 	client.stateLock.Lock()
 	defer client.stateLock.Unlock()
 
+	if maxRetryCount < 0 {
+		maxRetryCount = 0
+	}
+
+	if retryDelay < 0*time.Second {
+		retryDelay = 5 * time.Second
+	}
+
 	client.maxRetryCount = maxRetryCount
 	client.retryDelay = retryDelay
 }
