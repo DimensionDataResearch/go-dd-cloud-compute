@@ -105,6 +105,107 @@ func (scope *FirewallRuleScope) IsScopeAddressList() bool {
 	return scope.AddressList != nil
 }
 
+// Diff captures the differences (if any) between a FirewallRuleScope and another FirewallRuleScope.
+func (scope FirewallRuleScope) Diff(other FirewallRuleScope) (differences []string) {
+	if scope.IsScopeHost() {
+		if other.IsScopeHost() {
+			if scope.IPAddress.Address != other.IPAddress.Address {
+				differences = append(differences, fmt.Sprintf(
+					"target hosts do not match ('%s' vs '%s')",
+					scope.IPAddress.Address,
+					other.IPAddress.Address,
+				))
+			}
+		} else if other.IsScopeNetwork() {
+			differences = append(differences, "host scope vs network scope")
+		} else if other.IsScopeAddressList() {
+			differences = append(differences, "host scope vs address list scope")
+		} else {
+			differences = append(differences, "host scope vs unknown scope")
+		}
+	} else if scope.IsScopeNetwork() {
+		if other.IsScopeNetwork() {
+			scopeNetwork := fmt.Sprintf("%s/%d",
+				scope.IPAddress.Address,
+				*scope.IPAddress.PrefixSize,
+			)
+			otherNetwork := fmt.Sprintf("%s/%d",
+				other.IPAddress.Address,
+				*other.IPAddress.PrefixSize,
+			)
+
+			if scope.IPAddress.Address != other.IPAddress.Address {
+				differences = append(differences, fmt.Sprintf(
+					"target networks do not match ('%s' vs '%s')",
+					scopeNetwork,
+					otherNetwork,
+				))
+			}
+		} else if other.IsScopeHost() {
+			differences = append(differences, "network scope vs host scope")
+		} else if other.IsScopeAddressList() {
+			differences = append(differences, "network scope vs address list scope")
+		} else {
+			differences = append(differences, "network scope vs unknown scope")
+		}
+	} else if scope.IsScopeAddressList() {
+		if other.IsScopeAddressList() {
+			if scope.AddressList.ID != other.AddressList.ID {
+				differences = append(differences, fmt.Sprintf(
+					"address lists do not match ('%s' vs '%s')",
+					scope.AddressList.ID,
+					other.AddressList.ID,
+				))
+			}
+		} else if other.IsScopeHost() {
+			differences = append(differences, "address list scope vs host scope")
+		} else if other.IsScopeAddressList() {
+			differences = append(differences, "address list scope vs address list scope")
+		} else {
+			differences = append(differences, "address list scope vs unknown scope")
+		}
+	}
+
+	if scope.IsScopePort() {
+		if other.IsScopePort() {
+			if scope.Port.Begin != other.Port.Begin {
+				differences = append(differences, fmt.Sprintf(
+					"ports do not match (%d vs %d)",
+					scope.Port.Begin,
+					scope.Port.End,
+				))
+			}
+		} else if other.IsScopePortRange() {
+			differences = append(differences, "port scope vs port-range scope")
+		} else {
+			differences = append(differences, "port scope vs no scope")
+		}
+	} else if scope.IsScopePortRange() {
+		if other.IsScopePortRange() {
+			scopeRange := fmt.Sprintf("%d-%d",
+				scope.Port.Begin,
+				*scope.Port.End,
+			)
+			otherRange := fmt.Sprintf("%d-%d",
+				other.Port.Begin,
+				*other.Port.End,
+			)
+
+			differences = append(differences, fmt.Sprintf(
+				"port ranges do not match ('%s' vs '%s')",
+				scopeRange,
+				otherRange,
+			))
+		} else if other.IsScopePort() {
+			differences = append(differences, "port-range scope vs port scope")
+		} else {
+			differences = append(differences, "port-range scope vs no scope")
+		}
+	}
+
+	return
+}
+
 // FirewallRuleIPAddress represents represents an IP address for firewall configuration.
 type FirewallRuleIPAddress struct {
 	Address    string `json:"address"`
