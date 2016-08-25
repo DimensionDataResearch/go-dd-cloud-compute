@@ -26,6 +26,9 @@ const (
 	// FirewallRuleProtocolTCP indicates a firewall rule that targets the Transmission Control Protocol (TCP)
 	FirewallRuleProtocolTCP = "TCP"
 
+	// FirewallRuleProtocolICMP indicates a firewall rule that targets the Internet Control Message Protocol (ICMP)
+	FirewallRuleProtocolICMP = "ICMP"
+
 	// FirewallRuleMatchAny indicates a firewall rule value that matches any other value in the same scope.
 	FirewallRuleMatchAny = "ANY"
 )
@@ -105,6 +108,11 @@ func (scope *FirewallRuleScope) IsScopeAddressList() bool {
 	return scope.AddressList != nil
 }
 
+// IsScopeAny determines whether the firewall rule scope matches anything (i.e. the rule is unscoped).
+func (scope *FirewallRuleScope) IsScopeAny() bool {
+	return scope.IPAddress == nil && scope.AddressList == nil && scope.Port == nil
+}
+
 // Diff captures the differences (if any) between a FirewallRuleScope and another FirewallRuleScope.
 func (scope FirewallRuleScope) Diff(other FirewallRuleScope) (differences []string) {
 	if scope.IsScopeHost() {
@@ -134,7 +142,7 @@ func (scope FirewallRuleScope) Diff(other FirewallRuleScope) (differences []stri
 				*other.IPAddress.PrefixSize,
 			)
 
-			if scope.IPAddress.Address != other.IPAddress.Address {
+			if scopeNetwork != otherNetwork {
 				differences = append(differences, fmt.Sprintf(
 					"target networks do not match ('%s' vs '%s')",
 					scopeNetwork,
@@ -209,7 +217,7 @@ func (scope FirewallRuleScope) Diff(other FirewallRuleScope) (differences []stri
 // FirewallRuleIPAddress represents represents an IP address for firewall configuration.
 type FirewallRuleIPAddress struct {
 	Address    string `json:"address"`
-	PrefixSize *int   `json:"PrefixSize,omitempty"`
+	PrefixSize *int   `json:"prefixSize,omitempty"`
 }
 
 // FirewallRulePort represents a firewall port configuration.
@@ -290,6 +298,13 @@ func (configuration *FirewallRuleConfiguration) IP() *FirewallRuleConfiguration 
 // TCP sets the firewall rule's target protocol to TCP.
 func (configuration *FirewallRuleConfiguration) TCP() *FirewallRuleConfiguration {
 	configuration.Protocol = FirewallRuleProtocolTCP
+
+	return configuration
+}
+
+// ICMP sets the firewall rule's target protocol to ICMP.
+func (configuration *FirewallRuleConfiguration) ICMP() *FirewallRuleConfiguration {
+	configuration.Protocol = FirewallRuleProtocolICMP
 
 	return configuration
 }
