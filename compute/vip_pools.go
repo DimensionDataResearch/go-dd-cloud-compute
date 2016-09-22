@@ -17,30 +17,30 @@ const (
 	// ServiceDownActionReselect indicates that a pool service will be reselected when it is down.
 	ServiceDownActionReselect = "RESELECT"
 
-	// LoadBalanceMethodRoundRobin indicates that requests will be directed to pool pools in round-robin fashion.
+	// LoadBalanceMethodRoundRobin indicates that requests will be directed to pool nodes in round-robin fashion.
 	LoadBalanceMethodRoundRobin = "ROUND_ROBIN"
 
-	// LoadBalanceMethodLeastConnectionsNode indicates that requests will be directed to the pool pool that has the smallest number of active connections at the moment of connection.
-	// All connections to the pool are considered.
+	// LoadBalanceMethodLeastConnectionsNode indicates that requests will be directed to the pool node that has the smallest number of active connections at the moment of connection.
+	// All connections to the node are considered.
 	LoadBalanceMethodLeastConnectionsNode = "LEAST_CONNECTIONS_NODE"
 
-	// LoadBalanceMethodLeastConnectionsMember indicates that requests will be directed to the pool pool that has the smallest number of active connections at the moment of connection.
-	// Only connections to the pool as a member of the current pool are considered.
+	// LoadBalanceMethodLeastConnectionsMember indicates that requests will be directed to the pool node that has the smallest number of active connections at the moment of connection.
+	// Only connections to the node as a member of the current pool are considered.
 	LoadBalanceMethodLeastConnectionsMember = "LEAST_CONNECTIONS_MEMBER"
 
-	// LoadBalanceMethodObservedNode indicates that requests will be directed to the pool pool that has the smallest number of active connections over time.
-	// All connections to the pool are considered.
+	// LoadBalanceMethodObservedNode indicates that requests will be directed to the pool node that has the smallest number of active connections over time.
+	// All connections to the node are considered.
 	LoadBalanceMethodObservedNode = "OBSERVED_NODE"
 
-	// LoadBalanceMethodObservedMember indicates that requests will be directed to the pool pool that has the smallest number of active connections over time.
-	// Only connections to the pool as a member of the current pool are considered.
+	// LoadBalanceMethodObservedMember indicates that requests will be directed to the pool node that has the smallest number of active connections over time.
+	// Only connections to the node as a member of the current pool are considered.
 	LoadBalanceMethodObservedMember = "OBSERVED_MEMBER"
 
-	// LoadBalanceMethodPredictiveNode indicates that requests will be directed to the pool pool that is predicted to have the smallest number of active connections.
+	// LoadBalanceMethodPredictiveNode indicates that requests will be directed to the pool node that is predicted to have the smallest number of active connections.
 	// All connections to the pool are considered.
 	LoadBalanceMethodPredictiveNode = "PREDICTIVE_NODE"
 
-	// LoadBalanceMethodPredictiveMember indicates that requests will be directed to the pool pool that is predicted to have the smallest number of active connections over time.
+	// LoadBalanceMethodPredictiveMember indicates that requests will be directed to the pool node that is predicted to have the smallest number of active connections over time.
 	// Only connections to the pool as a member of the current pool are considered.
 	LoadBalanceMethodPredictiveMember = "PREDICTIVE_MEMBER"
 )
