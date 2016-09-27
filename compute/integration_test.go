@@ -92,6 +92,23 @@ func testValidateJSONRequestAndRespond(statusCode int, responseBody string, requ
 	}
 }
 
+func testValidateXMLRequestAndRespondOK(responseBody string, requestBodyTemplate interface{}, validateRequestBody ClientTestValidateRequestBody) ClientTestResponder {
+	return testValidateXMLRequestAndRespond(http.StatusOK, responseBody, requestBodyTemplate, validateRequestBody)
+}
+
+func testValidateXMLRequestAndRespond(statusCode int, responseBody string, requestBodyTemplate interface{}, validateRequestBody ClientTestValidateRequestBody) ClientTestResponder {
+	return func(test *testing.T, request *http.Request) (int, string) {
+		err := readRequestBodyAsXML(request, requestBodyTemplate)
+		if err != nil {
+			test.Fatal("Failed to deserialise request body: ", err)
+		}
+
+		validateRequestBody(test, requestBodyTemplate)
+
+		return statusCode, responseBody
+	}
+}
+
 func testClientRequest(test *testing.T, testConfiguration *ClientTestConfig) {
 	testConfiguration.EnsureInitialized()
 

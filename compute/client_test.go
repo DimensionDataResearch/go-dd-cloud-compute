@@ -65,10 +65,10 @@ func readRequestBodyAsXML(request *http.Request, target interface{}) error {
 	}
 
 	defer request.Body.Close()
-	responseBody, err := ioutil.ReadAll(request.Body)
+	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		return err
 	}
 
-	return xml.Unmarshal(responseBody, target)
+	return xml.Unmarshal(requestBody, target)
 }

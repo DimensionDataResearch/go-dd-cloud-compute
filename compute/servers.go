@@ -67,6 +67,23 @@ type Servers struct {
 	PagedResult
 }
 
+// ServerSummary respresents summary information for a server.
+type ServerSummary struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+
+	// TODO: Consider adding the "networkingDetails" field.
+}
+
+// ToEntityReference creates an EntityReference representing the ServerSummary.
+func (serverSummary *ServerSummary) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   serverSummary.ID,
+		Name: serverSummary.Name,
+	}
+}
+
 // ServerDeploymentConfiguration represents the configuration for deploying a virtual machine.
 type ServerDeploymentConfiguration struct {
 	Name                  string                `json:"name"`
