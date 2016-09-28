@@ -16,6 +16,11 @@ func (client *Client) WaitForEdit(resourceType ResourceType, id string, timeout 
 	return client.WaitForChange(resourceType, id, "Edit", timeout)
 }
 
+// WaitForAdd waits for a resource's pending add operation to complete.
+func (client *Client) WaitForAdd(resourceType ResourceType, id string, actionDescription string, timeout time.Duration) (resource Resource, err error) {
+	return client.waitForPendingOperation(resourceType, id, actionDescription, ResourceStatusPendingAdd, timeout)
+}
+
 // WaitForChange waits for a resource's pending change operation to complete.
 func (client *Client) WaitForChange(resourceType ResourceType, id string, actionDescription string, timeout time.Duration) (resource Resource, err error) {
 	return client.waitForPendingOperation(resourceType, id, actionDescription, ResourceStatusPendingChange, timeout)
