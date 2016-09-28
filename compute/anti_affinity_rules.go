@@ -38,7 +38,7 @@ type ServerAntiAffinityRules struct {
 
 // Request body when creating a new anti-affinity rule.
 type newServerAntiAffinityRule struct {
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/server serverId"`
+	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/server NewAntiAffinityRule"`
 
 	// The Ids of the servers to which the rule relates.
 	// Each rule can only apply to exactly 2 servers; we only use an array here because CloudControl (bizarrely) uses the same element name for both server Ids.
