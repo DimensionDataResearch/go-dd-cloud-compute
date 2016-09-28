@@ -20,6 +20,9 @@ const (
 	// ResourceTypeServer represents a virtual machine.
 	ResourceTypeServer
 
+	// ResourceTypeServerAntiAffinityRule represents a server anti-affinity rule.
+	ResourceTypeServerAntiAffinityRule
+
 	// ResourceTypeNetworkAdapter represents a network adapter in a virtual machine.
 	// Note that when calling methods such as WaitForChange, the Id must be of the form 'serverId/networkAdapterId'.
 	ResourceTypeNetworkAdapter
@@ -70,6 +73,9 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeServer:
 		return "Server", nil
 
+	case ResourceTypeServerAntiAffinityRule:
+		return "Server anti-affinity rule", nil
+
 	case ResourceTypeNetworkAdapter:
 		return "Network adapter", nil
 
@@ -107,6 +113,9 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 	case ResourceTypeServer:
 		return client.GetServer(id)
 
+	case ResourceTypeServerAntiAffinityRule:
+		return client.getServerAntiAffinityRuleByQualifiedID(id)
+
 	case ResourceTypeNetworkAdapter:
 		return client.getNetworkAdapterByID(id)
 
@@ -140,7 +149,7 @@ func (client *Client) getNetworkAdapterByID(id string) (Resource, error) {
 		return nil, err
 	}
 	if server == nil {
-		return nil, fmt.Errorf("No server found with Id '%s.'", compositeIDComponents)
+		return nil, fmt.Errorf("No server found with Id '%s.'", compositeIDComponents[0])
 	}
 
 	var targetAdapterID = compositeIDComponents[1]
@@ -155,6 +164,24 @@ func (client *Client) getNetworkAdapterByID(id string) (Resource, error) {
 	}
 
 	return nil, nil
+}
+
+// Retrieve a server anti-affinity rule by qualified ID ("networkDomainId/ruleId").
+func (client *Client) getServerAntiAffinityRuleByQualifiedID(id string) (Resource, error) {
+	compositeIDComponents := strings.Split(id, "/")
+	if len(compositeIDComponents) != 2 {
+		return nil, fmt.Errorf("'%s' is not a valid network adapter Id (when loading as a resource, the Id must be of the form 'serverId/networkAdapterId')", id)
+	}
+
+	networkDomainID := compositeIDComponents[0]
+	ruleID := compositeIDComponents[1]
+
+	rule, err := client.GetServerAntiAffinityRule(ruleID, networkDomainID)
+	if err != nil {
+		return nil, err
+	}
+
+	return rule, nil
 }
 
 func getPublicIPBlockByID(client *Client, id string) (Resource, error) {

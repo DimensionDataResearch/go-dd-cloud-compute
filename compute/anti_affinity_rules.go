@@ -29,6 +29,33 @@ type ServerAntiAffinityRule struct {
 	DatacenterID string `json:"datacenterId"`
 }
 
+// GetID returns the server anti-affinity rule's Id.
+func (rule *ServerAntiAffinityRule) GetID() string {
+	return rule.ID
+}
+
+// GetResourceType returns the server anti-affinity rule's resource type.
+func (rule *ServerAntiAffinityRule) GetResourceType() ResourceType {
+	return ResourceTypeServerAntiAffinityRule
+}
+
+// GetName returns the server anti-affinity rule's name.
+func (rule *ServerAntiAffinityRule) GetName() string {
+	return rule.ID
+}
+
+// GetState returns the server anti-affinity rule's current state.
+func (rule *ServerAntiAffinityRule) GetState() string {
+	return rule.State
+}
+
+// IsDeleted determines whether the server anti-affinity rule has been deleted (is nil).
+func (rule *ServerAntiAffinityRule) IsDeleted() bool {
+	return rule == nil
+}
+
+var _ Resource = &ServerAntiAffinityRule{}
+
 // ServerAntiAffinityRules represents a page of ServerAntiAffinityRule results.
 type ServerAntiAffinityRules struct {
 	Items []ServerAntiAffinityRule `json:"antiAffinityRule"`
@@ -45,14 +72,14 @@ type newServerAntiAffinityRule struct {
 	ServerIds []string `xml:"serverId"`
 }
 
-// GetServerAntiAffinityRule retrieves the server anti-affinity rule with the specified Id.
-func (client *Client) GetServerAntiAffinityRule(ruleID string) (rule *ServerAntiAffinityRule, err error) {
+// GetServerAntiAffinityRule retrieves the specified server anti-affinity rule (in the specified network domain).
+func (client *Client) GetServerAntiAffinityRule(ruleID string, networkDomainID string) (rule *ServerAntiAffinityRule, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/antiAffinityRule?id=%s", organizationID, ruleID)
+	requestURI := fmt.Sprintf("%s/server/antiAffinityRule?id=%s&networkDomainId=%s", organizationID, ruleID, networkDomainID)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -182,7 +209,7 @@ func (client *Client) CreateServerAntiAffinityRule(server1Id string, server2Id s
 }
 
 // DeleteServerAntiAffinityRule deletes the specified server anti-affinity rule.
-func (client *Client) DeleteServerAntiAffinityRule(ruleID string) error {
+func (client *Client) DeleteServerAntiAffinityRule(ruleID string, networkDomainID string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
