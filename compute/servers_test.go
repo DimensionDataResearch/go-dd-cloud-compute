@@ -146,6 +146,75 @@ func TestClient_ResizeServerDisk_Success(test *testing.T) {
 	verifyResizeServerDiskTestResponse(test, response)
 }
 
+// Add Nic (successful).
+func TestClient_AddServerNic_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody := &addNicConfiguration{}
+		err := readRequestBodyAsJSON(request, requestBody)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		verifyAddNicToServerTestRequest(test, requestBody)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, addNicToServerTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	nicID, err := client.AddNicToServer("1c7762ca-f379-4eef-b08e-aa526d602589", "10.0.3.18", "2e312054-532a-46aa-ab4f-226660bfba6d")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	expect.EqualsString("nicID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", nicID)
+}
+
+// Remoe Server Nic (successful).
+func TestClient_RemoveServerNic_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		requestBody, err := readRequestBodyAsString(request)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		expect.EqualsString("Request.Body",
+			`{"id":"5999db1d-725c-46ba-9d4e-d33991e61ab1"}`,
+			requestBody,
+		)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, removeNicFromServerTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClient("au1", "user1", "password")
+	client.setBaseAddress(testServer.URL)
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	err := client.RemoveNicFromServer("5999db1d-725c-46ba-9d4e-d33991e61ab1")
+	if err != nil {
+		test.Fatal(err)
+	}
+
+}
+
 // Delete Server (successful).
 func TestClient_DeleteServer_Success(test *testing.T) {
 	expect := expect(test)
@@ -255,6 +324,25 @@ func verifyAddDiskToServerTestRequest(test *testing.T, request *addDiskToServer)
 	expect.EqualsString("addDiskToServer.Speed", "ECONOMY", request.Speed)
 	expect.EqualsInt("addDiskToServer.SizeGB", 20, request.SizeGB)
 	expect.EqualsInt("addDiskToServer.SCSIUnitID", 4, request.SCSIUnitID)
+}
+
+const addNicToServerTestRequest = `
+	{
+		"serverId": "1c7762ca-f379-4eef-b08e-aa526d602589",
+		"nic":
+		{
+			"vlanId": "2e312054-532a-46aa-ab4f-226660bfba6d"
+			"privateIpv4": "10.0.3.18",
+			"networkAdapter":"E1000"
+		}
+	}
+`
+
+func verifyAddNicToServerTestRequest(test *testing.T, request *addNicConfiguration) {
+	expect := expect(test)
+	expect.EqualsString("addNicConfiguration.ServerID", "1c7762ca-f379-4eef-b08e-aa526d602589", request.ServerID)
+	expect.EqualsString("addNicConfiguration.Nic.PrivateIPv4", "10.0.3.18", request.Nic.PrivateIPv4)
+	expect.EqualsString("addNicConfiguration.VlanID", "2e312054-532a-46aa-ab4f-226660bfba6d", request.Nic.VlanID)
 }
 
 const resizeServerDiskTestRequest = `
@@ -497,5 +585,56 @@ func verifyDeleteServerTestResponse(test *testing.T, response *APIResponseV2) {
 	expect.EqualsString("Response.Operation", "DELETE_SERVER", response.Operation)
 	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
 	expect.EqualsString("Response.Message", "Request to Delete Server (Id:5b00a2ab-c665-4cd6-8291-0b931374fb3d) has been accepted and is being processed.", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+const addNicToServerTestResponse = `
+	{
+
+		"operation": "ADD_NIC",
+		"responseCode": "IN_PROGRESS",
+		"message": "The request to add NIC for VLAN 'Subsystem VLAN' on Server'Production Mail Server' has been accepted and is being processed",
+		"info": [
+			{
+			"name": "nicId",
+			"value": "5999db1d-725c-46ba-9d4e-d33991e61ab1"
+			}
+		],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyAddNicToServerTestResponse(test *testing.T, response *APIResponseV2) {
+	expect := expect(test)
+
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "ADD_NIC", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "The request to add NIC for VLAN 'Subsystem VLAN' on Server'Production Mail Server' has been accepted and is being processed", response.Message)
+	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
+}
+
+const removeNicFromServerTestResponse = `
+	{
+
+		"operation": "REMOVE_NIC",
+		"responseCode": "IN_PROGRESS",
+		"message": "Request to Remove NIC 5999db1d-725c-46ba-9d4e-d33991e61ab1 for VLAN 'Subsystem VLAN' from Server 'Production Mail Server' has been accepted and is being processed.",
+		"info": [],
+		"warning": [],
+		"error": [],
+		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
+`
+
+func verifyRemoveNicFromServerTestResponse(test *testing.T, response *APIResponseV2) {
+	expect := expect(test)
+
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "REMOVE_NIC", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to Remove NIC 5999db1d-725c-46ba-9d4e-d33991e61ab1 for VLAN 'Subsystem VLAN' from Server 'Production Mail Server' has been accepted and is being processed.", response.Message)
 	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
