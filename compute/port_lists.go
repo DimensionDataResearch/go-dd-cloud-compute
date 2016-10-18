@@ -20,6 +20,7 @@ type PortList struct {
 // BuildEditRequest creates an EditPortList using the existing ports and child list references in the port list.
 func (portList *PortList) BuildEditRequest() EditPortList {
 	edit := &EditPortList{
+		ID:           portList.ID,
 		Description:  portList.Description,
 		Ports:        portList.Ports,
 		ChildListIDs: make([]string, len(portList.ChildLists)),
@@ -145,7 +146,7 @@ func (client *Client) ListPortLists(networkDomainID string) (portLists *PortList
 // Returns the Id of the new port list.
 //
 // This operation is synchronous.
-func (client *Client) CreatePortList(name string, description string, ipVersion string, networkDomainID string, ports []PortListEntry, childListIDs []string) (portListID string, err error) {
+func (client *Client) CreatePortList(name string, description string, networkDomainID string, ports []PortListEntry, childListIDs []string) (portListID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
