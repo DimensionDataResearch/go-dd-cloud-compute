@@ -61,7 +61,7 @@ type EditIPAddressList struct {
 	ID           string               `json:"id"`
 	Description  string               `json:"description"`
 	Addresses    []IPAddressListEntry `json:"ipAddress"`
-	ChildListIDs []string             `json:"childIpAddressList"`
+	ChildListIDs []string             `json:"childIpAddressListId"`
 }
 
 // Request body for deleting an IP address list.
