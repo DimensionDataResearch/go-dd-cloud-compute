@@ -158,6 +158,7 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &createIPAddressList{
 		Name:            name,
 		Description:     description,
+		IPVersion:       ipVersion,
 		Addresses:       addresses,
 		ChildListIDs:    childListIDs,
 		NetworkDomainID: networkDomainID,
