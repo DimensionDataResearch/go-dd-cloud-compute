@@ -114,9 +114,11 @@ type notifyServerIPAddressChange struct {
 
 // reconfigureServer represents the request body when updating a server's configuration (e.g. memory, CPU count).
 type reconfigureServer struct {
-	ServerID string `json:"id"`
-	MemoryGB *int   `json:"memoryGb,omitempty"`
-	CPUCount *int   `json:"cpuCount,omitempty"`
+	ServerID          string  `json:"id"`
+	MemoryGB          *int    `json:"memoryGb,omitempty"`
+	CPUCount          *int    `json:"cpuCount,omitempty"`
+	CPUCoresPerSocket *int    `json:"coresPerSocket,omitempty"`
+	CPUSpeed          *string `json:"cpuSpeed,omitempty"`
 }
 
 // addDiskToServer represents the request body when adding a new disk to a server.
@@ -528,8 +530,7 @@ func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIP
 
 // ReconfigureServer updates the configuration for a server.
 // serverID is the Id of the server.
-// Must specify at least one of newIPv4Address / newIPv6Address.
-func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount *int) error {
+func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount *int, cpuCoresPerSocket *int, cpuSpeed *string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -537,9 +538,11 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 
 	requestURI := fmt.Sprintf("%s/server/reconfigureServer", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &reconfigureServer{
-		ServerID: serverID,
-		MemoryGB: memoryGB,
-		CPUCount: cpuCount,
+		ServerID:          serverID,
+		MemoryGB:          memoryGB,
+		CPUCount:          cpuCount,
+		CPUCoresPerSocket: cpuCoresPerSocket,
+		CPUSpeed:          cpuSpeed,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
