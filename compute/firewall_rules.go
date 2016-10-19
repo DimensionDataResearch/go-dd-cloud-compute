@@ -81,6 +81,7 @@ type FirewallRuleScope struct {
 	IPAddress   *FirewallRuleIPAddress `json:"ip,omitempty"`
 	AddressList *EntityReference       `json:"ipAddressList,omitempty"`
 	Port        *FirewallRulePort      `json:"port,omitempty"`
+	PortListID	*string                `json:"portListId,omitempty"`
 }
 
 // IsScopeHost determines whether the firewall rule scope matches a host.
@@ -399,6 +400,58 @@ func (configuration *FirewallRuleConfiguration) MatchSourceNetworkAndPort(baseAd
 	return configuration
 }
 
+// MatchSourceAddressListAndPort modifies the configuration so that the firewall rule will match a specific source IP address list (and, optionally, port).
+func (configuration *FirewallRuleConfiguration) MatchSourceAddressListAndPort(addressListID string, port *int) *FirewallRuleConfiguration {
+	sourceScope := &FirewallRuleScope{
+		AddressList: &EntityReference{
+			ID: addressListID,
+		},
+	}
+	if port != nil {
+		sourceScope.Port = &FirewallRulePort{
+			Begin: *port,
+		}
+	}
+	configuration.Source = *sourceScope
+
+	return configuration
+}
+
+// MatchSourcePortList modifies the configuration so that the firewall rule will match any source port appearing on the specified port list.
+func (configuration *FirewallRuleConfiguration) MatchSourcePortList(portListID string) *FirewallRuleConfiguration {
+	sourceScope := &configuration.Source
+	sourceScope.Port = nil
+	sourceScope.PortListID = &portListID
+
+	return configuration
+}
+
+// MatchAnyDestination modifies the configuration so that the firewall rule will match any combination of destination IP address and port.
+func (configuration *FirewallRuleConfiguration) MatchAnyDestination() *FirewallRuleConfiguration {
+	configuration.MatchAnyDestinationAddress(nil)
+
+	return configuration
+}
+
+// MatchAnyDestinationAddress modifies the configuration so that the firewall rule will match any destination IP address (and, optionally, port).
+func (configuration *FirewallRuleConfiguration) MatchAnyDestinationAddress(port *int) *FirewallRuleConfiguration {
+	var destinationPort *FirewallRulePort
+	if port != nil {
+		destinationPort = &FirewallRulePort{
+			Begin: *port,
+		}
+	}
+
+	configuration.Destination = FirewallRuleScope{
+		IPAddress: &FirewallRuleIPAddress{
+			Address: FirewallRuleMatchAny,
+		},
+		Port: destinationPort,
+	}
+
+	return configuration
+}
+
 // MatchDestinationAddressAndPort modifies the configuration so that the firewall rule will match a specific destination IP address (and, optionally, port).
 func (configuration *FirewallRuleConfiguration) MatchDestinationAddressAndPort(address string, port *int) *FirewallRuleConfiguration {
 	destinationScope := &FirewallRuleScope{
@@ -434,49 +487,6 @@ func (configuration *FirewallRuleConfiguration) MatchDestinationNetworkAndPort(b
 	return configuration
 }
 
-// MatchSourceAddressListAndPort modifies the configuration so that the firewall rule will match a specific source IP address list (and, optionally, port).
-func (configuration *FirewallRuleConfiguration) MatchSourceAddressListAndPort(addressListID string, port *int) *FirewallRuleConfiguration {
-	sourceScope := &FirewallRuleScope{
-		AddressList: &EntityReference{
-			ID: addressListID,
-		},
-	}
-	if port != nil {
-		sourceScope.Port = &FirewallRulePort{
-			Begin: *port,
-		}
-	}
-	configuration.Source = *sourceScope
-
-	return configuration
-}
-
-// MatchAnyDestination modifies the configuration so that the firewall rule will match any combination of destination IP address and port.
-func (configuration *FirewallRuleConfiguration) MatchAnyDestination() *FirewallRuleConfiguration {
-	configuration.MatchAnyDestinationAddress(nil)
-
-	return configuration
-}
-
-// MatchAnyDestinationAddress modifies the configuration so that the firewall rule will match any destination IP address (and, optionally, port).
-func (configuration *FirewallRuleConfiguration) MatchAnyDestinationAddress(port *int) *FirewallRuleConfiguration {
-	var destinationPort *FirewallRulePort
-	if port != nil {
-		destinationPort = &FirewallRulePort{
-			Begin: *port,
-		}
-	}
-
-	configuration.Destination = FirewallRuleScope{
-		IPAddress: &FirewallRuleIPAddress{
-			Address: FirewallRuleMatchAny,
-		},
-		Port: destinationPort,
-	}
-
-	return configuration
-}
-
 // MatchDestinationAddressListAndPort modifies the configuration so that the firewall rule will match a specific destination IP address list (and, optionally, port).
 func (configuration *FirewallRuleConfiguration) MatchDestinationAddressListAndPort(addressListID string, port *int) *FirewallRuleConfiguration {
 	destinationScope := &FirewallRuleScope{
@@ -490,6 +500,15 @@ func (configuration *FirewallRuleConfiguration) MatchDestinationAddressListAndPo
 		}
 	}
 	configuration.Destination = *destinationScope
+
+	return configuration
+}
+
+// MatchDestinationPortList modifies the configuration so that the firewall rule will match any destination port appearing on the specified port list.
+func (configuration *FirewallRuleConfiguration) MatchDestinationPortList(portListID string) *FirewallRuleConfiguration {
+	destinationScope := &configuration.Destination
+	destinationScope.Port = nil
+	destinationScope.PortListID = &portListID
 
 	return configuration
 }
