@@ -25,6 +25,14 @@ type TagDetail struct {
 	DisplayOnReports bool   `json:"displayOnReport"`
 }
 
+// ToTag converts the TagDetail to a Tag.
+func (tagDetail *TagDetail) ToTag() Tag {
+	return Tag{
+		Name:  tagDetail.Name,
+		Value: tagDetail.Value,
+	}
+}
+
 // TagDetails represents a page of TagDetail results.
 type TagDetails struct {
 	Items []TagDetail `json:"tag"`
@@ -75,15 +83,18 @@ type deleteTagKey struct {
 
 // GetAssetTags gets all tags applied to the specified asset.
 func (client *Client) GetAssetTags(assetID string, assetType string, paging *Paging) (tags *TagDetails, err error) {
+	if paging == nil {
+		paging = DefaultPaging()
+	}
+
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/tag/tag?assetId=%s&assetType=%s", organizationID, assetID, assetType)
-	if paging != nil {
-		requestURI += fmt.Sprintf("&pageNumber=%d&pageSize=%d", paging.PageNumber, paging.PageSize)
-	}
+	requestURI := fmt.Sprintf("%s/tag/tag?assetId=%s&assetType=%s&%s",
+		organizationID, assetID, assetType, paging.toQueryParameters(),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -202,13 +213,13 @@ func (client *Client) GetTagKey(id string) (tagKey *TagKey, err error) {
 }
 
 // ListTagKeys lists all tag keys that apply to the specified network domain.
-func (client *Client) ListTagKeys(pageNumber int, pageSize int) (tagKeys *TagKeys, err error) {
+func (client *Client) ListTagKeys(paging *Paging) (tagKeys *TagKeys, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/tag/tagKey?orderBy=name&pageNumber=%d&pageSize=%d", organizationID, pageNumber, pageSize)
+	requestURI := fmt.Sprintf("%s/tag/tagKey?orderBy=name&%s", organizationID, paging.toQueryParameters())
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
