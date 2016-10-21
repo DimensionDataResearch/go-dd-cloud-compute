@@ -82,6 +82,8 @@ type deleteTagKey struct {
 }
 
 // GetAssetTags gets all tags applied to the specified asset.
+//
+// Note that due to a bug in the CloudControl API, when you go past the last page if results, you'll receive an UNEXPECTED_ERROR response code.
 func (client *Client) GetAssetTags(assetID string, assetType string, paging *Paging) (tags *TagDetails, err error) {
 	if paging == nil {
 		paging = DefaultPaging()

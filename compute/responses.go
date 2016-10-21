@@ -85,4 +85,7 @@ const (
 
 	// ResponseCodeInfrastructureInMaintenance indicates that an operation failed due to maintenance being performed on the supporting infrastructure.
 	ResponseCodeInfrastructureInMaintenance = "INFRASTRUCTURE_IN_MAINTENANCE"
+
+	// ResponseCodeUnexpectedError indicates that the CloudControl API encountered an unexpected error.
+	ResponseCodeUnexpectedError = "UNEXPECTED_ERROR"
 )
