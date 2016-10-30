@@ -114,9 +114,11 @@ type notifyServerIPAddressChange struct {
 
 // reconfigureServer represents the request body when updating a server's configuration (e.g. memory, CPU count).
 type reconfigureServer struct {
-	ServerID string `json:"id"`
-	MemoryGB *int   `json:"memoryGb,omitempty"`
-	CPUCount *int   `json:"cpuCount,omitempty"`
+	ServerID          string  `json:"id"`
+	MemoryGB          *int    `json:"memoryGb,omitempty"`
+	CPUCount          *int    `json:"cpuCount,omitempty"`
+	CPUCoresPerSocket *int    `json:"coresPerSocket,omitempty"`
+	CPUSpeed          *string `json:"cpuSpeed,omitempty"`
 }
 
 // addDiskToServer represents the request body when adding a new disk to a server.
@@ -125,6 +127,17 @@ type addDiskToServer struct {
 	SizeGB     int    `json:"sizeGb"`
 	Speed      string `json:"speed"`
 	SCSIUnitID int    `json:"scsiId"`
+}
+
+type serverNic struct {
+	VlanID      string `json:"vlanId,omitempty"`
+	PrivateIPv4 string `json:"privateIpv4,omitempty"`
+}
+
+// addNicConfiguration represents the request body when adding the new nic.
+type addNicConfiguration struct {
+	ServerID string    `json:"serverId"`
+	Nic      serverNic `json:"nic"`
 }
 
 // resizeServerDisk represents the request body when resizing a server disk.
@@ -184,6 +197,12 @@ type startServer struct {
 
 // Request body when stopping or powering off a server.
 type stopServer struct {
+	// The server Id.
+	ID string `json:"id"`
+}
+
+// Request body when deleting a server.
+type deleteNic struct {
 	// The server Id.
 	ID string `json:"id"`
 }
@@ -511,8 +530,7 @@ func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIP
 
 // ReconfigureServer updates the configuration for a server.
 // serverID is the Id of the server.
-// Must specify at least one of newIPv4Address / newIPv6Address.
-func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount *int) error {
+func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount *int, cpuCoresPerSocket *int, cpuSpeed *string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -520,9 +538,11 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 
 	requestURI := fmt.Sprintf("%s/server/reconfigureServer", organizationID)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &reconfigureServer{
-		ServerID: serverID,
-		MemoryGB: memoryGB,
-		CPUCount: cpuCount,
+		ServerID:          serverID,
+		MemoryGB:          memoryGB,
+		CPUCount:          cpuCount,
+		CPUCoresPerSocket: cpuCoresPerSocket,
+		CPUSpeed:          cpuSpeed,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -536,6 +556,68 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 
 	if apiResponse.ResponseCode != ResponseCodeOK && apiResponse.ResponseCode != ResponseCodeInProgress {
 		return apiResponse.ToError("Request to reconfigure server failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+//AddNicToServer adds the nic to the server
+func (client *Client) AddNicToServer(serverID string, ipv4Address string, vlanID string) (nicID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	var serverNicConfiguration = serverNic{
+		PrivateIPv4: ipv4Address,
+		VlanID:      vlanID,
+	}
+	requestURI := fmt.Sprintf("%s/server/addNic", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &addNicConfiguration{
+		ServerID: serverID,
+		Nic:      serverNicConfiguration,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return "", apiResponse.ToError("Request to notify add a nic failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+	nicIDMessage := apiResponse.GetFieldMessage("nicId")
+	if nicIDMessage == nil {
+		return "", apiResponse.ToError("Received an unexpected response (missing 'nicId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+	return *nicIDMessage, nil
+}
+
+//RemoveNicFromServer removes the Nic from the server
+func (client *Client) RemoveNicFromServer(networkAdapterID string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/removeNic", organizationID)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteNic{ID: networkAdapterID})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return apiResponse.ToError("Request to notify remove a nic failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

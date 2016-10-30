@@ -61,7 +61,7 @@ type EditIPAddressList struct {
 	ID           string               `json:"id"`
 	Description  string               `json:"description"`
 	Addresses    []IPAddressListEntry `json:"ipAddress"`
-	ChildListIDs []string             `json:"childIpAddressList"`
+	ChildListIDs []string             `json:"childIpAddressListId"`
 }
 
 // Request body for deleting an IP address list.
@@ -158,6 +158,7 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &createIPAddressList{
 		Name:            name,
 		Description:     description,
+		IPVersion:       ipVersion,
 		Addresses:       addresses,
 		ChildListIDs:    childListIDs,
 		NetworkDomainID: networkDomainID,

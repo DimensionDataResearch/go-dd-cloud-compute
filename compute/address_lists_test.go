@@ -25,7 +25,7 @@ func TestClient_GetIPAddressList_ById_Success(test *testing.T) {
 
 	server, err := client.GetIPAddressList("5a32d6e4-9707-4813-a269-56ab4d989f4d")
 	if err != nil {
-		test.Fatal("Unable to deploy server: ", err)
+		test.Fatal("Unable to retrieve IP address list: ", err)
 	}
 
 	verifyGetIPAddressListTestResponse(test, server)
@@ -76,8 +76,6 @@ func verifyGetIPAddressListTestResponse(test *testing.T, addressList *IPAddressL
 	expect.EqualsString("IPAddressList.Name", "ProductionIPAddressList", addressList.Name)
 	expect.EqualsString("IPAddressList.Description", "For our production web servers", addressList.Description)
 	expect.EqualsString("IPAddressList.IPVersion", "IPV4", addressList.IPVersion)
-	expect.EqualsString("IPAddressList.Name", "ProductionIPAddressList", addressList.Name)
-	expect.EqualsString("IPAddressList.Name", "ProductionIPAddressList", addressList.Name)
 	expect.EqualsString("IPAddressList.State", ResourceStatusNormal, addressList.State)
 	expect.EqualsString("IPAddressList.CreateTime", "2015-09-29T02:49:45", addressList.CreateTime)
 
