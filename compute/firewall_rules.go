@@ -78,10 +78,11 @@ var _ Resource = &FirewallRule{}
 
 // FirewallRuleScope represents a scope (IP and / or port) for firewall configuration (source or destination).
 type FirewallRuleScope struct {
-	IPAddress   *FirewallRuleIPAddress `json:"ip,omitempty"`
-	AddressList *EntityReference       `json:"ipAddressList,omitempty"`
-	Port        *FirewallRulePort      `json:"port,omitempty"`
-	PortListID  *string                `json:"portListId,omitempty"`
+	IPAddress     *FirewallRuleIPAddress `json:"ip,omitempty"`
+	AddressList   *EntityReference       `json:"ipAddressList,omitempty"`
+	AddressListID *string                `json:"ipAddressListId,omitempty"`
+	Port          *FirewallRulePort      `json:"port,omitempty"`
+	PortListID    *string                `json:"portListId,omitempty"`
 }
 
 // IsScopeHost determines whether the firewall rule scope matches a host.
@@ -106,7 +107,7 @@ func (scope *FirewallRuleScope) IsScopePortRange() bool {
 
 // IsScopeAddressList determines whether the firewall rule scope matches an IP address list.
 func (scope *FirewallRuleScope) IsScopeAddressList() bool {
-	return scope.AddressList != nil
+	return scope.AddressList != nil || scope.AddressListID != nil
 }
 
 // IsScopeAny determines whether the firewall rule scope matches anything (i.e. the rule is unscoped).
@@ -159,7 +160,17 @@ func (scope FirewallRuleScope) Diff(other FirewallRuleScope) (differences []stri
 		}
 	} else if scope.IsScopeAddressList() {
 		if other.IsScopeAddressList() {
-			if scope.AddressList.ID != other.AddressList.ID {
+			addressListID := scope.AddressListID
+			if addressListID == nil {
+				addressListID = &scope.AddressList.ID
+			}
+
+			otherAddressListID := other.AddressListID
+			if otherAddressListID == nil {
+				otherAddressListID = &other.AddressList.ID
+			}
+
+			if addressListID != otherAddressListID {
 				differences = append(differences, fmt.Sprintf(
 					"address lists do not match ('%s' vs '%s')",
 					scope.AddressList.ID,
@@ -168,8 +179,8 @@ func (scope FirewallRuleScope) Diff(other FirewallRuleScope) (differences []stri
 			}
 		} else if other.IsScopeHost() {
 			differences = append(differences, "address list scope vs host scope")
-		} else if other.IsScopeAddressList() {
-			differences = append(differences, "address list scope vs address list scope")
+		} else if other.IsScopeNetwork() {
+			differences = append(differences, "address list scope vs network scope")
 		} else {
 			differences = append(differences, "address list scope vs unknown scope")
 		}
@@ -371,9 +382,8 @@ func (configuration *FirewallRuleConfiguration) MatchSourceNetwork(baseAddress s
 func (configuration *FirewallRuleConfiguration) MatchSourceAddressList(addressListID string) *FirewallRuleConfiguration {
 	sourceScope := &configuration.Source
 	sourceScope.IPAddress = nil
-	sourceScope.AddressList = &EntityReference{
-		ID: addressListID,
-	}
+	sourceScope.AddressList = nil
+	sourceScope.AddressListID = &addressListID
 
 	return configuration
 }
@@ -450,10 +460,8 @@ func (configuration *FirewallRuleConfiguration) MatchDestinationNetwork(baseAddr
 // MatchDestinationAddressList modifies the configuration so that the firewall rule will match a specific destination IP address list (and, optionally, port).
 func (configuration *FirewallRuleConfiguration) MatchDestinationAddressList(addressListID string) *FirewallRuleConfiguration {
 	destinationScope := &configuration.Destination
-	destinationScope.IPAddress = nil
-	destinationScope.AddressList = &EntityReference{
-		ID: addressListID,
-	}
+	destinationScope.AddressList = nil
+	destinationScope.AddressListID = &addressListID
 
 	return configuration
 }
