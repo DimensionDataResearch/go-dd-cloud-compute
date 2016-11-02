@@ -163,6 +163,55 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 	return vlan, err
 }
 
+// GetVLANByName retrieves the VLAN (if any) with the specified name in the specified network domain.
+func (client *Client) GetVLANByName(name string, networkDomainID string) (*VLAN, error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/vlan?name=%s&networkDomainId=%s",
+		organizationID,
+		name,
+		networkDomainID,
+	)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, apiResponse.ToError("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	vlans := &VLANs{}
+	err = json.Unmarshal(responseBody, vlans)
+	if err != nil {
+		return nil, err
+	}
+	if vlans.IsEmpty() {
+		return nil, nil // No matching VLAN was found.
+	}
+
+	if len(vlans.VLANs) != 1 {
+		return nil, fmt.Errorf("Found multiple VLANs (%d) named '%s' in network domain '%s'.", len(vlans.VLANs), name, networkDomainID)
+	}
+
+	return &vlans.VLANs[0], nil
+}
+
 // ListVLANs retrieves a list of all VLANs in the specified network domain.
 // TODO: Support filtering and sorting.
 func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *VLANs, err error) {
