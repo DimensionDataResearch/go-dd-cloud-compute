@@ -263,7 +263,7 @@ func (client *Client) ListReservedPublicIPAddresses(networkDomainID string, pagi
 
 // GetAvailablePublicIPAddresses retrieves all public IPv4 addresses in the specified network domain that are available for use.
 //
-// The resulting map uses addresses as keys, and IP block IDs as values.
+// Returns a map of IP block IDs, keyed by public IP address.
 func (client *Client) GetAvailablePublicIPAddresses(networkDomainID string) (availableIPs map[string]string, err error) {
 	availableIPs = make(map[string]string)
 
