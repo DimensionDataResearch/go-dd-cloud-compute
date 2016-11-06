@@ -164,7 +164,7 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 }
 
 // GetVLANByName retrieves the VLAN (if any) with the specified name in the specified network domain.
-func (client *Client) GetVLANByName(name string, networkDomainID string) (vlan *VLAN, err error) {
+func (client *Client) GetVLANByName(name string, networkDomainID string) (*VLAN, error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err

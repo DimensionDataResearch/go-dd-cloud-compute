@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 // PublicIPBlock represents an allocated block of public IPv4 addresses.
@@ -220,7 +222,7 @@ func (client *Client) RemovePublicIPBlock(id string) error {
 	return nil
 }
 
-// ListReservedPublicIPAddresses retrieves all public IPv4 addresses in the specified network domain that have been reserved in the specified network domain.
+// ListReservedPublicIPAddresses retrieves all public IPv4 addresses in the specified network domain that have been reserved.
 func (client *Client) ListReservedPublicIPAddresses(networkDomainID string, paging *Paging) (reservedPublicIPs *ReservedPublicIPs, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
@@ -257,4 +259,80 @@ func (client *Client) ListReservedPublicIPAddresses(networkDomainID string, pagi
 	err = json.Unmarshal(responseBody, reservedPublicIPs)
 
 	return reservedPublicIPs, err
+}
+
+// GetAvailablePublicIPAddresses retrieves all public IPv4 addresses in the specified network domain that are available for use.
+//
+// Returns a map of IP block IDs, keyed by public IP address.
+func (client *Client) GetAvailablePublicIPAddresses(networkDomainID string) (availableIPs map[string]string, err error) {
+	availableIPs = make(map[string]string)
+
+	// Public IPs are allocated in blocks.
+	page := DefaultPaging()
+	for {
+		var publicIPBlocks *PublicIPBlocks
+		publicIPBlocks, err = client.ListPublicIPBlocks(networkDomainID, page)
+		if err != nil {
+			return
+		}
+		if publicIPBlocks.IsEmpty() {
+			break // We're done
+		}
+
+		var blockAddresses []string
+		for _, block := range publicIPBlocks.Blocks {
+			blockAddresses, err = calculateBlockAddresses(block)
+			if err != nil {
+				return
+			}
+
+			for _, address := range blockAddresses {
+				availableIPs[address] = block.ID
+			}
+		}
+
+		page.Next()
+	}
+
+	// Some of those IPs may be reserved for other NAT rules or VIPs.
+	page.First()
+	for {
+		var reservedIPs *ReservedPublicIPs
+		reservedIPs, err = client.ListReservedPublicIPAddresses(networkDomainID, page)
+		if err != nil {
+			return
+		}
+		if reservedIPs.IsEmpty() {
+			break // We're done
+		}
+
+		for _, reservedIP := range reservedIPs.IPs {
+			delete(availableIPs, reservedIP.Address)
+		}
+
+		page.Next()
+	}
+
+	return
+}
+
+func calculateBlockAddresses(block PublicIPBlock) ([]string, error) {
+	addresses := make([]string, block.Size)
+
+	baseAddressComponents := strings.Split(block.BaseIP, ".")
+	if len(baseAddressComponents) != 4 {
+		return addresses, fmt.Errorf("Invalid base IP address '%s'.", block.BaseIP)
+	}
+	baseOctet, err := strconv.Atoi(baseAddressComponents[3])
+	if err != nil {
+		return addresses, err
+	}
+
+	for index := range addresses {
+		// Increment the last octet to determine the next address in the block.
+		baseAddressComponents[3] = strconv.Itoa(baseOctet + index)
+		addresses[index] = strings.Join(baseAddressComponents, ".")
+	}
+
+	return addresses, nil
 }
