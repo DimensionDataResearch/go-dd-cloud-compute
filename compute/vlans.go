@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // VLAN represents a compute VLAN.
@@ -171,9 +172,9 @@ func (client *Client) GetVLANByName(name string, networkDomainID string) (*VLAN,
 	}
 
 	requestURI := fmt.Sprintf("%s/network/vlan?name=%s&networkDomainId=%s",
-		organizationID,
-		name,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(name),
+		url.QueryEscape(networkDomainID),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {

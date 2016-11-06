@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // NetworkDomain represents a compute network domain.
@@ -210,9 +211,9 @@ func (client *Client) GetNetworkDomainByName(name string, dataCenterID string) (
 	}
 
 	requestURI := fmt.Sprintf("%s/network/networkDomain?name=%s&datacenterId=%s",
-		organizationID,
-		name,
-		dataCenterID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(name),
+		url.QueryEscape(dataCenterID),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
