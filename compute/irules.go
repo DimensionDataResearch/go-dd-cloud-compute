@@ -40,7 +40,7 @@ func (client *Client) ListDefaultIRules(networkDomainID string, paging *Paging) 
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/defaultIrule?networkDomainId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
