@@ -181,7 +181,7 @@ func (client *Client) ListVirtualListenersInNetworkDomain(networkDomainID string
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/virtualListener?networkDomainId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
@@ -223,7 +223,10 @@ func (client *Client) GetVirtualListener(id string) (listener *VirtualListener, 
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/virtualListener/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/virtualListener/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -265,7 +268,9 @@ func (client *Client) CreateVirtualListener(listenerConfiguration NewVirtualList
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/createVirtualListener", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/createVirtualListener",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &listenerConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -300,7 +305,9 @@ func (client *Client) EditVirtualListener(id string, listenerConfiguration EditV
 	editListenerConfiguration := &listenerConfiguration
 	editListenerConfiguration.ID = id
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/editVirtualListener", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/editVirtualListener",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, editListenerConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -327,7 +334,9 @@ func (client *Client) DeleteVirtualListener(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/deleteVirtualListener", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/deleteVirtualListener",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteVirtualListener{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
