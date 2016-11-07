@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -86,7 +87,10 @@ func (client *Client) GetPublicIPBlock(id string) (block *PublicIPBlock, err err
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/publicIpBlock/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/network/publicIpBlock/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -128,8 +132,8 @@ func (client *Client) ListPublicIPBlocks(networkDomainID string, paging *Paging)
 	}
 
 	requestURI := fmt.Sprintf("%s/network/publicIpBlock?networkDomainId=%s&%s",
-		organizationID,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
@@ -166,7 +170,9 @@ func (client *Client) AddPublicIPBlock(networkDomainID string) (blockID string, 
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/addPublicIpBlock", organizationID)
+	requestURI := fmt.Sprintf("%s/network/addPublicIpBlock",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost,
 		&addPublicAddressBlock{networkDomainID},
 	)
@@ -201,7 +207,9 @@ func (client *Client) RemovePublicIPBlock(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/removePublicIpBlock", organizationID)
+	requestURI := fmt.Sprintf("%s/network/removePublicIpBlock",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost,
 		&removePublicAddressBlock{id},
 	)
@@ -230,8 +238,8 @@ func (client *Client) ListReservedPublicIPAddresses(networkDomainID string, pagi
 	}
 
 	requestURI := fmt.Sprintf("%s/network/reservedPublicIpv4Address?networkDomainId=%s&%s",
-		organizationID,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
