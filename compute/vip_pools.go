@@ -168,7 +168,7 @@ func (client *Client) ListVIPPoolsInNetworkDomain(networkDomainID string, paging
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/pool?networkDomainId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
@@ -210,7 +210,10 @@ func (client *Client) GetVIPPool(id string) (pool *VIPPool, err error) {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/pool/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/pool/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -252,7 +255,9 @@ func (client *Client) CreateVIPPool(poolConfiguration NewVIPPoolConfiguration) (
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/createPool", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/createPool",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &poolConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -287,7 +292,9 @@ func (client *Client) EditVIPPool(id string, poolConfiguration EditVIPPoolConfig
 	editPoolConfiguration := &poolConfiguration
 	editPoolConfiguration.ID = id
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/editPool", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/editPool",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, editPoolConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -314,7 +321,9 @@ func (client *Client) DeleteVIPPool(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/deletePool", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/deletePool",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteVIPPool{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
