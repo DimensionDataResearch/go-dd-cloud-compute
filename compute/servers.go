@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // Server represents a virtual machine.
@@ -216,7 +217,10 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/server/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/server/server/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -263,8 +267,8 @@ func (client *Client) ListServersInNetworkDomain(networkDomainID string, paging 
 	}
 
 	requestURI := fmt.Sprintf("%s/server/server?networkDomainId=%s&pageNumber=%d&pageSize=%d",
-		organizationID,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
 		paging.PageNumber,
 		paging.PageSize,
 	)
@@ -309,7 +313,9 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/deployServer", organizationID)
+	requestURI := fmt.Sprintf("%s/server/deployServer",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &serverConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -341,7 +347,9 @@ func (client *Client) AddDiskToServer(serverID string, scsiUnitID int, sizeGB in
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/addDisk", organizationID)
+	requestURI := fmt.Sprintf("%s/server/addDisk",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &addDiskToServer{
 		ServerID:   serverID,
 		SizeGB:     sizeGB,
@@ -377,7 +385,11 @@ func (client *Client) ResizeServerDisk(serverID string, diskID string, newSizeGB
 		return
 	}
 
-	requestURI := fmt.Sprintf("%s/server/%s/disk/%s/changeSize", organizationID, serverID, diskID)
+	requestURI := fmt.Sprintf("%s/server/%s/disk/%s/changeSize",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+		url.QueryEscape(diskID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodPost, &resizeServerDisk{
 		NewSizeGB: newSizeGB,
 	})
@@ -399,7 +411,9 @@ func (client *Client) DeleteServer(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/deleteServer", organizationID)
+	requestURI := fmt.Sprintf("%s/server/deleteServer",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteServer{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -425,7 +439,9 @@ func (client *Client) StartServer(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/startServer", organizationID)
+	requestURI := fmt.Sprintf("%s/server/startServer",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &startServer{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -451,7 +467,9 @@ func (client *Client) ShutdownServer(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/shutdownServer", organizationID)
+	requestURI := fmt.Sprintf("%s/server/shutdownServer",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &stopServer{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -477,7 +495,9 @@ func (client *Client) PowerOffServer(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/powerOffServer", organizationID)
+	requestURI := fmt.Sprintf("%s/server/powerOffServer",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &stopServer{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -505,7 +525,9 @@ func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIP
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/notifyNicIpChange", organizationID)
+	requestURI := fmt.Sprintf("%s/server/notifyNicIpChange",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &notifyServerIPAddressChange{
 		AdapterID:   networkAdapterID,
 		IPv4Address: newIPv4Address,
@@ -536,7 +558,9 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/reconfigureServer", organizationID)
+	requestURI := fmt.Sprintf("%s/server/reconfigureServer",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &reconfigureServer{
 		ServerID:          serverID,
 		MemoryGB:          memoryGB,
@@ -572,7 +596,9 @@ func (client *Client) AddNicToServer(serverID string, ipv4Address string, vlanID
 		PrivateIPv4: ipv4Address,
 		VlanID:      vlanID,
 	}
-	requestURI := fmt.Sprintf("%s/server/addNic", organizationID)
+	requestURI := fmt.Sprintf("%s/server/addNic",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &addNicConfiguration{
 		ServerID: serverID,
 		Nic:      serverNicConfiguration,
@@ -604,7 +630,9 @@ func (client *Client) RemoveNicFromServer(networkAdapterID string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/removeNic", organizationID)
+	requestURI := fmt.Sprintf("%s/server/removeNic",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteNic{ID: networkAdapterID})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
