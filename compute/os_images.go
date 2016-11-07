@@ -56,7 +56,10 @@ func (client *Client) GetOSImage(id string) (image *OSImage, err error) {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/image/osImage/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/image/osImage/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -97,7 +100,11 @@ func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSIm
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/image/osImage?name=%s&datacenterId=%s", organizationID, url.QueryEscape(name), url.QueryEscape(dataCenterID))
+	requestURI := fmt.Sprintf("%s/image/osImage?name=%s&datacenterId=%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(name),
+		url.QueryEscape(dataCenterID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -144,7 +151,7 @@ func (client *Client) ListOSImagesInDatacenter(dataCenterID string, paging *Pagi
 	}
 
 	requestURI := fmt.Sprintf("%s/image/osImage?datacenterId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
