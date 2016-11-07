@@ -144,48 +144,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 			err.Error(),
 		)
 
-		for retryCount := 0; retryCount < client.maxRetryCount; retryCount++ {
-			if client.IsExtendedLoggingEnabled() {
-				log.Printf("Retrying '%s' request to '%s' (%d retries remaining)...",
-					request.Method,
-					request.URL.String(),
-					retryCount-client.maxRetryCount,
-				)
-			}
-
-			response, err = client.httpClient.Do(request)
-
-			if err != nil {
-				if client.IsExtendedLoggingEnabled() {
-					log.Printf("Still failing - '%s' request to '%s': %s.",
-						request.Method,
-						request.URL.String(),
-						err.Error(),
-					)
-				}
-
-				continue
-			}
-
-			if client.IsExtendedLoggingEnabled() {
-				log.Printf("'%s' request to '%s' succeeded.",
-					request.Method,
-					request.URL.String(),
-				)
-			}
-
-			break
-		}
-
-		if err != nil {
-			err = fmt.Errorf("Unexpected error while performing '%s' request to '%s': %s",
-				request.Method,
-				request.URL.String(),
-				err.Error(),
-			)
-
-			return
-		}
+		return
 	}
 	defer response.Body.Close()
 
