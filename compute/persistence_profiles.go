@@ -41,7 +41,7 @@ func (client *Client) ListDefaultPersistenceProfiles(networkDomainID string, pag
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/defaultPersistenceProfile?networkDomainId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
