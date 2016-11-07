@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -544,7 +545,10 @@ func (client *Client) GetFirewallRule(id string) (rule *FirewallRule, err error)
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/firewallRule/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/network/firewallRule/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -586,8 +590,8 @@ func (client *Client) ListFirewallRules(networkDomainID string, paging *Paging) 
 	}
 
 	requestURI := fmt.Sprintf("%s/network/firewallRule?networkDomainId=%s&%s",
-		organizationID,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
@@ -624,7 +628,9 @@ func (client *Client) CreateFirewallRule(configuration FirewallRuleConfiguration
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/createFirewallRule", organizationID)
+	requestURI := fmt.Sprintf("%s/network/createFirewallRule",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &configuration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -657,7 +663,9 @@ func (client *Client) EditFirewallRule(id string, enabled bool) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/editFirewallRule", organizationID)
+	requestURI := fmt.Sprintf("%s/network/editFirewallRule",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &editFirewallRule{
 		ID:      id,
 		Enabled: enabled,
@@ -686,7 +694,9 @@ func (client *Client) DeleteFirewallRule(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deleteFirewallRule", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deleteFirewallRule",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost,
 		&deleteFirewallRule{id},
 	)
