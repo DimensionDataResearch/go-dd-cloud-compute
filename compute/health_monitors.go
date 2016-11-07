@@ -30,7 +30,7 @@ func (client *Client) ListDefaultHealthMonitors(networkDomainID string, paging *
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/defaultHealthMonitor?networkDomainId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
