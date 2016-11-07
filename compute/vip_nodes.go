@@ -181,7 +181,7 @@ func (client *Client) ListVIPNodesInNetworkDomain(networkDomainID string, paging
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/node?networkDomainId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
@@ -223,7 +223,10 @@ func (client *Client) GetVIPNode(id string) (node *VIPNode, err error) {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/node/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/node/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -265,7 +268,9 @@ func (client *Client) CreateVIPNode(nodeConfiguration NewVIPNodeConfiguration) (
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/createNode", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/createNode",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &nodeConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -300,7 +305,9 @@ func (client *Client) EditVIPNode(id string, nodeConfiguration EditVIPNodeConfig
 	editNodeConfiguration := &nodeConfiguration
 	editNodeConfiguration.ID = id
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/editNode", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/editNode",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, editNodeConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -327,7 +334,9 @@ func (client *Client) DeleteVIPNode(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/deleteNode", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/deleteNode",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteVIPNode{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
