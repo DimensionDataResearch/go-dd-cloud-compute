@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // IPAddressList represents an IP address list.
@@ -78,7 +79,10 @@ func (client *Client) GetIPAddressList(id string) (addressList *IPAddressList, e
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/ipAddressList/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/network/ipAddressList/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -116,7 +120,10 @@ func (client *Client) ListIPAddressLists(networkDomainID string) (addressLists *
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/ipAddressList?networkDomainId=%s", organizationID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/network/ipAddressList?networkDomainId=%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -154,7 +161,9 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/createIpAddressList", organizationID)
+	requestURI := fmt.Sprintf("%s/network/createIpAddressList",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &createIPAddressList{
 		Name:            name,
 		Description:     description,
@@ -198,7 +207,9 @@ func (client *Client) EditIPAddressList(id string, edit EditIPAddressList) error
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/editIpAddressList", organizationID)
+	requestURI := fmt.Sprintf("%s/network/editIpAddressList",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, edit)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -227,7 +238,9 @@ func (client *Client) DeleteIPAddressList(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deleteIpAddressList", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deleteIpAddressList",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteIPAddressList{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
