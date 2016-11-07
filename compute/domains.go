@@ -127,7 +127,7 @@ func (client *Client) ListNetworkDomains(paging *Paging) (domains *NetworkDomain
 	}
 
 	requestURI := fmt.Sprintf("%s/network/networkDomain?%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
@@ -169,7 +169,10 @@ func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err er
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/networkDomain/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/network/networkDomain/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -260,7 +263,9 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deployNetworkDomain{
 		Name:         name,
 		Description:  description,
@@ -299,7 +304,9 @@ func (client *Client) EditNetworkDomain(id string, name *string, description *st
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/editNetworkDomain", organizationID)
+	requestURI := fmt.Sprintf("%s/network/editNetworkDomain",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &editNetworkDomain{
 		ID:          id,
 		Name:        name,
@@ -331,7 +338,9 @@ func (client *Client) DeleteNetworkDomain(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteNetworkDomain{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
