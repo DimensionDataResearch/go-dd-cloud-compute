@@ -33,7 +33,7 @@ type Client struct {
 func NewClient(region string, username string, password string) *Client {
 	baseAddress := fmt.Sprintf("https://api-%s.dimensiondata.com", region)
 
-	_, isExtendedLoggingEnabled := os.LookupEnv("DD_COMPUTE_EXTENDED_LOGGING")
+	_, isExtendedLoggingEnabled := os.LookupEnv("MCP_EXTENDED_LOGGING")
 
 	return &Client{
 		baseAddress,
