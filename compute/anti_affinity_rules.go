@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // ServerAntiAffinityRule represents an anti-affinity rule between 2 servers.
@@ -79,7 +80,11 @@ func (client *Client) GetServerAntiAffinityRule(ruleID string, networkDomainID s
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/antiAffinityRule?id=%s&networkDomainId=%s", organizationID, ruleID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/server/antiAffinityRule?id=%s&networkDomainId=%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(ruleID),
+		url.QueryEscape(networkDomainID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -122,8 +127,8 @@ func (client *Client) ListServerAntiAffinityRules(networkDomainID string, paging
 	}
 
 	requestURI := fmt.Sprintf("%s/server/antiAffinityRule?networkDomainId=%s&%s",
-		organizationID,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
@@ -167,7 +172,9 @@ func (client *Client) CreateServerAntiAffinityRule(server1Id string, server2Id s
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/antiAffinityRule", organizationID)
+	requestURI := fmt.Sprintf("%s/antiAffinityRule",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodPost, &newServerAntiAffinityRule{
 		ServerIds: []string{
 			server1Id,
@@ -215,7 +222,10 @@ func (client *Client) DeleteServerAntiAffinityRule(ruleID string, networkDomainI
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/antiAffinityRule/%s?delete", organizationID, ruleID)
+	requestURI := fmt.Sprintf("%s/antiAffinityRule/%s?delete",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(ruleID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return err
