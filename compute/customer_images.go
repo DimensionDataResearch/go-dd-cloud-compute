@@ -55,7 +55,10 @@ func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err err
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/image/customerImage/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/image/customerImage/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -96,7 +99,11 @@ func (client *Client) FindCustomerImage(name string, dataCenterID string) (image
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/image/customerImage?name=%s&datacenterId=%s", organizationID, url.QueryEscape(name), url.QueryEscape(dataCenterID))
+	requestURI := fmt.Sprintf("%s/image/customerImage?name=%s&datacenterId=%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(name),
+		url.QueryEscape(dataCenterID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -143,7 +150,7 @@ func (client *Client) ListCustomerImagesInDatacenter(dataCenterID string, paging
 	}
 
 	requestURI := fmt.Sprintf("%s/image/customerImage?datacenterId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
