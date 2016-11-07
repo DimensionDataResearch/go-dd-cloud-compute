@@ -133,7 +133,10 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/vlan/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/network/vlan/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -222,8 +225,8 @@ func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *
 	}
 
 	requestURI := fmt.Sprintf("%s/network/vlan?networkDomainId=%s&%s",
-		organizationID,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
@@ -260,7 +263,9 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deployVlan", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deployVlan",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployVLAN{
 		VLANID:          networkDomainID,
 		Name:            name,
@@ -300,7 +305,9 @@ func (client *Client) EditVLAN(id string, name *string, description *string) (er
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/editVlan", organizationID)
+	requestURI := fmt.Sprintf("%s/network/editVlan",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditVLAN{
 		ID:          id,
 		Name:        name,
@@ -331,7 +338,9 @@ func (client *Client) DeleteVLAN(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deleteVlan", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deleteVlan",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteVLAN{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
