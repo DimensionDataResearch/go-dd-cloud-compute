@@ -107,6 +107,13 @@ func (client *Client) getOrganizationID() (organizationID string, err error) {
 
 // executeRequest performs the specified request and returns the entire response body, together with the HTTP status code.
 func (client *Client) executeRequest(request *http.Request) (responseBody []byte, statusCode int, err error) {
+	// Cache request to enable retry.
+	var cachedRequest *httpRequestCloner
+	cachedRequest, err = requestCloner(request)
+	if err != nil {
+		return
+	}
+
 	if client.IsExtendedLoggingEnabled() {
 		var requestBody []byte
 		requestBody, err = getRequestBody(request)
@@ -131,11 +138,14 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 			}
 		}
 	}
-
 	if request.Body != nil {
-		defer request.Body.Close()
+		request.Body.Close() // We no longer need the original request
 	}
 
+	request, err = cachedRequest.Clone()
+	if err != nil {
+		return
+	}
 	response, err := client.httpClient.Do(request)
 	if err != nil {
 		log.Printf("Unexpected error while performing '%s' request to '%s': %s.",
@@ -153,6 +163,13 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 				)
 			}
 
+			request, err = cachedRequest.Clone()
+			if err != nil {
+				return
+			}
+			if request.Body != nil {
+				defer request.Body.Close()
+			}
 			response, err = client.httpClient.Do(request)
 
 			if err != nil {
