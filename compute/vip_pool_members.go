@@ -54,7 +54,7 @@ func (client *Client) ListVIPPoolMembers(poolID string, paging *Paging) (members
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/poolMember?poolId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(poolID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
@@ -96,7 +96,7 @@ func (client *Client) ListVIPPoolMembershipsInNetworkDomain(networkDomainID stri
 	}
 
 	requestURI := fmt.Sprintf("%s/networkDomainVip/poolMember?networkDomainId=%s&%s",
-		organizationID,
+		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
@@ -138,7 +138,10 @@ func (client *Client) GetVIPPoolMember(id string) (member *VIPPoolMember, err er
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/poolMember/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/poolMember/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -181,7 +184,9 @@ func (client *Client) AddVIPPoolMember(poolID string, nodeID string, status stri
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/addPoolMember", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/addPoolMember",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &addPoolMember{
 		PoolID: poolID,
 		NodeID: nodeID,
@@ -219,7 +224,9 @@ func (client *Client) EditVIPPoolMember(id string, status string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/editPoolMember", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/editPoolMember",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &editPoolMember{
 		ID:     id,
 		Status: status,
@@ -248,7 +255,9 @@ func (client *Client) RemoveVIPPoolMember(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/networkDomainVip/removePoolMember", organizationID)
+	requestURI := fmt.Sprintf("%s/networkDomainVip/removePoolMember",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &removePoolMember{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
