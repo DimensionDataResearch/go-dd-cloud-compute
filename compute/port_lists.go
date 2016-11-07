@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // PortList represents a port list.
@@ -76,7 +77,10 @@ func (client *Client) GetPortList(id string) (portList *PortList, err error) {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/portList/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/network/portList/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -114,7 +118,10 @@ func (client *Client) ListPortLists(networkDomainID string) (portLists *PortList
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/portList?networkDomainId=%s", organizationID, networkDomainID)
+	requestURI := fmt.Sprintf("%s/network/portList?networkDomainId=%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -152,7 +159,9 @@ func (client *Client) CreatePortList(name string, description string, networkDom
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/createPortList", organizationID)
+	requestURI := fmt.Sprintf("%s/network/createPortList",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &createPortList{
 		Name:            name,
 		Description:     description,
@@ -195,7 +204,9 @@ func (client *Client) EditPortList(id string, edit EditPortList) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/editPortList", organizationID)
+	requestURI := fmt.Sprintf("%s/network/editPortList",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, edit)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -224,7 +235,9 @@ func (client *Client) DeletePortList(id string) (err error) {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deletePortList", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deletePortList",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &deletePortList{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
