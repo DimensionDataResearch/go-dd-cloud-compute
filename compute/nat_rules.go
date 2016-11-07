@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // NATRule represents a Network Address Translation (NAT) rule.
@@ -45,7 +46,10 @@ func (client *Client) GetNATRule(id string) (rule *NATRule, err error) {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/natRule/%s", organizationID, id)
+	requestURI := fmt.Sprintf("%s/network/natRule/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(id),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
@@ -87,8 +91,8 @@ func (client *Client) ListNATRules(networkDomainID string, paging *Paging) (rule
 	}
 
 	requestURI := fmt.Sprintf("%s/network/natRule?networkDomainId=%s&%s",
-		organizationID,
-		networkDomainID,
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
@@ -128,7 +132,9 @@ func (client *Client) AddNATRule(networkDomainID string, internalIPAddress strin
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/createNatRule", organizationID)
+	requestURI := fmt.Sprintf("%s/network/createNatRule",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &createNATRule{
 		NetworkDomainID:   networkDomainID,
 		InternalIPAddress: internalIPAddress,
@@ -164,7 +170,9 @@ func (client *Client) DeleteNATRule(id string) error {
 		return err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/deleteNatRule", organizationID)
+	requestURI := fmt.Sprintf("%s/network/deleteNatRule",
+		url.QueryEscape(organizationID),
+	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost,
 		&deleteNATRule{id},
 	)
