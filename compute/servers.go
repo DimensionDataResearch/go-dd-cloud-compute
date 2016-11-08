@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Server represents a virtual machine.
@@ -338,6 +339,54 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 	}
 
 	return *serverIDMessage, nil
+}
+
+// ModifyServer modifies a server's name and / or description.
+//
+// Pass nil for values you don't want to modify.
+func (client *Client) ModifyServer(serverID string, name *string, description *string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	var queryParams []string
+	if name != nil {
+		queryParams = append(queryParams, fmt.Sprintf("name=%s",
+			url.QueryEscape(*name),
+		))
+	}
+	if description != nil {
+		queryParams = append(queryParams, fmt.Sprintf("description=%s",
+			url.QueryEscape(*name),
+		))
+	}
+	requestURI := fmt.Sprintf("%s/server/%s?%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+		strings.Join(queryParams, "&"),
+	)
+
+	request, err := client.newRequestV1(requestURI, http.MethodPost, nil)
+	if err != nil {
+		return err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseV1(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.Result != ResultSuccess {
+		return apiResponse.ToError("Request to modify server '%s' failed with status code %d (%s): %s", serverID, statusCode, apiResponse.Result, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // AddDiskToServer adds a disk to an existing server.
