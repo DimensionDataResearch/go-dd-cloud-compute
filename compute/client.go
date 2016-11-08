@@ -13,6 +13,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"github.com/DimensionDataResearch/go-dd-cloud-compute/compute/requests"
 )
 
 // Client is the client for Dimension Data's cloud compute API.
@@ -107,19 +109,18 @@ func (client *Client) getOrganizationID() (organizationID string, err error) {
 
 // executeRequest performs the specified request and returns the entire response body, together with the HTTP status code.
 func (client *Client) executeRequest(request *http.Request) (responseBody []byte, statusCode int, err error) {
+	haveRequestBody := request.Body != nil
+
 	// Cache request to enable retry.
-	var cachedRequest *httpRequestCloner
-	cachedRequest, err = requestCloner(request)
+	var snapshot *requests.Snapshot
+	snapshot, err = requests.CreateSnapshotAndClose(request)
 	if err != nil {
 		return
 	}
 
 	if client.IsExtendedLoggingEnabled() {
 		var requestBody []byte
-		requestBody, err = getRequestBody(request)
-		if err != nil {
-			return
-		}
+		requestBody = snapshot.GetCachedRequestBody()
 
 		log.Printf("Invoking '%s' request to '%s'...",
 			request.Method,
@@ -138,14 +139,15 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 			}
 		}
 	}
-	if request.Body != nil {
-		request.Body.Close() // We no longer need the original request
-	}
 
-	request, err = cachedRequest.Clone()
+	request, err = snapshot.Copy()
 	if err != nil {
 		return
 	}
+	if haveRequestBody {
+		defer request.Body.Close()
+	}
+
 	response, err := client.httpClient.Do(request)
 	if err != nil {
 		log.Printf("Unexpected error while performing '%s' request to '%s': %s.",
@@ -163,15 +165,16 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 				)
 			}
 
-			request, err = cachedRequest.Clone()
+			// Try again with a fresh request.
+			request, err = snapshot.Copy()
 			if err != nil {
 				return
 			}
-			if request.Body != nil {
+			if haveRequestBody {
 				defer request.Body.Close()
 			}
-			response, err = client.httpClient.Do(request)
 
+			response, err = client.httpClient.Do(request)
 			if err != nil {
 				if client.IsExtendedLoggingEnabled() {
 					log.Printf("Still failing - '%s' request to '%s': %s.",
