@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 // Server represents a virtual machine.
@@ -99,6 +98,13 @@ type ServerDeploymentConfiguration struct {
 	PrimaryDNS            string                `json:"primaryDns"`
 	SecondaryDNS          string                `json:"secondaryDns"`
 	Start                 bool                  `json:"start"`
+}
+
+// editServerMetadata represents the request body when modifying server metadata.
+type editServerMetadata struct {
+	ID          string  `json:"id"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 // NotifyServerIPAddressChange represents the request body when notifying the system that the IP address for a server's network adapter has changed.
@@ -341,33 +347,23 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 	return *serverIDMessage, nil
 }
 
-// ModifyServer modifies a server's name and / or description.
+// EditServerMetadata modifies a server's name and / or description.
 //
 // Pass nil for values you don't want to modify.
-func (client *Client) ModifyServer(serverID string, name *string, description *string) error {
+func (client *Client) EditServerMetadata(serverID string, name *string, description *string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
 	}
 
-	var queryParams []string
-	if name != nil {
-		queryParams = append(queryParams, fmt.Sprintf("name=%s",
-			url.QueryEscape(*name),
-		))
-	}
-	if description != nil {
-		queryParams = append(queryParams, fmt.Sprintf("description=%s",
-			url.QueryEscape(*name),
-		))
-	}
-	requestURI := fmt.Sprintf("%s/server/%s?%s",
+	requestURI := fmt.Sprintf("%s/server/editServerMetadata",
 		url.QueryEscape(organizationID),
-		url.QueryEscape(serverID),
-		strings.Join(queryParams, "&"),
 	)
-
-	request, err := client.newRequestV1(requestURI, http.MethodPost, nil)
+	request, err := client.newRequestV23(requestURI, http.MethodPost, &editServerMetadata{
+		ID:          serverID,
+		Name:        name,
+		Description: description,
+	})
 	if err != nil {
 		return err
 	}
@@ -377,13 +373,13 @@ func (client *Client) ModifyServer(serverID string, name *string, description *s
 		return err
 	}
 
-	apiResponse, err := readAPIResponseV1(responseBody, statusCode)
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
 	if err != nil {
 		return err
 	}
 
-	if apiResponse.Result != ResultSuccess {
-		return apiResponse.ToError("Request to modify server '%s' failed with status code %d (%s): %s", serverID, statusCode, apiResponse.Result, apiResponse.Message)
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to modify server '%s' failed with status code %d (%s): %s", serverID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

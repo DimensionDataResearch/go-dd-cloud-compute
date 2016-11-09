@@ -287,6 +287,36 @@ func (client *Client) newRequestV22(relativeURI string, method string, body inte
 	return request, nil
 }
 
+// Create a basic request for the compute API (V2.3, JSON).
+func (client *Client) newRequestV23(relativeURI string, method string, body interface{}) (*http.Request, error) {
+	requestURI := fmt.Sprintf("%s/caas/2.3/%s", client.baseAddress, relativeURI)
+
+	var (
+		request    *http.Request
+		bodyReader io.Reader
+		err        error
+	)
+
+	bodyReader, err = newReaderFromJSON(body)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err = http.NewRequest(method, requestURI, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+
+	request.SetBasicAuth(client.username, client.password)
+	request.Header.Add("Accept", "application/json")
+
+	if bodyReader != nil {
+		request.Header.Set("Content-Type", "application/json")
+	}
+
+	return request, nil
+}
+
 // Read an APIResponseV1 (as XML) from the response body.
 func readAPIResponseV1(responseBody []byte, statusCode int) (apiResponse *APIResponseV1, err error) {
 	apiResponse = &APIResponseV1{}
