@@ -17,8 +17,7 @@ func TestClient_GetAccount_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 
 	account, err := client.GetAccount()
 	if err != nil {
@@ -36,8 +35,7 @@ func TestClient_GetAccount_AccessDenied(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 
 	_, err := client.GetAccount()
 	if err == nil {

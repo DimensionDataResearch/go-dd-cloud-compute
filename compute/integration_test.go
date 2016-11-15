@@ -122,8 +122,7 @@ func testClientRequest(test *testing.T, testConfiguration *ClientTestConfig) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient(testConfiguration.Region, testConfiguration.User, testConfiguration.Password)
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: testConfiguration.OrganizationID,
 	})

@@ -17,8 +17,7 @@ func TestClient_FindOSImage_By_NameAndDataCenter_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})

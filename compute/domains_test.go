@@ -29,8 +29,7 @@ func TestClient_DeployNetworkDomain_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})
@@ -70,8 +69,7 @@ func TestClient_EditNetworkDomain_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})
@@ -110,8 +108,7 @@ func TestClient_DeleteNetworkDomain_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})
@@ -134,8 +131,7 @@ func TestClient_GetNetworkDomain_ById_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})
@@ -158,8 +154,7 @@ func TestClient_ListNetworkDomains_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})

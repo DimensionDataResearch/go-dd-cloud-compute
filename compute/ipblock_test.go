@@ -17,8 +17,7 @@ func TestClient_GetPublicIPBlock_ById_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})
@@ -41,8 +40,7 @@ func TestClient_AddPublicIPBlock_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})
@@ -65,8 +63,7 @@ func TestClient_ListReservedPublicIPAddresses_Success(test *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewClient("au1", "user1", "password")
-	client.setBaseAddress(testServer.URL)
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
 	client.setAccount(&Account{
 		OrganizationID: "dummy-organization-id",
 	})

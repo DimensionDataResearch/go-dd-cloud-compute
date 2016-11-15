@@ -35,6 +35,12 @@ type Client struct {
 func NewClient(region string, username string, password string) *Client {
 	baseAddress := fmt.Sprintf("https://api-%s.dimensiondata.com", region)
 
+	return NewClientWithBaseAddress(baseAddress, username, password)
+}
+
+// NewClientWithBaseAddress creates a new cloud compute API client using a custom end-point base address.
+// baseAddress is the base URL of the CloudControl API end-point.
+func NewClientWithBaseAddress(baseAddress string, username string, password string) *Client {
 	_, isExtendedLoggingEnabled := os.LookupEnv("MCP_EXTENDED_LOGGING")
 
 	return &Client{
