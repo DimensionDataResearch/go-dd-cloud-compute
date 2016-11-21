@@ -58,8 +58,40 @@ func TestClient_DeployServer_Success(test *testing.T) {
 		Name:                  "Production FTPS Server",
 		Description:           "This is the main FTPS Server",
 		ImageID:               "02250336-de2b-4e99-ab96-78511b7f8f4b",
-		AdministratorPassword: "password",
-		CPU: VirtualMachineCPU{Count: 2},
+		AdministratorPassword: "P$$ssWwrrdGoDd!",
+		CPU: VirtualMachineCPU{
+			Count:          4,
+			CoresPerSocket: 1,
+			Speed:          "STANDARD",
+		},
+		MemoryGB:     4,
+		PrimaryDNS:   "10.20.255.12",
+		SecondaryDNS: "10.20.255.13",
+		Network: VirtualMachineNetwork{
+			NetworkDomainID: "484174a2-ae74-4658-9e56-50fc90e086cf",
+			PrimaryAdapter: VirtualMachineNetworkAdapter{
+				VLANID: stringToPtr("0e56433f-d808-4669-821d-812769517ff8"),
+			},
+			AdditionalNetworkAdapters: []VirtualMachineNetworkAdapter{
+				VirtualMachineNetworkAdapter{
+					PrivateIPv4Address: stringToPtr("172.16.0.14"),
+				},
+				VirtualMachineNetworkAdapter{
+					VLANID:      stringToPtr("e0b4d43c-c648-11e4-b33a-72802a5322b2"),
+					AdapterType: stringToPtr(NetworkAdapterTypeVMXNET3),
+				},
+			},
+		},
+		Disks: []VirtualMachineDisk{
+			VirtualMachineDisk{
+				SCSIUnitID: 0,
+				Speed:      "STANDARD",
+			},
+			VirtualMachineDisk{
+				SCSIUnitID: 1,
+				Speed:      "HIGHPERFORMANCE",
+			},
+		},
 	}
 
 	serverID, err := client.DeployServer(serverConfiguration)
@@ -175,7 +207,7 @@ func TestClient_AddServerNic_Success(test *testing.T) {
 	expect.EqualsString("nicID", "5999db1d-725c-46ba-9d4e-d33991e61ab1", nicID)
 }
 
-// Remoe Server Nic (successful).
+// Remove Server Nic (successful).
 func TestClient_RemoveServerNic_Success(test *testing.T) {
 	expect := expect(test)
 
@@ -250,42 +282,44 @@ func TestClient_DeleteServer_Success(test *testing.T) {
 
 const deployServerTestRequest = `
 	{
-		"name":"Production FTPS Server",
-		"description":"This is the main FTPS Server",
-		"imageId":"02250336-de2b-4e99-ab96-78511b7f8f4b",
-		"start":true,
-		"administratorPassword":"P$$ssWwrrdGoDd!",
-		"memoryGb": 4,
+		"name": "Production FTPS Server",
+		"description": "This is the main FTPS Server",
+		"imageId": "02250336-de2b-4e99-ab96-78511b7f8f4b",
+		"start": true,
+		"administratorPassword": "P$$ssWwrrdGoDd!",
 		"cpu": {
-			"count": 2
+			"count": 4,
+			"coresPerSocket": 1,
+			"speed": "STANDARD"
 		},
-		"primaryDns":"10.20.255.12",
-		"secondaryDns":"10.20.255.13",
+		"memoryGb": 4,
+		"primaryDns": "10.20.255.12",
+		"secondaryDns": "10.20.255.13",
 		"networkInfo": {
-			"networkDomainId":"484174a2-ae74-4658-9e56-50fc90e086cf",
-			"primaryNic" : {
-				"vlanId":"0e56433f-d808-4669-821d-812769517ff8"
+			"networkDomainId": "484174a2-ae74-4658-9e56-50fc90e086cf",
+			"primaryNic": {
+				"vlanId": "0e56433f-d808-4669-821d-812769517ff8"
 			},
-			"additionalNic" : [
+			"additionalNic": [
 				{
-					"privateIpv4" : "172.16.0.14"
+					"privateIpv4": "172.16.0.14"
 				},
 				{
-					"vlanId":"e0b4d43c-c648-11e4-b33a-72802a5322b2"
+					"vlanId": "e0b4d43c-c648-11e4-b33a-72802a5322b2",
+					"networkAdapter": "VMXNET3"
 				}
 			]
 		},
-		"disk" : [
+		"disk": [
 			{
-				"scsiId" :"0",
-				"speed" :"STANDARD"
+				"scsiId": "0",
+				"speed": "STANDARD"
 			},
 			{
-				"scsiId" :"1" ,
-				"speed" :"HIGHPERFORMANCE"
+				"scsiId": "1",
+				"speed": "HIGHPERFORMANCE"
 			}
-		],
-		"microsoftTimeZone":"035"
+		]
 	}
 `
 
@@ -296,9 +330,45 @@ func verifyDeployServerTestRequest(test *testing.T, deploymentConfiguration *Ser
 	expect.EqualsString("ServerDeploymentConfiguration.Name", "Production FTPS Server", deploymentConfiguration.Name)
 	expect.EqualsString("ServerDeploymentConfiguration.Description", "This is the main FTPS Server", deploymentConfiguration.Description)
 	expect.EqualsString("ServerDeploymentConfiguration.ImageID", "02250336-de2b-4e99-ab96-78511b7f8f4b", deploymentConfiguration.ImageID)
-	expect.EqualsString("ServerDeploymentConfiguration.AdministratorPassword", "password", deploymentConfiguration.AdministratorPassword)
+	expect.EqualsString("ServerDeploymentConfiguration.AdministratorPassword", "P$$ssWwrrdGoDd!", deploymentConfiguration.AdministratorPassword)
 
-	expect.EqualsInt("ServerDeploymentConfiguration.CPU.Count", 2, deploymentConfiguration.CPU.Count)
+	// CPU
+	expect.EqualsInt("ServerDeploymentConfiguration.CPU.Count", 4, deploymentConfiguration.CPU.Count)
+	expect.EqualsInt("ServerDeploymentConfiguration.CPU.CoresPerSocket", 1, deploymentConfiguration.CPU.CoresPerSocket)
+	expect.EqualsString("ServerDeploymentConfiguration.CPU.Speed", "STANDARD", deploymentConfiguration.CPU.Speed)
+
+	// Memory
+	expect.EqualsInt("ServerDeploymentConfiguration.MemoryGB", 4, deploymentConfiguration.MemoryGB)
+
+	// Network.
+	network := deploymentConfiguration.Network
+	expect.EqualsString("ServerDeploymentConfiguration.Network.NetworkDomainID", "484174a2-ae74-4658-9e56-50fc90e086cf", network.NetworkDomainID)
+
+	expect.EqualsString("ServerDeploymentConfiguration.PrimaryDNS", "10.20.255.12", deploymentConfiguration.PrimaryDNS)
+	expect.EqualsString("ServerDeploymentConfiguration.Secondary", "10.20.255.13", deploymentConfiguration.SecondaryDNS)
+
+	expect.NotNil("ServerDeploymentConfiguration.Network.PrimaryAdapter.VLANID", network.PrimaryAdapter.VLANID)
+	expect.EqualsString("ServerDeploymentConfiguration.Network.PrimaryAdapter.VLANID", "0e56433f-d808-4669-821d-812769517ff8", *network.PrimaryAdapter.VLANID)
+
+	// Network adapters.
+	expect.EqualsInt("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters.Length", 2, len(network.AdditionalNetworkAdapters))
+
+	expect.NotNil("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].PrivateIPv4Address", network.AdditionalNetworkAdapters[0].PrivateIPv4Address)
+	expect.EqualsString("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].PrivateIPv4Address", "172.16.0.14", *network.AdditionalNetworkAdapters[0].PrivateIPv4Address)
+
+	expect.NotNil("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[1].VLANID", network.AdditionalNetworkAdapters[1].VLANID)
+	expect.EqualsString("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[1].VLANID", "e0b4d43c-c648-11e4-b33a-72802a5322b2", *network.AdditionalNetworkAdapters[1].VLANID)
+	expect.NotNil("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[1].AdapterType", network.AdditionalNetworkAdapters[1].AdapterType)
+	expect.EqualsString("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[1].AdapterType", "VMXNET3", *network.AdditionalNetworkAdapters[1].AdapterType)
+
+	// Disks.
+	expect.EqualsInt("ServerDeploymentConfiguration.Disks.Length", 2, len(deploymentConfiguration.Disks))
+
+	expect.EqualsInt("ServerDeploymentConfiguration.Disks[0].SCSIUnitID", 0, deploymentConfiguration.Disks[0].SCSIUnitID)
+	expect.EqualsString("ServerDeploymentConfiguration.Disks[0].Speed", "STANDARD", deploymentConfiguration.Disks[0].Speed)
+
+	expect.EqualsInt("ServerDeploymentConfiguration.Disks[1].SCSIUnitID", 1, deploymentConfiguration.Disks[1].SCSIUnitID)
+	expect.EqualsString("ServerDeploymentConfiguration.Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.Disks[1].Speed)
 }
 
 const addDiskToServerTestRequest = `

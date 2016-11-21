@@ -8,6 +8,14 @@ import (
 	"net/url"
 )
 
+const (
+	// NetworkAdapterTypeE1000 represents the E1000 network adapter type.
+	NetworkAdapterTypeE1000 = "E1000"
+
+	// NetworkAdapterTypeVMXNET3 represents the VMXNET3 network adapter type.
+	NetworkAdapterTypeVMXNET3 = "VMXNET3"
+)
+
 // Server represents a virtual machine.
 type Server struct {
 	ID              string                `json:"id"`
@@ -138,8 +146,9 @@ type addDiskToServer struct {
 }
 
 type serverNic struct {
-	VlanID      string `json:"vlanId,omitempty"`
-	PrivateIPv4 string `json:"privateIpv4,omitempty"`
+	VlanID      string  `json:"vlanId,omitempty"`
+	PrivateIPv4 string  `json:"privateIpv4,omitempty"`
+	AdapterType *string `json:"networkAdapter,omitempty"`
 }
 
 // addNicConfiguration represents the request body when adding the new nic.
@@ -323,7 +332,7 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 	requestURI := fmt.Sprintf("%s/server/deployServer",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &serverConfiguration)
+	request, err := client.newRequestV23(requestURI, http.MethodPost, &serverConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err
@@ -630,23 +639,36 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 	return nil
 }
 
-//AddNicToServer adds the nic to the server
+// AddNicToServer adds a network adapter to a server
 func (client *Client) AddNicToServer(serverID string, ipv4Address string, vlanID string) (nicID string, err error) {
+	return client.addNicToServer(serverID, serverNic{
+		PrivateIPv4: ipv4Address,
+		VlanID:      vlanID,
+	})
+}
+
+// AddNicWithTypeToServer adds a network adapter of a specific type to a server
+func (client *Client) AddNicWithTypeToServer(serverID string, ipv4Address string, vlanID string, adapterType string) (nicID string, err error) {
+	return client.addNicToServer(serverID, serverNic{
+		PrivateIPv4: ipv4Address,
+		VlanID:      vlanID,
+		AdapterType: &adapterType,
+	})
+}
+
+// AddNicToServer adds a network adapter to a server
+func (client *Client) addNicToServer(serverID string, nicConfiguration serverNic) (nicID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
 	}
 
-	var serverNicConfiguration = serverNic{
-		PrivateIPv4: ipv4Address,
-		VlanID:      vlanID,
-	}
 	requestURI := fmt.Sprintf("%s/server/addNic",
 		url.QueryEscape(organizationID),
 	)
 	request, err := client.newRequestV22(requestURI, http.MethodPost, &addNicConfiguration{
 		ServerID: serverID,
-		Nic:      serverNicConfiguration,
+		Nic:      nicConfiguration,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
