@@ -666,7 +666,7 @@ func (client *Client) addNicToServer(serverID string, nicConfiguration serverNic
 	requestURI := fmt.Sprintf("%s/server/addNic",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &addNicConfiguration{
+	request, err := client.newRequestV23(requestURI, http.MethodPost, &addNicConfiguration{
 		ServerID: serverID,
 		Nic:      nicConfiguration,
 	})
