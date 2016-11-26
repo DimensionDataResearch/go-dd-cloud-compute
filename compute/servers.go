@@ -16,6 +16,14 @@ const (
 	NetworkAdapterTypeVMXNET3 = "VMXNET3"
 )
 
+const (
+	// ServerDiskSpeedStandard represents the standard speed for server disks.
+	ServerDiskSpeedStandard = "STANDARD"
+
+	// ServerDiskSpeedHighPerformance represents the high-performance speed for server disks.
+	ServerDiskSpeedHighPerformance = "HIGHPERFORMANCE"
+)
+
 // Server represents a virtual machine.
 type Server struct {
 	ID              string                `json:"id"`
@@ -164,6 +172,15 @@ type resizeServerDisk struct {
 
 	// The new disk size, in gigabytes.
 	NewSizeGB int `xml:"newSizeGb"`
+}
+
+// changeServerDiskSpeed represents the request body when changing a server disk's speed.
+type changeServerDiskSpeed struct {
+	// The XML name for the "resizeServerDisk" data contract
+	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/server ChangeDiskSpeed"`
+
+	// The new disk speed.
+	Speed string `xml:"speed"`
 }
 
 // ApplyOSImage applies the specified OS image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
@@ -446,6 +463,31 @@ func (client *Client) ResizeServerDisk(serverID string, diskID string, newSizeGB
 	)
 	request, err := client.newRequestV1(requestURI, http.MethodPost, &resizeServerDisk{
 		NewSizeGB: newSizeGB,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return
+	}
+
+	response, err = readAPIResponseV1(responseBody, statusCode)
+
+	return
+}
+
+// ChangeServerDiskSpeed requests changing of a server disk's speed.
+func (client *Client) ChangeServerDiskSpeed(serverID string, diskID string, newSpeed string) (response *APIResponseV1, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/disk/%s/changeSpeed",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+		url.QueryEscape(diskID),
+	)
+	request, err := client.newRequestV1(requestURI, http.MethodPost, &changeServerDiskSpeed{
+		Speed: newSpeed,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {

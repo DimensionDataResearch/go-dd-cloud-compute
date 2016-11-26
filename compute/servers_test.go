@@ -174,6 +174,45 @@ func TestClient_ResizeServerDisk_Success(test *testing.T) {
 	verifyResizeServerDiskTestResponse(test, response)
 }
 
+// Change server disk speed (successful).
+func TestClient_ChangeServerDiskSpeed_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		expect.EqualsString(
+			"Request.URL",
+			"/oec/0.9/dummy-organization-id/server/7b62aae5-bdbe-4595-b58d-c78f95db2a7f/disk/92b1819e-6f91-4abe-88c7-607841959f90/changeSpeed",
+			request.URL.Path,
+		)
+
+		requestBody := &changeServerDiskSpeed{}
+		err := readRequestBodyAsXML(request, requestBody)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		verifyChangeServerDiskSpeedRequest(test, requestBody)
+
+		writer.Header().Set("Content-Type", "application/xml")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, changeServerDiskSpeedTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	response, err := client.ChangeServerDiskSpeed("7b62aae5-bdbe-4595-b58d-c78f95db2a7f", "92b1819e-6f91-4abe-88c7-607841959f90", ServerDiskSpeedStandard)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	verifyChangeServerDiskSpeedTestResponse(test, response)
+}
+
 // Add Nic (successful).
 func TestClient_AddServerNic_Success(test *testing.T) {
 	expect := expect(test)
@@ -422,6 +461,19 @@ func verifyResizeServerDiskRequest(test *testing.T, request *resizeServerDisk) {
 	expect.EqualsInt("ReconfigureServer.NewSizeGB", 23, request.NewSizeGB)
 }
 
+const changeServerDiskSpeedTestRequest = `
+	<ChangeServerDiskSpeed xmlns="http://oec.api.opsource.net/schemas/server">
+		<speed>STANDARD</speed>
+	</ChangeServerDiskSpeed>
+`
+
+func verifyChangeServerDiskSpeedRequest(test *testing.T, request *changeServerDiskSpeed) {
+	expect := expect(test)
+
+	expect.NotNil("ChangeServerDiskSpeed", request)
+	expect.EqualsString("ChangeServerDiskSpeed.Speed", ServerDiskSpeedStandard, request.Speed)
+}
+
 const notifyServerIPAddressChangeTestRequest = `
 	{
 		"nicId": "5999db1d-725c-46ba-9d4e-d33991e61ab1",
@@ -627,6 +679,25 @@ func verifyResizeServerDiskTestResponse(test *testing.T, response *APIResponseV1
 	expect.EqualsString("Response.Operation", "Change Server Disk Size", response.Operation)
 	expect.EqualsString("Response.ResponseCode", ResultSuccess, response.Result)
 	expect.EqualsString("Response.Message", "Server 'Change Server Disk Size' Issued", response.Message)
+	expect.EqualsString("Response.ResultCode", "RESULT_0", response.ResultCode)
+}
+
+const changeServerDiskSpeedTestResponse = `
+	<Status>
+		<operation>Change Server Disk Speed</operation>
+		<result>SUCCESS</result>
+		<resultDetail>Change Server Disk Speed Issued</resultDetail>
+		<resultCode>RESULT_0</resultCode>
+	</Status>
+`
+
+func verifyChangeServerDiskSpeedTestResponse(test *testing.T, response *APIResponseV1) {
+	expect := expect(test)
+
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "Change Server Disk Speed", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResultSuccess, response.Result)
+	expect.EqualsString("Response.Message", "Change Server Disk Speed Issued", response.Message)
 	expect.EqualsString("Response.ResultCode", "RESULT_0", response.ResultCode)
 }
 
