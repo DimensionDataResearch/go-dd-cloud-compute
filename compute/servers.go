@@ -641,7 +641,7 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 
 // AddNicToServer adds a network adapter to a server
 func (client *Client) AddNicToServer(serverID string, ipv4Address string, vlanID string) (nicID string, err error) {
-	return client.addNicToServer(serverID, serverNic{
+	return client.addNicToServer(serverID, &serverNic{
 		PrivateIPv4: ipv4Address,
 		VlanID:      vlanID,
 	})
@@ -649,7 +649,7 @@ func (client *Client) AddNicToServer(serverID string, ipv4Address string, vlanID
 
 // AddNicWithTypeToServer adds a network adapter of a specific type to a server
 func (client *Client) AddNicWithTypeToServer(serverID string, ipv4Address string, vlanID string, adapterType string) (nicID string, err error) {
-	return client.addNicToServer(serverID, serverNic{
+	return client.addNicToServer(serverID, &serverNic{
 		PrivateIPv4: ipv4Address,
 		VlanID:      vlanID,
 		AdapterType: &adapterType,
@@ -657,7 +657,16 @@ func (client *Client) AddNicWithTypeToServer(serverID string, ipv4Address string
 }
 
 // AddNicToServer adds a network adapter to a server
-func (client *Client) addNicToServer(serverID string, nicConfiguration serverNic) (nicID string, err error) {
+func (client *Client) addNicToServer(serverID string, nicConfiguration *serverNic) (nicID string, err error) {
+	if nicConfiguration == nil {
+		return "", fmt.Errorf("Must supply a valid server NIC configuration")
+	}
+
+	// Don't submit VLAN ID to CloudControl when IPv4 address has been supplied (one implies the other)
+	if nicConfiguration.PrivateIPv4 != "" {
+		nicConfiguration.VlanID = ""
+	}
+
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -668,7 +677,7 @@ func (client *Client) addNicToServer(serverID string, nicConfiguration serverNic
 	)
 	request, err := client.newRequestV23(requestURI, http.MethodPost, &addNicConfiguration{
 		ServerID: serverID,
-		Nic:      nicConfiguration,
+		Nic:      *nicConfiguration,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {

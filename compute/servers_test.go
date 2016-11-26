@@ -405,7 +405,8 @@ func verifyAddNicToServerTestRequest(test *testing.T, request *addNicConfigurati
 	expect := expect(test)
 	expect.EqualsString("addNicConfiguration.ServerID", "1c7762ca-f379-4eef-b08e-aa526d602589", request.ServerID)
 	expect.EqualsString("addNicConfiguration.Nic.PrivateIPv4", "10.0.3.18", request.Nic.PrivateIPv4)
-	expect.EqualsString("addNicConfiguration.VlanID", "2e312054-532a-46aa-ab4f-226660bfba6d", request.Nic.VlanID)
+	// VLANID will not be submitted because private IPv4 has been submitted.
+	expect.EqualsString("addNicConfiguration.VlanID", "", request.Nic.VlanID)
 }
 
 const resizeServerDiskTestRequest = `
