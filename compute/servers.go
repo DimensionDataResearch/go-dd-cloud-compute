@@ -111,8 +111,8 @@ type ServerDeploymentConfiguration struct {
 	MemoryGB              int                   `json:"memoryGb,omitempty"`
 	Disks                 []VirtualMachineDisk  `json:"disk"`
 	Network               VirtualMachineNetwork `json:"networkInfo"`
-	PrimaryDNS            string                `json:"primaryDns"`
-	SecondaryDNS          string                `json:"secondaryDns"`
+	PrimaryDNS            string                `json:"primaryDns,omitempty"`
+	SecondaryDNS          string                `json:"secondaryDns,omitempty"`
 	Start                 bool                  `json:"start"`
 }
 
