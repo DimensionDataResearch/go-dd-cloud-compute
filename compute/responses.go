@@ -28,6 +28,16 @@ func (apiError *APIError) Error() string {
 
 var _ error = &APIError{}
 
+// IsResourceBusyError determines whether the specified error represents a RESOURCE_BUSY response from CloudControl.
+func IsResourceBusyError(err error) bool {
+	apiError, ok := err.(*APIError)
+	if !ok {
+		return false
+	}
+
+	return apiError.Response.GetResponseCode() == ResponseCodeResourceBusy
+}
+
 // Well-known API (v1) results
 
 const (
