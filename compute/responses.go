@@ -43,6 +43,9 @@ func IsResourceBusyError(err error) bool {
 const (
 	// ResultSuccess indicates that an operation completed successfully.
 	ResultSuccess = "SUCCESS"
+
+	// ResultResourceBusy indicates that an operation cannot be performed on a resource because the resource is busy.
+	ResultResourceBusy = "RESOURCE_BUSY"
 )
 
 // Well-known API (v2) response codes
