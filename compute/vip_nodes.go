@@ -26,6 +26,12 @@ type VIPNodeReference struct {
 	Status    string `json:"status"`
 }
 
+// VIPNodeHealthMonitor represents a health Monitor to a VIP node.
+type VIPNodeHealthMonitor struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // VIPNode represents a VIP node.
 type VIPNode struct {
 	// The node Id.
@@ -47,7 +53,7 @@ type VIPNode struct {
 	Status string `json:"status"`
 
 	// The Id of the node's associated health monitor (if any).
-	HealthMonitorID string `json:"healthMonitorId,omitempty"`
+	HealthMonitor VIPNodeHealthMonitor `json:"healthMonitor,omitempty"`
 
 	// The node's connection limit (must be greater than 0).
 	ConnectionLimit int `json:"connectionLimit"`
