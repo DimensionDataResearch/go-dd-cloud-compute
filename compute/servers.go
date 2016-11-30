@@ -153,6 +153,11 @@ type addDiskToServer struct {
 	SCSIUnitID int    `json:"scsiId"`
 }
 
+// removeDiskFromServer represents the request body when removing an existing disk from a server.
+type removeDiskFromServer struct {
+	DiskID string `json:"id"`
+}
+
 type serverNic struct {
 	VlanID      string  `json:"vlanId,omitempty"`
 	PrivateIPv4 string  `json:"privateIpv4,omitempty"`
@@ -497,6 +502,36 @@ func (client *Client) ChangeServerDiskSpeed(serverID string, diskID string, newS
 	response, err = readAPIResponseV1(responseBody, statusCode)
 
 	return
+}
+
+// RemoveDiskFromServer removes an existing disk from a server.
+func (client *Client) RemoveDiskFromServer(diskID string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/removeDisk",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &removeDiskFromServer{
+		DiskID: diskID,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return apiResponse.ToError("Request to remove disk '%s' failed with status code %d (%s): %s", diskID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // DeleteServer deletes an existing Server.
