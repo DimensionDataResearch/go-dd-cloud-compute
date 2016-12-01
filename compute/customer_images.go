@@ -48,6 +48,34 @@ func (image *CustomerImage) ToEntityReference() EntityReference {
 
 var _ NamedEntity = &CustomerImage{}
 
+// GetType determines the image type.
+func (image *CustomerImage) GetType() ImageType {
+	return ImageTypeCustomer
+}
+
+// GetID retrieves the image ID.
+func (image *CustomerImage) GetID() string {
+	return image.ID
+}
+
+// GetName retrieves the image name.
+func (image *CustomerImage) GetName() string {
+	return image.Name
+}
+
+// ApplyTo applies the CustomerImage to the specified ServerDeploymentConfiguration.
+func (image *CustomerImage) ApplyTo(config *ServerDeploymentConfiguration) {
+	config.ImageID = image.ID
+	config.CPU = image.CPU
+	config.MemoryGB = image.MemoryGB
+	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
+	for index, disk := range image.Disks {
+		config.Disks[index] = disk
+	}
+}
+
+var _ Image = &CustomerImage{}
+
 // GetCustomerImage retrieves a specific customer image by Id.
 func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err error) {
 	organizationID, err := client.getOrganizationID()

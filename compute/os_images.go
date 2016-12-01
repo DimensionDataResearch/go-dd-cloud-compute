@@ -31,6 +31,34 @@ func (image *OSImage) ToEntityReference() EntityReference {
 
 var _ NamedEntity = &OSImage{}
 
+// GetType determines the image type.
+func (image *OSImage) GetType() ImageType {
+	return ImageTypeOS
+}
+
+// GetID retrieves the image ID.
+func (image *OSImage) GetID() string {
+	return image.ID
+}
+
+// GetName retrieves the image name.
+func (image *OSImage) GetName() string {
+	return image.Name
+}
+
+// ApplyTo applies the OSImage to the specified ServerDeploymentConfiguration.
+func (image *OSImage) ApplyTo(config *ServerDeploymentConfiguration) {
+	config.ImageID = image.ID
+	config.CPU = image.CPU
+	config.MemoryGB = image.MemoryGB
+	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
+	for index, disk := range image.Disks {
+		config.Disks[index] = disk
+	}
+}
+
+var _ Image = &OSImage{}
+
 // OSImages represents a page of OSImage results.
 type OSImages struct {
 	// The current page of network domains.
