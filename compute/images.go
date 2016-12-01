@@ -39,6 +39,9 @@ type Image interface {
 	// GetName retrieves the image name.
 	GetName() string
 
+	// GetOS retrieves information about the image's operating system.
+	GetOS() OperatingSystem
+
 	// ApplyTo applies the Image to the specified ServerDeploymentConfiguration.
 	ApplyTo(config *ServerDeploymentConfiguration)
 }

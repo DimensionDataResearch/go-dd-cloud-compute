@@ -46,6 +46,11 @@ func (image *OSImage) GetName() string {
 	return image.Name
 }
 
+// GetOS retrieves information about the image's operating system.
+func (image *OSImage) GetOS() OperatingSystem {
+	return image.OperatingSystem
+}
+
 // ApplyTo applies the OSImage to the specified ServerDeploymentConfiguration.
 func (image *OSImage) ApplyTo(config *ServerDeploymentConfiguration) {
 	config.ImageID = image.ID
