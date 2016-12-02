@@ -38,6 +38,16 @@ func IsResourceBusyError(err error) bool {
 	return apiError.Response.GetResponseCode() == ResponseCodeResourceBusy
 }
 
+// IsResourceNotFoundError determines whether the specified error represents a RESOURCE_NOT_FOUND response from CloudControl.
+func IsResourceNotFoundError(err error) bool {
+	apiError, ok := err.(*APIError)
+	if !ok {
+		return false
+	}
+
+	return apiError.Response.GetResponseCode() == ResponseCodeResourceNotFound
+}
+
 // Well-known API (v1) results
 
 const (
