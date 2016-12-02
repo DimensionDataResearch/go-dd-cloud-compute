@@ -68,7 +68,7 @@ func (client *Client) waitForResourceStatus(resourceType ResourceType, id string
 				return nil, err
 			}
 
-			if resource.IsDeleted() {
+			if resource == nil || resource.IsDeleted() {
 				if expectedStatus == ResourceStatusPendingDelete {
 					log.Printf("%s '%s' has been successfully deleted.", resourceDescription, id)
 
