@@ -225,7 +225,7 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV23(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
