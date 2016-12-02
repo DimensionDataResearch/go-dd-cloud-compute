@@ -88,6 +88,7 @@ type VirtualMachineNetwork struct {
 // AdapterType (if specified) must be either E1000 or VMXNET3.
 type VirtualMachineNetworkAdapter struct {
 	ID                 *string `json:"id,omitempty"`
+	MACAddress         *string `json:"macAddress,omitempty"` // CloudControl v2.3 and higher
 	VLANID             *string `json:"vlanId,omitempty"`
 	VLANName           *string `json:"vlanName,omitempty"`
 	PrivateIPv4Address *string `json:"privateIpv4,omitempty"`
