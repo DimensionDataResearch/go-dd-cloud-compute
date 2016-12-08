@@ -30,22 +30,27 @@ var _ error = &APIError{}
 
 // IsResourceBusyError determines whether the specified error represents a RESOURCE_BUSY response from CloudControl.
 func IsResourceBusyError(err error) bool {
-	apiError, ok := err.(*APIError)
-	if !ok {
-		return false
-	}
-
-	return apiError.Response.GetResponseCode() == ResponseCodeResourceBusy
+	return IsAPIErrorCode(err, ResponseCodeResourceBusy)
 }
 
 // IsResourceNotFoundError determines whether the specified error represents a RESOURCE_NOT_FOUND response from CloudControl.
 func IsResourceNotFoundError(err error) bool {
+	return IsAPIErrorCode(err, ResponseCodeResourceNotFound)
+}
+
+// IsNoIPAddressAvailableError determines whether the specified error represents a NO_IP_ADDRESS_AVAILABLE response from CloudControl.
+func IsNoIPAddressAvailableError(err error) bool {
+	return IsAPIErrorCode(err, ResponseCodeNoIPAddressAvailable)
+}
+
+// IsAPIErrorCode determines whether the specified error represents a CloudControl API error with the specified response code.
+func IsAPIErrorCode(err error, responseCode string) bool {
 	apiError, ok := err.(*APIError)
 	if !ok {
 		return false
 	}
 
-	return apiError.Response.GetResponseCode() == ResponseCodeResourceNotFound
+	return apiError.Response.GetResponseCode() == responseCode
 }
 
 // Well-known API (v1) results
