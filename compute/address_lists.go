@@ -22,6 +22,7 @@ type IPAddressList struct {
 // BuildEditRequest creates an EditIPAddressList using the existing addresses and child list references in the IP address list.
 func (addressList *IPAddressList) BuildEditRequest() EditIPAddressList {
 	edit := &EditIPAddressList{
+		ID:           addressList.ID,
 		Description:  addressList.Description,
 		Addresses:    addressList.Addresses,
 		ChildListIDs: make([]string, len(addressList.ChildLists)),
@@ -201,7 +202,7 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 // You can IPAddressList.BuildEditRequest() to create an EditIPAddressList request that copies the current state of the IPAddressList (and then apply customisations).
 //
 // This operation is synchronous.
-func (client *Client) EditIPAddressList(id string, edit EditIPAddressList) error {
+func (client *Client) EditIPAddressList(edit EditIPAddressList) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
