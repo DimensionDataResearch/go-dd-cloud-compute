@@ -206,10 +206,19 @@ type stopServer struct {
 	ID string `json:"id"`
 }
 
-// Request body when deleting a server.
+// Request body when deleting a network adapter.
 type deleteNic struct {
-	// The server Id.
+	// The network adapter Id.
 	ID string `json:"id"`
+}
+
+// Request body when changing network adapter type.
+type changeNicType struct {
+	// The network adapter Id.
+	ID string `json:"nicId"`
+
+	// The network adapter type.
+	Type string `json:"networkAdapter"`
 }
 
 // GetServer retrieves the server with the specified Id.
@@ -765,6 +774,37 @@ func (client *Client) RemoveNicFromServer(networkAdapterID string) (err error) {
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
 		return apiResponse.ToError("Request to notify remove a nic failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// ChangeNetworkAdapterType changes the type of a server's network adapter.
+func (client *Client) ChangeNetworkAdapterType(networkAdapterID string, networkAdapterType string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/changeNetworkAdapter",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodPost, &changeNicType{
+		ID:   networkAdapterID,
+		Type: networkAdapterType,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return apiResponse.ToError("Request to notify change NIC type failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil
