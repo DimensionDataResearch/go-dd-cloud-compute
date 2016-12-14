@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-// List reserved IPv4 addresses in VLAN (successful).
-func TestClient_ListReservedIPv4AddressesInVLAN_Success(test *testing.T) {
+// List reserved private IPv4 addresses in VLAN (successful).
+func TestClient_ListReservedPrivateIPv4AddressesInVLAN_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
 
-		fmt.Fprintln(writer, listReservedIPv4AddressesInVLANTestResponse)
+		fmt.Fprintln(writer, listReservedPrivateIPv4AddressesInVLANTestResponse)
 	}))
 	defer testServer.Close()
 
@@ -22,12 +22,12 @@ func TestClient_ListReservedIPv4AddressesInVLAN_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	server, err := client.ListReservedIPv4AddressesInVLAN("c8c92ea3-2da8-4d51-8153-f39bec794d69")
+	server, err := client.ListReservedPrivateIPv4AddressesInVLAN("c8c92ea3-2da8-4d51-8153-f39bec794d69")
 	if err != nil {
 		test.Fatal("Unable to retrieve reserved IPv4 address: ", err)
 	}
 
-	verifyListReservedIPv4AddressesInVLANTestResponse(test, server)
+	verifyListReservedPrivateIPv4AddressesInVLANTestResponse(test, server)
 }
 
 // List reserved IPv6 addresses in VLAN (successful).
@@ -57,7 +57,7 @@ func TestClient_ListReservedIPv6AddressesInVLAN_Success(test *testing.T) {
  * Test responses.
  */
 
-const listReservedIPv4AddressesInVLANTestResponse = `
+const listReservedPrivateIPv4AddressesInVLANTestResponse = `
 {
     "ipv4": [
         {
@@ -77,24 +77,24 @@ const listReservedIPv4AddressesInVLANTestResponse = `
     "pageSize": 250
 }`
 
-func verifyListReservedIPv4AddressesInVLANTestResponse(test *testing.T, reservedIPv4Addresses *ReservedIPv4Addresses) {
+func verifyListReservedPrivateIPv4AddressesInVLANTestResponse(test *testing.T, reservedIPv4Addresses *ReservedIPv4Addresses) {
 	expect := expect(test)
 
-	expect.NotNil("ReservedIPv4Addresses", reservedIPv4Addresses)
-	expect.EqualsInt("ReservedIPv4Addresses.PageCount", 2, reservedIPv4Addresses.PageCount)
-	expect.EqualsInt("ReservedIPv4Addresses.PageSize", 250, reservedIPv4Addresses.PageSize)
-	expect.EqualsInt("ReservedIPv4Addresses.TotalCount", 2, reservedIPv4Addresses.TotalCount)
-	expect.EqualsInt("ReservedIPv4Addresses.Length", 2, len(reservedIPv4Addresses.Items))
+	expect.NotNil("ReservedPrivateIPv4Addresses", reservedIPv4Addresses)
+	expect.EqualsInt("ReservedPrivateIPv4Addresses.PageCount", 2, reservedIPv4Addresses.PageCount)
+	expect.EqualsInt("ReservedPrivateIPv4Addresses.PageSize", 250, reservedIPv4Addresses.PageSize)
+	expect.EqualsInt("ReservedPrivateIPv4Addresses.TotalCount", 2, reservedIPv4Addresses.TotalCount)
+	expect.EqualsInt("ReservedPrivateIPv4Addresses.Length", 2, len(reservedIPv4Addresses.Items))
 
 	address1 := reservedIPv4Addresses.Items[0]
-	expect.EqualsString("ReservedIPv4Addresses.Items[0].IPAddress", "10.0.0.11", address1.IPAddress)
-	expect.EqualsString("ReservedIPv4Addresses.Items[0].VLANID", "5d1d62c4-0627-4dc9-83a3-985fbd82ff29", address1.VLANID)
-	expect.EqualsString("ReservedIPv4Addresses.Items[0].DatacenterID", "NA9", address1.DatacenterID)
+	expect.EqualsString("ReservedPrivateIPv4Addresses.Items[0].IPAddress", "10.0.0.11", address1.IPAddress)
+	expect.EqualsString("ReservedPrivateIPv4Addresses.Items[0].VLANID", "5d1d62c4-0627-4dc9-83a3-985fbd82ff29", address1.VLANID)
+	expect.EqualsString("ReservedPrivateIPv4Addresses.Items[0].DatacenterID", "NA9", address1.DatacenterID)
 
 	address2 := reservedIPv4Addresses.Items[1]
-	expect.EqualsString("ReservedIPv4Addresses.Items[1].IPAddress", "10.0.0.12", address2.IPAddress)
-	expect.EqualsString("ReservedIPv4Addresses.Items[1].VLANID", "5d1d62c4-0627-4dc9-83a3-985fbd82ff29", address2.VLANID)
-	expect.EqualsString("ReservedIPv4Addresses.Items[1].DatacenterID", "NA9", address2.DatacenterID)
+	expect.EqualsString("ReservedPrivateIPv4Addresses.Items[1].IPAddress", "10.0.0.12", address2.IPAddress)
+	expect.EqualsString("ReservedPrivateIPv4Addresses.Items[1].VLANID", "5d1d62c4-0627-4dc9-83a3-985fbd82ff29", address2.VLANID)
+	expect.EqualsString("ReservedPrivateIPv4Addresses.Items[1].DatacenterID", "NA9", address2.DatacenterID)
 }
 
 const listReservedIPv6AddressesInVLANTestResponse = `

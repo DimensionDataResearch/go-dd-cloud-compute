@@ -28,14 +28,20 @@ type ReservedIPv6Addresses struct {
 	Items []ReservedIPAddress `json:"reservedIpv6Address"`
 }
 
-// ListReservedIPv4AddressesInVLAN retrieves all port lists associated with the specified VLAN.
-func (client *Client) ListReservedIPv4AddressesInVLAN(vlanID string) (reservedIPAddresses *ReservedIPv4Addresses, err error) {
+// Request body when reserving an IP address.
+type reserveIPAddress struct {
+	IPAddress string `json:"ipAddress"`
+	VLANID    string `json:"vlanId"`
+}
+
+// ListReservedPrivateIPv4AddressesInVLAN retrieves all private IPv4 addresses reserved in the specified VLAN.
+func (client *Client) ListReservedPrivateIPv4AddressesInVLAN(vlanID string) (reservedIPAddresses *ReservedIPv4Addresses, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/portList?vlanId=%s",
+	requestURI := fmt.Sprintf("%s/network/reservedPrivateIpv4Address?vlanId=%s",
 		url.QueryEscape(organizationID),
 		url.QueryEscape(vlanID),
 	)
@@ -57,7 +63,7 @@ func (client *Client) ListReservedIPv4AddressesInVLAN(vlanID string) (reservedIP
 			return nil, err
 		}
 
-		return nil, apiResponse.ToError("Request to list port lists failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to list reserved IPv4 addresses failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	reservedIPAddresses = &ReservedIPv4Addresses{}
@@ -66,14 +72,82 @@ func (client *Client) ListReservedIPv4AddressesInVLAN(vlanID string) (reservedIP
 	return reservedIPAddresses, err
 }
 
-// ListReservedIPv6AddressesInVLAN retrieves all port lists associated with the specified VLAN.
+// ReservePrivateIPv4Address creates a reservation for a private IPv4 address on a VLAN.
+func (client *Client) ReservePrivateIPv4Address(vlanID string, ipAddress string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/reservePrivateIpv4Address",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+		IPAddress: ipAddress,
+		VLANID:    vlanID,
+	})
+	if err != nil {
+		return err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to create reservation for private IPv4 address failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// UnreservePrivateIPv4Address removes the reservation (if any) for a private IPv4 address on a VLAN.
+func (client *Client) UnreservePrivateIPv4Address(vlanID string, ipAddress string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/unreservePrivateIpv4Address",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+		IPAddress: ipAddress,
+		VLANID:    vlanID,
+	})
+	if err != nil {
+		return err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to remove reservation for private IPv4 address failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// ListReservedIPv6AddressesInVLAN retrieves all IPv6 addresses reserved in the specified VLAN.
 func (client *Client) ListReservedIPv6AddressesInVLAN(vlanID string) (reservedIPAddresses *ReservedIPv6Addresses, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/portList?vlanId=%s",
+	requestURI := fmt.Sprintf("%s/network/reservedIpv6Address?vlanId=%s",
 		url.QueryEscape(organizationID),
 		url.QueryEscape(vlanID),
 	)
@@ -95,11 +169,79 @@ func (client *Client) ListReservedIPv6AddressesInVLAN(vlanID string) (reservedIP
 			return nil, err
 		}
 
-		return nil, apiResponse.ToError("Request to list port lists failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return nil, apiResponse.ToError("Request to list reserved IPv6 addresses failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	reservedIPAddresses = &ReservedIPv6Addresses{}
 	err = json.Unmarshal(responseBody, reservedIPAddresses)
 
 	return reservedIPAddresses, err
+}
+
+// ReserveIPv6Address creates a reservation for an IPv6 address on a VLAN.
+func (client *Client) ReserveIPv6Address(vlanID string, ipAddress string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/reserveIpv6Address",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+		IPAddress: ipAddress,
+		VLANID:    vlanID,
+	})
+	if err != nil {
+		return err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to reserve IPV6 address failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// UnreserveIPv6Address removes the reservation (if any) for an IPv6 address on a VLAN.
+func (client *Client) UnreserveIPv6Address(vlanID string, ipAddress string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/unreserveIpv6Address",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+		IPAddress: ipAddress,
+		VLANID:    vlanID,
+	})
+	if err != nil {
+		return err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to remove IP address reservation failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
