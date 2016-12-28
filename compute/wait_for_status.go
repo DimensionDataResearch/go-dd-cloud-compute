@@ -11,6 +11,11 @@ func (client *Client) WaitForDeploy(resourceType ResourceType, id string, timeou
 	return client.waitForPendingOperation(resourceType, id, "Deploy", ResourceStatusPendingAdd, false, timeout)
 }
 
+// WaitForServerClone waits for a server's pending clone operation to complete.
+func (client *Client) WaitForServerClone(serverID string, timeout time.Duration) (resource Resource, err error) {
+	return client.waitForPendingOperation(ResourceTypeServer, serverID, "Clone", ResourceStatusPendingAdd, false, timeout)
+}
+
 // WaitForEdit waits for a resource's pending edit operation to complete.
 func (client *Client) WaitForEdit(resourceType ResourceType, id string, timeout time.Duration) (resource Resource, err error) {
 	return client.WaitForChange(resourceType, id, "Edit", timeout)

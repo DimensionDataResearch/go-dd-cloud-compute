@@ -36,6 +36,7 @@ type CustomerImage struct {
 	MemoryGB        int                  `json:"memoryGb"`
 	Disks           []VirtualMachineDisk `json:"disk"`
 	CreateTime      string               `json:"createTime"`
+	State           string               `json:"state"`
 }
 
 // ToEntityReference creates an EntityReference representing the CustomerImage.
@@ -61,6 +62,23 @@ func (image *CustomerImage) GetID() string {
 // GetName retrieves the image name.
 func (image *CustomerImage) GetName() string {
 	return image.Name
+}
+
+var _ Resource = &CustomerImage{}
+
+// GetResourceType retrieves the resource type.
+func (image *CustomerImage) GetResourceType() ResourceType {
+	return ResourceTypeCustomerImage
+}
+
+// GetState retrieves the resource's current state (e.g. ResourceStatusNormal, etc).
+func (image *CustomerImage) GetState() string {
+	return image.State
+}
+
+// IsDeleted determines whether the resource been deleted (i.e. the underlying struct is nil)?
+func (image *CustomerImage) IsDeleted() bool {
+	return image == nil
 }
 
 // GetOS retrieves information about the image's operating system.

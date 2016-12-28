@@ -41,6 +41,9 @@ const (
 
 	// ResourceTypeVirtualListener represents a virtual listener.
 	ResourceTypeVirtualListener
+
+	// ResourceTypeCustomerImage represents a customer image.
+	ResourceTypeCustomerImage
 )
 
 // Resource represents a compute resource.
@@ -94,6 +97,9 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeVirtualListener:
 		return "virtual listener", nil
 
+	case ResourceTypeCustomerImage:
+		return "customer image", nil
+
 	default:
 		return "", fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
 	}
@@ -133,6 +139,9 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 
 	case ResourceTypeVirtualListener:
 		return client.GetVirtualListener(id)
+
+	case ResourceTypeCustomerImage:
+		return client.GetCustomerImage(id)
 	}
 
 	return nil, fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
