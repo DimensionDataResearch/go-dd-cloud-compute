@@ -27,6 +27,7 @@ type Client struct {
 	stateLock                *sync.Mutex
 	httpClient               *http.Client
 	account                  *Account
+	isCancellationRequested  bool
 	isExtendedLoggingEnabled bool
 }
 
@@ -52,16 +53,26 @@ func NewClientWithBaseAddress(baseAddress string, username string, password stri
 		&sync.Mutex{},
 		&http.Client{},
 		nil,
+		false, // isCancellationRequested
 		isExtendedLoggingEnabled,
 	}
 }
 
-// Reset clears all cached data from the Client.
+// Cancel cancels all pending WaitForXXX or HTTP request operations.
+func (client *Client) Cancel() {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	client.isCancellationRequested = true
+}
+
+// Reset clears all cached data from the Client and resets cancellation (if required).
 func (client *Client) Reset() {
 	client.stateLock.Lock()
 	defer client.stateLock.Unlock()
 
 	client.account = nil
+	client.isCancellationRequested = false
 }
 
 // EnableExtendedLogging enables logging of HTTP requests and responses.
@@ -169,6 +180,19 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 					request.URL.String(),
 					retryCount-client.maxRetryCount,
 				)
+			}
+
+			if client.isCancellationRequested {
+				log.Printf("Client indicates that cancellation of pending requests has been requested.")
+
+				err = &OperationCancelledError{
+					OperationDescription: fmt.Sprintf("%s of '%s'",
+						request.Method,
+						request.RequestURI,
+					),
+				}
+
+				return
 			}
 
 			// Try again with a fresh request.

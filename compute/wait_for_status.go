@@ -61,10 +61,27 @@ func (client *Client) waitForResourceStatus(resourceType ResourceType, id string
 	for {
 		select {
 		case <-waitTimeout.C:
-			return nil, fmt.Errorf("Timed out after waiting %d seconds for %s of %s '%s' to complete", timeout/time.Second, actionDescription, resourceDescription, id)
+			return nil, fmt.Errorf("Timed out after waiting %d seconds for %s of %s '%s' to complete",
+				timeout/time.Second,
+				actionDescription,
+				resourceDescription,
+				id,
+			)
 
 		case <-pollTicker.C:
 			log.Printf("Polling status for %s '%s'...", resourceDescription, id)
+			if client.isCancellationRequested {
+				log.Printf("Client indicates that cancellation of pending requests has been requested.")
+
+				return nil, &OperationCancelledError{
+					OperationDescription: fmt.Sprintf("Wait for %s of %s '%s'",
+						actionDescription,
+						resourceDescription,
+						id,
+					),
+				}
+			}
+
 			resource, err := client.GetResource(id, resourceType)
 			if err != nil {
 				return nil, err
