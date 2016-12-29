@@ -12,8 +12,10 @@ func (client *Client) WaitForDeploy(resourceType ResourceType, id string, timeou
 }
 
 // WaitForServerClone waits for a server's pending clone operation to complete.
-func (client *Client) WaitForServerClone(serverID string, timeout time.Duration) (resource Resource, err error) {
-	return client.waitForPendingOperation(ResourceTypeServer, serverID, "Clone", ResourceStatusPendingAdd, false, timeout)
+//
+// Pass the customer image Id, not the server Id.
+func (client *Client) WaitForServerClone(customerImageID string, timeout time.Duration) (resource Resource, err error) {
+	return client.waitForPendingOperation(ResourceTypeCustomerImage, customerImageID, "Clone", ResourceStatusPendingAdd, false, timeout)
 }
 
 // WaitForEdit waits for a resource's pending edit operation to complete.
