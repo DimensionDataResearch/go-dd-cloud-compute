@@ -2,8 +2,19 @@ package compute
 
 import "fmt"
 
+// Entity represents a Cloud Control entity.
+type Entity interface {
+	// GetID retrieves the entity's ID.
+	GetID() string
+}
+
 // NamedEntity represents a named Cloud Control entity.
 type NamedEntity interface {
+	Entity
+
+	// GetName retrieves the entity's name.
+	GetName() string
+
 	// ToEntityReference creates an EntityReference representing the entity.
 	ToEntityReference() EntityReference
 }
@@ -129,6 +140,23 @@ func (networkAdapter *VirtualMachineNetworkAdapter) GetState() string {
 // IsDeleted determines whether the network adapter has been deleted (is nil).
 func (networkAdapter *VirtualMachineNetworkAdapter) IsDeleted() bool {
 	return networkAdapter == nil
+}
+
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (networkAdapter *VirtualMachineNetworkAdapter) ToEntityReference() EntityReference {
+	id := ""
+	if networkAdapter.ID != nil {
+		id = *networkAdapter.ID
+	}
+	name := ""
+	if networkAdapter.VLANName != nil {
+		name = *networkAdapter.VLANName
+	}
+
+	return EntityReference{
+		ID:   id,
+		Name: name,
+	}
 }
 
 var _ Resource = &VirtualMachineNetworkAdapter{}

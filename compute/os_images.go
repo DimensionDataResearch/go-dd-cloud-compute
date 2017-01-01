@@ -17,8 +17,19 @@ type OSImage struct {
 	CPU             VirtualMachineCPU    `json:"cpu"`
 	MemoryGB        int                  `json:"memoryGb"`
 	Disks           []VirtualMachineDisk `json:"disk"`
+	State           string               `json:"state"`
 	CreateTime      string               `json:"createTime"`
 	OSImageKey      string               `json:"osImageKey"`
+}
+
+// GetID retrieves the image ID.
+func (image *OSImage) GetID() string {
+	return image.ID
+}
+
+// GetName retrieves the image name.
+func (image *OSImage) GetName() string {
+	return image.Name
 }
 
 // ToEntityReference creates an EntityReference representing the OSImage.
@@ -31,19 +42,31 @@ func (image *OSImage) ToEntityReference() EntityReference {
 
 var _ NamedEntity = &OSImage{}
 
+// GetResourceType retrieves the resource type.
+func (image *OSImage) GetResourceType() ResourceType {
+	return ResourceTypeOSImage
+}
+
+// GetState retrieves the resource's current state (e.g. ResourceStatusNormal, etc).
+func (image *OSImage) GetState() string {
+	return image.State
+}
+
+// IsDeleted determines whether the resource been deleted (i.e. the underlying struct is nil)?
+func (image *OSImage) IsDeleted() bool {
+	return image == nil
+}
+
+var _ Resource = &OSImage{}
+
 // GetType determines the image type.
 func (image *OSImage) GetType() ImageType {
 	return ImageTypeOS
 }
 
-// GetID retrieves the image ID.
-func (image *OSImage) GetID() string {
-	return image.ID
-}
-
-// GetName retrieves the image name.
-func (image *OSImage) GetName() string {
-	return image.Name
+// GetDatacenterID retrieves Id of the datacenter where the image is located.
+func (image *OSImage) GetDatacenterID() string {
+	return image.DataCenterID
 }
 
 // GetOS retrieves information about the image's operating system.

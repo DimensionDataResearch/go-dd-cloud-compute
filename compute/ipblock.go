@@ -45,6 +45,17 @@ func (block *PublicIPBlock) IsDeleted() bool {
 	return block == nil
 }
 
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (block *PublicIPBlock) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID: block.ID,
+		Name: fmt.Sprintf("%s+%d",
+			block.BaseIP,
+			block.Size,
+		),
+	}
+}
+
 var _ Resource = &PublicIPBlock{}
 
 // PublicIPBlocks represents a page of PublicIPBlock results.

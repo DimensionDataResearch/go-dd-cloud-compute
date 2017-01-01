@@ -39,21 +39,6 @@ type CustomerImage struct {
 	State           string               `json:"state"`
 }
 
-// ToEntityReference creates an EntityReference representing the CustomerImage.
-func (image *CustomerImage) ToEntityReference() EntityReference {
-	return EntityReference{
-		ID:   image.ID,
-		Name: image.Name,
-	}
-}
-
-var _ NamedEntity = &CustomerImage{}
-
-// GetType determines the image type.
-func (image *CustomerImage) GetType() ImageType {
-	return ImageTypeCustomer
-}
-
 // GetID retrieves the image ID.
 func (image *CustomerImage) GetID() string {
 	return image.ID
@@ -64,7 +49,15 @@ func (image *CustomerImage) GetName() string {
 	return image.Name
 }
 
-var _ Resource = &CustomerImage{}
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (image *CustomerImage) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   image.ID,
+		Name: image.Name,
+	}
+}
+
+var _ NamedEntity = &CustomerImage{}
 
 // GetResourceType retrieves the resource type.
 func (image *CustomerImage) GetResourceType() ResourceType {
@@ -79,6 +72,18 @@ func (image *CustomerImage) GetState() string {
 // IsDeleted determines whether the resource been deleted (i.e. the underlying struct is nil)?
 func (image *CustomerImage) IsDeleted() bool {
 	return image == nil
+}
+
+var _ Resource = &CustomerImage{}
+
+// GetType determines the image type.
+func (image *CustomerImage) GetType() ImageType {
+	return ImageTypeCustomer
+}
+
+// GetDatacenterID retrieves Id of the datacenter where the image is located.
+func (image *CustomerImage) GetDatacenterID() string {
+	return image.DataCenterID
 }
 
 // GetOS retrieves information about the image's operating system.

@@ -75,6 +75,14 @@ func (rule *FirewallRule) IsDeleted() bool {
 	return rule == nil
 }
 
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (rule *FirewallRule) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   rule.ID,
+		Name: rule.Name,
+	}
+}
+
 var _ Resource = &FirewallRule{}
 
 // FirewallRuleScope represents a scope (IP and / or port) for firewall configuration (source or destination).

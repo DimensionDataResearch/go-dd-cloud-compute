@@ -114,6 +114,14 @@ func (virtualListener *VirtualListener) IsDeleted() bool {
 	return virtualListener == nil
 }
 
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (virtualListener *VirtualListener) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   virtualListener.ID,
+		Name: virtualListener.Name,
+	}
+}
+
 var _ Resource = &VirtualListener{}
 
 // VirtualListeners represents a page of VirtualListener results.

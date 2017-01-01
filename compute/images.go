@@ -28,16 +28,13 @@ func ImageTypeName(imageType ImageType) string {
 
 // Image represents an image used to create servers.
 type Image interface {
-	NamedEntity
+	Resource
 
 	// GetType determines the image type.
 	GetType() ImageType
 
-	// GetID retrieves the image ID.
-	GetID() string
-
-	// GetName retrieves the image name.
-	GetName() string
+	// GetDatacenterID retrieves Id of the datacenter where the image is located.
+	GetDatacenterID() string
 
 	// GetOS retrieves information about the image's operating system.
 	GetOS() OperatingSystem
