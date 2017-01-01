@@ -137,7 +137,7 @@ func (client *Client) GetDatacenter(id string) (datacenter *Datacenter, err erro
 	}
 
 	datacenters := &Datacenters{}
-	err = json.Unmarshal(responseBody, datacenter)
+	err = json.Unmarshal(responseBody, datacenters)
 	if err != nil {
 		return nil, err
 	}
