@@ -110,6 +110,15 @@ type exportCustomerImage struct {
 	OVFPackagePrefix string `json:"ovfPackagePrefix"`
 }
 
+// Request body when importing a customer image from an OVF package.
+type importCustomerImage struct {
+	OVFPackageManifest   string `json:"ovfPackage"`
+	ImageName            string `json:"name"`
+	ImageDescription     string `json:"description"`
+	DatacenterID         string `json:"datacenterId"`
+	GuestOSCustomization bool   `json:"guestOsCustomization"`
+}
+
 // GetCustomerImage retrieves a specific customer image by Id.
 func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err error) {
 	organizationID, err := client.getOrganizationID()
@@ -243,7 +252,61 @@ func (client *Client) ListCustomerImagesInDatacenter(dataCenterID string, paging
 	return
 }
 
-// ExportCustomerImage exports the specified customer image as an OVF package.
+// ImportCustomerImage imports the specified customer image from an OVF package.
+//
+// The OVF package can be uploaded via FTPS (call GetDatacenter to determine the FTPS end-point for the target datacenter).
+//
+// The image's status will be ResourceStatusPendingAdd while the import is in progress, then ResourceStatusNormal once the export is complete.
+func (client *Client) ImportCustomerImage(imageName string, imageDescription string, preventGuestOSCustomization bool, ovfPackagePrefix string, datacenterID string) (importID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/image/importImage",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodPost, &importCustomerImage{
+		ImageName:            imageName,
+		ImageDescription:     imageDescription,
+		DatacenterID:         datacenterID,
+		OVFPackageManifest:   ovfPackagePrefix + ".mf",
+		GuestOSCustomization: !preventGuestOSCustomization,
+	})
+	if err != nil {
+		return "", err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return "", fmt.Errorf("Request to import customer image '%s' in datacenter '%s' from OFV package '%s' failed with status code %d (%s): %s",
+			imageName,
+			datacenterID,
+			ovfPackagePrefix,
+			statusCode,
+			apiResponse.ResponseCode,
+			apiResponse.Message,
+		)
+	}
+
+	// Expected: "info" { "name": "imageId", "value": "the-Id-of-new-customer-image" }
+	imageIDMessage := apiResponse.GetFieldMessage("imageId")
+	if imageIDMessage == nil {
+		return "", apiResponse.ToError("Received an unexpected response (missing 'imageId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return *imageIDMessage, nil
+}
+
+// ExportCustomerImage exports the specified customer image to an OVF package.
 //
 // The OVF package can then be downloaded via FTPS.
 //
