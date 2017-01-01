@@ -99,6 +99,12 @@ func (image *CustomerImage) ApplyTo(config *ServerDeploymentConfiguration) {
 
 var _ Image = &CustomerImage{}
 
+// Request body when exporting a customer image to an OVF package.
+type exportCustomerImage struct {
+	ImageID          string `json:"imageId"`
+	OVFPackagePrefix string `json:"ovfPackagePrefix"`
+}
+
 // GetCustomerImage retrieves a specific customer image by Id.
 func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err error) {
 	organizationID, err := client.getOrganizationID()
@@ -230,4 +236,54 @@ func (client *Client) ListCustomerImagesInDatacenter(dataCenterID string, paging
 	err = json.Unmarshal(responseBody, images)
 
 	return
+}
+
+// ExportCustomerImage exports the specified customer image as an OVF package.
+//
+// The OVF package can then be downloaded via FTPS.
+//
+// The image's status will be ResourceStatusPendingChange while the export is in progress, then ResourceStatusNormal once the export is complete.
+func (client *Client) ExportCustomerImage(imageID string, ovfPackagePrefix string) (exportID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/image/exportImage",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodPost, &exportCustomerImage{
+		ImageID:          imageID,
+		OVFPackagePrefix: ovfPackagePrefix,
+	})
+	if err != nil {
+		return "", err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return "", fmt.Errorf("Request to export customer image '%s' with OFV package prefix '%s' failed with status code %d (%s): %s",
+			imageID,
+			ovfPackagePrefix,
+			statusCode,
+			apiResponse.ResponseCode,
+			apiResponse.Message,
+		)
+	}
+
+	// Expected: "info" { "name": "imageExportId", "value": "the-Id-of-the-export-operation" }
+	imageExportIDMessage := apiResponse.GetFieldMessage("imageExportId")
+	if imageExportIDMessage == nil {
+		return "", apiResponse.ToError("Received an unexpected response (missing 'imageExportId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return *imageExportIDMessage, nil
 }
