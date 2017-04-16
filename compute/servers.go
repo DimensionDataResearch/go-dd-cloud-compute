@@ -14,6 +14,15 @@ const (
 
 	// NetworkAdapterTypeVMXNET3 represents the VMXNET3 network adapter type.
 	NetworkAdapterTypeVMXNET3 = "VMXNET3"
+
+	// NetworkAdapterTypeE1000E represents the E1000e network adapter type.
+	NetworkAdapterTypeE1000E = "E1000E"
+
+	// NetworkAdapterTypeENHANCED_VMXNET2 represents the VMXNET2/Enhanced network adapter type.
+	NetworkAdapterTypeENHANCED_VMXNET2 = "ENHANCED_VMXNET2"
+
+	// NetworkAdapterTypeFLEXIBLE_PCNET32 represents the PCNET32/Flexible network adapter type.
+	NetworkAdapterTypeFLEXIBLE_PCNET32 = "FLEXIBLE_PCNET32"
 )
 
 const (
@@ -22,6 +31,9 @@ const (
 
 	// ServerDiskSpeedHighPerformance represents the high-performance speed for server disks.
 	ServerDiskSpeedHighPerformance = "HIGHPERFORMANCE"
+
+	// ServerDiskSpeedEconomy represents the economy speed for server disks.
+	ServerDiskSpeedEcomony = "ECONOMY"
 )
 
 // Server represents a virtual machine.
