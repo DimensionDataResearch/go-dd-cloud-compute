@@ -26,14 +26,14 @@ const (
 )
 
 const (
+	// ServerDiskSpeedEconomy represents the economy speed for server disks.
+	ServerDiskSpeedEconomy = "ECONOMY"
+
 	// ServerDiskSpeedStandard represents the standard speed for server disks.
 	ServerDiskSpeedStandard = "STANDARD"
 
 	// ServerDiskSpeedHighPerformance represents the high-performance speed for server disks.
 	ServerDiskSpeedHighPerformance = "HIGHPERFORMANCE"
-
-	// ServerDiskSpeedEconomy represents the economy speed for server disks.
-	ServerDiskSpeedEconomy = "ECONOMY"
 )
 
 // Server represents a virtual machine.

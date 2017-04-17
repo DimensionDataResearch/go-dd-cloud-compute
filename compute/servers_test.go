@@ -541,7 +541,7 @@ const getServerTestResponse = `
 			{
 				"id": "00cbc4-1b3b-49c4-a4e6-697caff4b872",
 				"adapterType": "BUS_LOGIC",
-				"key": "1000",
+				"key": 1000,
 				"state": "NORMAL",
 				"busNumber": 0,
 				"disk": [
