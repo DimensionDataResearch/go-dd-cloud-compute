@@ -78,12 +78,22 @@ type VirtualMachineCPU struct {
 	CoresPerSocket int    `json:"coresPerSocket,omitempty"`
 }
 
-// VirtualMachineDisk represents the disk configuration for a virtual machine.
+// VirtualMachineSCSIController represents the configuration for a SCSI controller in a virtual machine.
+type VirtualMachineSCSIController struct {
+	ID          string               `json:"id,omitempty"`
+	BusNumber   int                  `json:"busNumber"`
+	Key         int                  `json:"key"`
+	AdapterType string               `json:"adapterType"`
+	Disks       []VirtualMachineDisk `json:"disk"`
+	State       string               `json:"state,omitempty"`
+}
+
+// VirtualMachineDisk represents the configuration for disk in a virtual machine.
 type VirtualMachineDisk struct {
-	ID         *string `json:"id,omitempty"`
-	SCSIUnitID int     `json:"scsiId"`
-	SizeGB     int     `json:"sizeGb"`
-	Speed      string  `json:"speed"`
+	ID         string `json:"id,omitempty"`
+	SCSIUnitID int    `json:"scsiId"`
+	SizeGB     int    `json:"sizeGb"`
+	Speed      string `json:"speed"`
 }
 
 // VirtualMachineNetwork represents the networking configuration for a virtual machine.

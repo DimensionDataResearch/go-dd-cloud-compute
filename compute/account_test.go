@@ -43,7 +43,7 @@ func TestClient_GetAccount_AccessDenied(test *testing.T) {
 
 		return
 	}
-	if err.Error() != "Cannot connect to compute API (invalid credentials)." {
+	if err.Error() != "cannot connect to compute API (invalid credentials)" {
 		test.Fatal("Unexpected error: ", err)
 	}
 }

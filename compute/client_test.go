@@ -36,7 +36,7 @@ func readRequestBodyAsString(request *http.Request) (string, error) {
 
 func readRequestBodyAsJSON(request *http.Request, target interface{}) error {
 	if request.Body == nil {
-		return fmt.Errorf("Request body is missing.")
+		return fmt.Errorf("request body is missing")
 	}
 
 	defer request.Body.Close()
@@ -50,7 +50,7 @@ func readRequestBodyAsJSON(request *http.Request, target interface{}) error {
 
 func readRequestBodyAsXML(request *http.Request, target interface{}) error {
 	if request.Body == nil {
-		return fmt.Errorf("Request body is missing.")
+		return fmt.Errorf("request body is missing")
 	}
 
 	defer request.Body.Close()

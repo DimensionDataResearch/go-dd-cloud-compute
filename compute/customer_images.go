@@ -207,7 +207,7 @@ func (client *Client) FindCustomerImage(name string, dataCenterID string) (image
 	}
 
 	if images.PageCount != 1 {
-		return nil, fmt.Errorf("Found multiple images (%d) matching '%s' in data centre '%s'.", images.TotalCount, name, dataCenterID)
+		return nil, fmt.Errorf("found multiple images (%d) matching '%s' in data centre '%s'", images.TotalCount, name, dataCenterID)
 	}
 
 	return &images.Images[0], err

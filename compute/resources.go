@@ -103,7 +103,7 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 		return "customer image", nil
 
 	default:
-		return "", fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
+		return "", fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
 	}
 }
 
@@ -149,7 +149,7 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 		return client.GetCustomerImage(id)
 	}
 
-	return nil, fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
+	return nil, fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
 }
 
 func (client *Client) getNetworkAdapterByID(id string) (Resource, error) {

@@ -38,18 +38,18 @@ const (
 
 // Server represents a virtual machine.
 type Server struct {
-	ID              string                `json:"id"`
-	Name            string                `json:"name"`
-	Description     string                `json:"description"`
-	OperatingSystem OperatingSystem       `json:"operatingSystem"`
-	CPU             VirtualMachineCPU     `json:"cpu"`
-	MemoryGB        int                   `json:"memoryGb"`
-	Disks           []VirtualMachineDisk  `json:"disk"`
-	Network         VirtualMachineNetwork `json:"networkInfo"`
-	SourceImageID   string                `json:"sourceImageId"`
-	State           string                `json:"state"`
-	Deployed        bool                  `json:"deployed"`
-	Started         bool                  `json:"started"`
+	ID              string                         `json:"id"`
+	Name            string                         `json:"name"`
+	Description     string                         `json:"description"`
+	OperatingSystem OperatingSystem                `json:"operatingSystem"`
+	CPU             VirtualMachineCPU              `json:"cpu"`
+	MemoryGB        int                            `json:"memoryGb"`
+	SCSIControllers []VirtualMachineSCSIController `json:"scsiController"`
+	Network         VirtualMachineNetwork          `json:"networkInfo"`
+	SourceImageID   string                         `json:"sourceImageId"`
+	State           string                         `json:"state"`
+	Deployed        bool                           `json:"deployed"`
+	Started         bool                           `json:"started"`
 }
 
 // GetID returns the server's Id.
@@ -246,7 +246,7 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +299,7 @@ func (client *Client) ListServersInNetworkDomain(networkDomainID string, paging 
 	)
 
 	var request *http.Request
-	request, err = client.newRequestV23(requestURI, http.MethodGet, nil)
+	request, err = client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return
 	}

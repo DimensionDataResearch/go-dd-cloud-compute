@@ -252,7 +252,7 @@ func (client *Client) GetNetworkDomainByName(name string, dataCenterID string) (
 	}
 
 	if len(domains.Domains) != 1 {
-		return nil, fmt.Errorf("Found multiple network domains (%d) named '%s' in data centre '%s'.", len(domains.Domains), name, dataCenterID)
+		return nil, fmt.Errorf("found multiple network domains (%d) named '%s' in data centre '%s'", len(domains.Domains), name, dataCenterID)
 	}
 
 	return &domains.Domains[0], nil
