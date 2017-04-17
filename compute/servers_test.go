@@ -537,13 +537,22 @@ const getServerTestResponse = `
 			"coresPerSocket": 1
 		},
 		"memoryGb": 4,
-		"disk": [
+		"scsiController": [
 			{
-				"id": "c2e1f199-116e-4dbc-9960-68720b832b0a",
-				"scsiId": 0,
-				"sizeGb": 50,
-				"speed": "STANDARD",
-				"state": "NORMAL"
+				"id": "00cbc4-1b3b-49c4-a4e6-697caff4b872",
+				"adapterType": "BUS_LOGIC",
+				"key": "1000",
+				"state": "NORMAL",
+				"busNumber": 0,
+				"disk": [
+					{
+						"id": "c2e1f199-116e-4dbc-9960-68720b832b0a",
+						"scsiId": 0,
+						"sizeGb": 50,
+						"speed": "STANDARD",
+						"state": "NORMAL"
+					}
+				]
 			}
 		],
 		"networkInfo": {
@@ -599,8 +608,25 @@ func verifyGetServerTestResponse(test *testing.T, server *Server) {
 
 	expect.NotNil("Server", server)
 	expect.EqualsString("Server.Name", "Production Web Server", server.Name)
-	// TODO: Verify the rest of these fields.
 	expect.EqualsString("Server.State", ResourceStatusPendingChange, server.State)
+
+	expect.EqualsInt("Server.SCSIControllers.Length", 1, len(server.SCSIControllers))
+
+	controller1 := server.SCSIControllers[0]
+	expect.EqualsString("Server.SCSIControllers[0].ID", "00cbc4-1b3b-49c4-a4e6-697caff4b872", controller1.ID)
+	expect.EqualsInt("Server.SCSIControllers[0].BusNumber", 0, controller1.BusNumber)
+	expect.EqualsString("Server.SCSIControllers[0].AdapterType", "BUS_LOGIC", controller1.AdapterType)
+	expect.EqualsString("Server.SCSIControllers[0].State", ResourceStatusNormal, controller1.State)
+
+	controller1Disks := controller1.Disks
+	expect.EqualsInt("Server.SCSIControllers[0].Disks.Length", 1, len(controller1Disks))
+
+	disk1 := controller1Disks[0]
+	expect.EqualsString("Server.SCSIControllers[0].Disks[0].ID", "c2e1f199-116e-4dbc-9960-68720b832b0a", disk1.ID)
+	expect.EqualsInt("Server.SCSIControllers[0].Disks[0].SCSIUnitID", 0, disk1.SCSIUnitID)
+	expect.EqualsInt("Server.SCSIControllers[0].Disks[0].SizeGB", 50, disk1.SizeGB)
+	expect.EqualsString("Server.SCSIControllers[0].Disks[0].Speed", ServerDiskSpeedStandard, disk1.Speed)
+	expect.EqualsString("Server.SCSIControllers[0].Disks[0].State", ResourceStatusNormal, disk1.State)
 }
 
 const deployServerTestResponse = `

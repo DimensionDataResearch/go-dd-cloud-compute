@@ -82,7 +82,6 @@ type VirtualMachineCPU struct {
 type VirtualMachineSCSIController struct {
 	ID          string               `json:"id,omitempty"`
 	BusNumber   int                  `json:"busNumber"`
-	Key         int                  `json:"key"`
 	AdapterType string               `json:"adapterType"`
 	Disks       []VirtualMachineDisk `json:"disk"`
 	State       string               `json:"state,omitempty"`
@@ -94,6 +93,7 @@ type VirtualMachineDisk struct {
 	SCSIUnitID int    `json:"scsiId"`
 	SizeGB     int    `json:"sizeGb"`
 	Speed      string `json:"speed"`
+	State      string `json:"state,omitempty"`
 }
 
 // VirtualMachineNetwork represents the networking configuration for a virtual machine.
