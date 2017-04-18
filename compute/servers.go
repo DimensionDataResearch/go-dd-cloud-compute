@@ -115,17 +115,17 @@ func (serverSummary *ServerSummary) ToEntityReference() EntityReference {
 
 // ServerDeploymentConfiguration represents the configuration for deploying a virtual machine.
 type ServerDeploymentConfiguration struct {
-	Name                  string                `json:"name"`
-	Description           string                `json:"description"`
-	ImageID               string                `json:"imageId"`
-	AdministratorPassword string                `json:"administratorPassword"`
-	CPU                   VirtualMachineCPU     `json:"cpu"`
-	MemoryGB              int                   `json:"memoryGb,omitempty"`
-	Disks                 []VirtualMachineDisk  `json:"disk"`
-	Network               VirtualMachineNetwork `json:"networkInfo"`
-	PrimaryDNS            string                `json:"primaryDns,omitempty"`
-	SecondaryDNS          string                `json:"secondaryDns,omitempty"`
-	Start                 bool                  `json:"start"`
+	Name                  string                        `json:"name"`
+	Description           string                        `json:"description"`
+	ImageID               string                        `json:"imageId"`
+	AdministratorPassword string                        `json:"administratorPassword"`
+	CPU                   VirtualMachineCPU             `json:"cpu"`
+	MemoryGB              int                           `json:"memoryGb,omitempty"`
+	SCSIControllers       VirtualMachineSCSIControllers `json:"scsiController"`
+	Network               VirtualMachineNetwork         `json:"networkInfo"`
+	PrimaryDNS            string                        `json:"primaryDns,omitempty"`
+	SecondaryDNS          string                        `json:"secondaryDns,omitempty"`
+	Start                 bool                          `json:"start"`
 }
 
 // editServerMetadata represents the request body when modifying server metadata.

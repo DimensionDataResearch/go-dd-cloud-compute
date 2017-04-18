@@ -9,17 +9,17 @@ import (
 
 // OSImage represents a DD-provided virtual machine image.
 type OSImage struct {
-	ID              string               `json:"id"`
-	Name            string               `json:"name"`
-	Description     string               `json:"description"`
-	DataCenterID    string               `json:"datacenterId"`
-	OperatingSystem OperatingSystem      `json:"operatingSystem"`
-	CPU             VirtualMachineCPU    `json:"cpu"`
-	MemoryGB        int                  `json:"memoryGb"`
-	Disks           []VirtualMachineDisk `json:"disk"`
-	State           string               `json:"state"`
-	CreateTime      string               `json:"createTime"`
-	OSImageKey      string               `json:"osImageKey"`
+	ID              string                        `json:"id"`
+	Name            string                        `json:"name"`
+	Description     string                        `json:"description"`
+	DataCenterID    string                        `json:"datacenterId"`
+	OperatingSystem OperatingSystem               `json:"operatingSystem"`
+	CPU             VirtualMachineCPU             `json:"cpu"`
+	MemoryGB        int                           `json:"memoryGb"`
+	SCSIControllers VirtualMachineSCSIControllers `json:"scsiController"`
+	State           string                        `json:"state"`
+	CreateTime      string                        `json:"createTime"`
+	OSImageKey      string                        `json:"osImageKey"`
 }
 
 // GetID retrieves the image ID.
@@ -79,10 +79,11 @@ func (image *OSImage) ApplyTo(config *ServerDeploymentConfiguration) {
 	config.ImageID = image.ID
 	config.CPU = image.CPU
 	config.MemoryGB = image.MemoryGB
-	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
-	for index, disk := range image.Disks {
-		config.Disks[index] = disk
+	config.SCSIControllers = make(VirtualMachineSCSIControllers, len(image.SCSIControllers))
+	for index, scsiController := range image.SCSIControllers {
+		config.SCSIControllers[index] = scsiController
 	}
+
 }
 
 var _ Image = &OSImage{}
@@ -116,7 +117,7 @@ func (client *Client) GetOSImage(id string) (image *OSImage, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +162,7 @@ func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSIm
 		url.QueryEscape(name),
 		url.QueryEscape(dataCenterID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +212,7 @@ func (client *Client) ListOSImagesInDatacenter(dataCenterID string, paging *Pagi
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}

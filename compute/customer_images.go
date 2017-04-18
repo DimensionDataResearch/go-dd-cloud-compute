@@ -27,16 +27,16 @@ type CustomerImages struct {
 
 // CustomerImage represents a custom virtual machine image.
 type CustomerImage struct {
-	ID              string               `json:"id"`
-	Name            string               `json:"name"`
-	Description     string               `json:"description"`
-	DataCenterID    string               `json:"datacenterId"`
-	OperatingSystem OperatingSystem      `json:"operatingSystem"`
-	CPU             VirtualMachineCPU    `json:"cpu"`
-	MemoryGB        int                  `json:"memoryGb"`
-	Disks           []VirtualMachineDisk `json:"disk"`
-	CreateTime      string               `json:"createTime"`
-	State           string               `json:"state"`
+	ID              string                        `json:"id"`
+	Name            string                        `json:"name"`
+	Description     string                        `json:"description"`
+	DataCenterID    string                        `json:"datacenterId"`
+	OperatingSystem OperatingSystem               `json:"operatingSystem"`
+	CPU             VirtualMachineCPU             `json:"cpu"`
+	MemoryGB        int                           `json:"memoryGb"`
+	SCSIControllers VirtualMachineSCSIControllers `json:"scsiControllers"`
+	CreateTime      string                        `json:"createTime"`
+	State           string                        `json:"state"`
 }
 
 // GetID retrieves the image ID.
@@ -96,9 +96,9 @@ func (image *CustomerImage) ApplyTo(config *ServerDeploymentConfiguration) {
 	config.ImageID = image.ID
 	config.CPU = image.CPU
 	config.MemoryGB = image.MemoryGB
-	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
-	for index, disk := range image.Disks {
-		config.Disks[index] = disk
+	config.SCSIControllers = make(VirtualMachineSCSIControllers, len(image.SCSIControllers))
+	for index, scsiController := range image.SCSIControllers {
+		config.SCSIControllers[index] = scsiController
 	}
 }
 
@@ -130,7 +130,7 @@ func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err err
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (client *Client) FindCustomerImage(name string, dataCenterID string) (image
 		url.QueryEscape(name),
 		url.QueryEscape(dataCenterID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func (client *Client) ListCustomerImagesInDatacenter(dataCenterID string, paging
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
