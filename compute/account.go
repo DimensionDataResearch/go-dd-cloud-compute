@@ -65,7 +65,7 @@ func (client *Client) GetAccount() (*Account, error) {
 	}
 
 	if statusCode == 401 {
-		return nil, fmt.Errorf("Cannot connect to compute API (invalid credentials).")
+		return nil, fmt.Errorf("cannot connect to compute API (invalid credentials).")
 	}
 
 	account := &Account{}
