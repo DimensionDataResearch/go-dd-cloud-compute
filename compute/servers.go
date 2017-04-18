@@ -38,18 +38,18 @@ const (
 
 // Server represents a virtual machine.
 type Server struct {
-	ID              string                         `json:"id"`
-	Name            string                         `json:"name"`
-	Description     string                         `json:"description"`
-	OperatingSystem OperatingSystem                `json:"operatingSystem"`
-	CPU             VirtualMachineCPU              `json:"cpu"`
-	MemoryGB        int                            `json:"memoryGb"`
-	SCSIControllers []VirtualMachineSCSIController `json:"scsiController"`
-	Network         VirtualMachineNetwork          `json:"networkInfo"`
-	SourceImageID   string                         `json:"sourceImageId"`
-	State           string                         `json:"state"`
-	Deployed        bool                           `json:"deployed"`
-	Started         bool                           `json:"started"`
+	ID              string                        `json:"id"`
+	Name            string                        `json:"name"`
+	Description     string                        `json:"description"`
+	OperatingSystem OperatingSystem               `json:"operatingSystem"`
+	CPU             VirtualMachineCPU             `json:"cpu"`
+	MemoryGB        int                           `json:"memoryGb"`
+	SCSIControllers VirtualMachineSCSIControllers `json:"scsiController"`
+	Network         VirtualMachineNetwork         `json:"networkInfo"`
+	SourceImageID   string                        `json:"sourceImageId"`
+	State           string                        `json:"state"`
+	Deployed        bool                          `json:"deployed"`
+	Started         bool                          `json:"started"`
 }
 
 // GetID returns the server's Id.
