@@ -31,6 +31,15 @@ type scsiController struct {
 	SCSIUnitID   int    `json:"scsiId"`
 }
 
+// expandDisk represents the request body when expamding a server disk.
+type expandDisk struct {
+	// The ID of the disk to expand.
+	DiskID string `json:"id"`
+
+	// The new disk size, in gigabytes.
+	NewSizeGB int `json:"newSizeGb"`
+}
+
 // removeDisk represents the request body when removing an existing disk from a server or SCSI controller.
 type removeDisk struct {
 	DiskID string `json:"id"`
@@ -138,7 +147,7 @@ func (client *Client) AddDiskToSCSIController(controllerID string, scsiUnitID in
 	return apiResponse.FieldMessages[0].Message, nil
 }
 
-// ExpandDisk requests resizing of a server / SCSI controller's disk.
+// ExpandDisk requests expanding of a server / SCSI controller's disk.
 func (client *Client) ExpandDisk(diskID string, newSizeGB int) (response *APIResponseV2, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {

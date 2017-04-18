@@ -191,15 +191,6 @@ type resizeServerDisk struct {
 	NewSizeGB int `xml:"newSizeGb"`
 }
 
-// expandDisk represents the request body when expamding a server disk.
-type expandDisk struct {
-	// The ID of the disk to expand.
-	DiskID string `json:"id"`
-
-	// The new disk size, in gigabytes.
-	NewSizeGB int `xml:"newSizeGb"`
-}
-
 // changeServerDiskSpeed represents the request body when changing a server disk's speed.
 type changeServerDiskSpeed struct {
 	// The XML name for the "resizeServerDisk" data contract
