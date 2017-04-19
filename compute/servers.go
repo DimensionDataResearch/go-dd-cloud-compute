@@ -26,6 +26,20 @@ const (
 )
 
 const (
+	// StorageControllerAdapterTypeBusLogicParallel represents the BusLogic Parallel storage controller adapter type.
+	StorageControllerAdapterTypeBusLogicParallel = "BUSLOGIC_PARALLEL"
+
+	// StorageControllerAdapterTypeLSILogicParallel represents the LSI Logic Parallel storage controller adapter type.
+	StorageControllerAdapterTypeLSILogicParallel = "LSI_LOGIC_PARALLEL"
+
+	// StorageControllerAdapterTypeLSILogicSAS represents the LSI Logic SAS storage controller adapter type.
+	StorageControllerAdapterTypeLSILogicSAS = "LSI_LOGIC_SAS"
+
+	// StorageControllerAdapterTypeEnhancedVMWareParavirtual represents the VMWare Paravirtual storage controller adapter type.
+	StorageControllerAdapterTypeEnhancedVMWareParavirtual = "VMWARE_PARAVIRTUAL"
+)
+
+const (
 	// ServerDiskSpeedEconomy represents the economy speed for server disks.
 	ServerDiskSpeedEconomy = "ECONOMY"
 
