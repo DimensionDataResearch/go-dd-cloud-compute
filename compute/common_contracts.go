@@ -109,8 +109,19 @@ func (controllers VirtualMachineSCSIControllers) GetDiskCount() (count int) {
 // VirtualMachineSCSIControllers is an array of VirtualMachineSCSIController that adds various convenience methods.
 type VirtualMachineSCSIControllers []VirtualMachineSCSIController
 
-// GetControllerByBusNumber retrieves the VirtualMachineSCSIController that matches the specified SCSI bus number.
-func (controllers VirtualMachineSCSIControllers) GetControllerByBusNumber(busNumber int) *VirtualMachineSCSIController {
+// GetByID retrieves the VirtualMachineSCSIController that matches the specified CloudControl identifier.
+func (controllers VirtualMachineSCSIControllers) GetByID(controllerID string) *VirtualMachineSCSIController {
+	for _, controller := range controllers {
+		if controller.ID == controllerID {
+			return &controller
+		}
+	}
+
+	return nil
+}
+
+// GetByBusNumber retrieves the VirtualMachineSCSIController that matches the specified SCSI bus number.
+func (controllers VirtualMachineSCSIControllers) GetByBusNumber(busNumber int) *VirtualMachineSCSIController {
 	for _, controller := range controllers {
 		if controller.BusNumber == busNumber {
 			return &controller
@@ -122,7 +133,7 @@ func (controllers VirtualMachineSCSIControllers) GetControllerByBusNumber(busNum
 
 // GetDiskBySCSIPath retrieves the VirtualMachineDisk (if any) attached to a VirtualMachineSCSIController that matches the specified SCSI device path (bus number and unit ID).
 func (controllers VirtualMachineSCSIControllers) GetDiskBySCSIPath(busNumber int, unitID int) *VirtualMachineDisk {
-	return controllers.GetControllerByBusNumber(busNumber).GetDiskByUnitID(unitID)
+	return controllers.GetByBusNumber(busNumber).GetDiskByUnitID(unitID)
 }
 
 // VirtualMachineDisk represents the configuration for disk in a virtual machine.
