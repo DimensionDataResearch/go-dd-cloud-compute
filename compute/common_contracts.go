@@ -71,6 +71,12 @@ type OperatingSystem struct {
 	DisplayName string `json:"displayName"`
 }
 
+// ImageGuestInformation represents guest-related information about a virtual machine image.
+type ImageGuestInformation struct {
+	OperatingSystem OperatingSystem `json:"operatingSystem"`
+	OSCustomization bool            `json:"osCustomization"`
+}
+
 // VirtualMachineCPU represents the CPU configuration for a virtual machine.
 type VirtualMachineCPU struct {
 	Count          int    `json:"count,omitempty"`

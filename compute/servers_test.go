@@ -82,14 +82,20 @@ func TestClient_DeployServer_Success(test *testing.T) {
 				},
 			},
 		},
-		Disks: []VirtualMachineDisk{
-			VirtualMachineDisk{
-				SCSIUnitID: 0,
-				Speed:      "STANDARD",
-			},
-			VirtualMachineDisk{
-				SCSIUnitID: 1,
-				Speed:      "HIGHPERFORMANCE",
+		SCSIControllers: []VirtualMachineSCSIController{
+			VirtualMachineSCSIController{
+				BusNumber:   0,
+				AdapterType: StorageControllerAdapterTypeLSILogicParallel,
+				Disks: []VirtualMachineDisk{
+					VirtualMachineDisk{
+						SCSIUnitID: 0,
+						Speed:      "STANDARD",
+					},
+					VirtualMachineDisk{
+						SCSIUnitID: 1,
+						Speed:      "HIGHPERFORMANCE",
+					},
+				},
 			},
 		},
 	}
@@ -401,13 +407,14 @@ func verifyDeployServerTestRequest(test *testing.T, deploymentConfiguration *Ser
 	expect.EqualsString("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[1].AdapterType", "VMXNET3", *network.AdditionalNetworkAdapters[1].AdapterType)
 
 	// Disks.
-	expect.EqualsInt("ServerDeploymentConfiguration.Disks.Length", 2, len(deploymentConfiguration.Disks))
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers.Length", 1, len(deploymentConfiguration.SCSIControllers))
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers[0].Disks.Length", 2, len(deploymentConfiguration.SCSIControllers[0].Disks))
 
-	expect.EqualsInt("ServerDeploymentConfiguration.Disks[0].SCSIUnitID", 0, deploymentConfiguration.Disks[0].SCSIUnitID)
-	expect.EqualsString("ServerDeploymentConfiguration.Disks[0].Speed", "STANDARD", deploymentConfiguration.Disks[0].Speed)
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers[0].Disks[0].SCSIUnitID", 0, deploymentConfiguration.SCSIControllers[0].Disks[0].SCSIUnitID)
+	expect.EqualsString("ServerDeploymentConfiguration.SCSIControllers[0].Disks[0].Speed", "STANDARD", deploymentConfiguration.SCSIControllers[0].Disks[0].Speed)
 
-	expect.EqualsInt("ServerDeploymentConfiguration.Disks[1].SCSIUnitID", 1, deploymentConfiguration.Disks[1].SCSIUnitID)
-	expect.EqualsString("ServerDeploymentConfiguration.Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.Disks[1].Speed)
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers[0].Disks[1].SCSIUnitID", 1, deploymentConfiguration.SCSIControllers[0].Disks[1].SCSIUnitID)
+	expect.EqualsString("ServerDeploymentConfiguration.SCSIControllers[0].Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.SCSIControllers[0].Disks[1].Speed)
 }
 
 const addDiskToServerTestRequest = `

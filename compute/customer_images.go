@@ -31,7 +31,7 @@ type CustomerImage struct {
 	Name            string                        `json:"name"`
 	Description     string                        `json:"description"`
 	DataCenterID    string                        `json:"datacenterId"`
-	OperatingSystem OperatingSystem               `json:"operatingSystem"`
+	Guest           ImageGuestInformation         `json:"guest"`
 	CPU             VirtualMachineCPU             `json:"cpu"`
 	MemoryGB        int                           `json:"memoryGb"`
 	SCSIControllers VirtualMachineSCSIControllers `json:"scsiControllers"`
@@ -88,7 +88,7 @@ func (image *CustomerImage) GetDatacenterID() string {
 
 // GetOS retrieves information about the image's operating system.
 func (image *CustomerImage) GetOS() OperatingSystem {
-	return image.OperatingSystem
+	return image.Guest.OperatingSystem
 }
 
 // ApplyTo applies the CustomerImage to the specified ServerDeploymentConfiguration.

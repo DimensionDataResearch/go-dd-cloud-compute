@@ -13,7 +13,7 @@ type OSImage struct {
 	Name            string                        `json:"name"`
 	Description     string                        `json:"description"`
 	DataCenterID    string                        `json:"datacenterId"`
-	OperatingSystem OperatingSystem               `json:"operatingSystem"`
+	Guest           ImageGuestInformation         `json:"guest"`
 	CPU             VirtualMachineCPU             `json:"cpu"`
 	MemoryGB        int                           `json:"memoryGb"`
 	SCSIControllers VirtualMachineSCSIControllers `json:"scsiController"`
@@ -71,7 +71,7 @@ func (image *OSImage) GetDatacenterID() string {
 
 // GetOS retrieves information about the image's operating system.
 func (image *OSImage) GetOS() OperatingSystem {
-	return image.OperatingSystem
+	return image.Guest.OperatingSystem
 }
 
 // ApplyTo applies the OSImage to the specified ServerDeploymentConfiguration.
