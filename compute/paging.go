@@ -19,7 +19,7 @@ type PagedResult struct {
 
 // IsEmpty determines whether the page contains no results.
 func (page *PagedResult) IsEmpty() bool {
-	return page.PageCount == 0
+	return page == nil || page.PageCount == 0
 }
 
 // NextPage creates a Paging for the next page of results.
