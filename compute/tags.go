@@ -84,8 +84,10 @@ type deleteTagKey struct {
 
 // GetAssetTagsByType gets all tags applied to assets of the specified type.
 //
+// datacenterID is optional (pass an empty string for tags from all datacenters).
+//
 // Note that due to a bug in the CloudControl API, when you go past the last page if results, you'll receive an UNEXPECTED_ERROR response code.
-func (client *Client) GetAssetTagsByType(assetType string, paging *Paging) (tags *TagDetails, err error) {
+func (client *Client) GetAssetTagsByType(assetType string, datacenterID string, paging *Paging) (tags *TagDetails, err error) {
 	if paging == nil {
 		paging = DefaultPaging()
 	}
@@ -100,6 +102,11 @@ func (client *Client) GetAssetTagsByType(assetType string, paging *Paging) (tags
 		url.QueryEscape(assetType),
 		paging.toQueryParameters(),
 	)
+	if datacenterID != "" {
+		requestURI += fmt.Sprintf("&datacenterId=%s",
+			url.QueryEscape(datacenterID),
+		)
+	}
 	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
