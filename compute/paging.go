@@ -1,6 +1,8 @@
 package compute
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // PagedResult represents the common fields for all paged results from the compute API.
 type PagedResult struct {
@@ -28,6 +30,17 @@ func (page *PagedResult) NextPage() *Paging {
 		PageNumber: page.PageNumber + 1,
 		PageSize:   page.PageSize,
 	}
+}
+
+// IsLastPage determines whether the page represents the last page of results.
+func (page *PagedResult) IsLastPage() bool {
+	if page.IsEmpty() {
+		return true
+	}
+
+	itemCountUpToCurrentPage := ((page.PageNumber - 1) * page.PageSize) + page.PageCount
+
+	return itemCountUpToCurrentPage >= page.TotalCount // i.e. Are there any more records?
 }
 
 // Paging contains the paging configuration for a compute API operation.
