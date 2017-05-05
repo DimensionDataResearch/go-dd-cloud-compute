@@ -108,6 +108,74 @@ func TestClient_DeployServer_Success(test *testing.T) {
 	expect.EqualsString("serverID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", serverID)
 }
 
+// Deploy uncustomised server (successful).
+func TestClient_DeployUncustomizedServer_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		deploymentConfiguration := &UncustomizedServerDeploymentConfiguration{}
+		err := readRequestBodyAsJSON(request, deploymentConfiguration)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		verifyDeployUncustomizedServerTestRequest(test, deploymentConfiguration)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, deployUncustomizedServerTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	serverConfiguration := UncustomizedServerDeploymentConfiguration{
+		Name:        "Production Server",
+		Description: "Uncustomized appliance server.",
+		ImageID:     "e926545b-1b9c-4068-8cef-076830a9a0bc",
+		CPU: VirtualMachineCPU{
+			Count:          9,
+			CoresPerSocket: 3,
+			Speed:          "ECONOMY",
+		},
+		MemoryGB: 2,
+		Network: VirtualMachineNetwork{
+			NetworkDomainID: "e926545b-1b9c-4068-8cef-076830a9a0bc",
+			PrimaryAdapter: VirtualMachineNetworkAdapter{
+				PrivateIPv4Address: stringToPtr("10.0.1.15"),
+				AdapterType:        stringToPtr(NetworkAdapterTypeVMXNET3),
+			},
+			AdditionalNetworkAdapters: []VirtualMachineNetworkAdapter{
+				VirtualMachineNetworkAdapter{
+					VLANID:      stringToPtr("e0b4d43c-c648-11e4-b33a-72802a5322b2"),
+					AdapterType: stringToPtr(NetworkAdapterTypeVMXNET3),
+				},
+			},
+		},
+		Disks: []VirtualMachineDisk{
+			VirtualMachineDisk{
+				ID:    "d99e4d2a-24c0-4c54-b491-e56697b8f004",
+				Speed: "ECONOMY",
+			},
+			VirtualMachineDisk{
+				ID:    "e6a3c0b7-cd32-4224-b8ec-5f1359940204",
+				Speed: "HIGHPERFORMANCE",
+			},
+		},
+	}
+
+	serverID, err := client.DeployUncustomizedServer(serverConfiguration)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	expect.EqualsString("serverID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", serverID)
+}
+
 // Add disk to server (successful).
 func TestClient_AddServerDisk_Success(test *testing.T) {
 	expect := expect(test)
@@ -417,6 +485,99 @@ func verifyDeployServerTestRequest(test *testing.T, deploymentConfiguration *Ser
 	expect.EqualsString("ServerDeploymentConfiguration.SCSIControllers[0].Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.SCSIControllers[0].Disks[1].Speed)
 }
 
+const deployUncustomizedServerTestRequest = `
+	{
+		"name": "Production Server",
+		"description": "Uncustomized appliance server.",
+		"imageId": "e926545b-1b9c-4068-8cef-076830a9a0bc",
+		"start": false,
+		"cpu": {
+			"speed": "ECONOMY",
+			"count": "9",
+			"coresPerSocket": "3"
+		},
+		"memoryGb": "2",
+		"clusterId": "NA9-01",
+		"networkInfo": {
+			"networkDomainId": "e926545b-1b9c-4068-8cef-076830a9a0bc",
+			"primaryNic": {
+				"privateIpv4": "10.0.1.15",
+				"networkAdapter": "VMXNET3"
+			},
+			"additionalNic": [
+				{
+					"vlanId": "e0b4d43c-c648-11e4-b33a-72802a5322b2",
+					"networkAdapter": "VMXNET3"
+				}
+			]
+		},
+		"disk": [
+			{
+				"id": "d99e4d2a-24c0-4c54-b491-e56697b8f004",
+				"speed": "ECONOMY"
+			},
+			{
+				"id": "e6a3c0b7-cd32-4224-b8ec-5f1359940204",
+				"speed": "HIGHPERFORMANCE"
+			}
+		],
+		"tag": [
+			{
+				"tagKeyName": "department",
+				"value": "IT"
+			},
+			{
+				"tagKeyName": "backup",
+				"value": "nope"
+			}
+		]
+	}
+`
+
+func verifyDeployUncustomizedServerTestRequest(test *testing.T, deploymentConfiguration *UncustomizedServerDeploymentConfiguration) {
+	expect := expect(test)
+
+	expect.NotNil("UncustomizedServerDeploymentConfiguration", deploymentConfiguration)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Name", "Production Server", deploymentConfiguration.Name)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Description", "Uncustomized appliance server.", deploymentConfiguration.Description)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.ImageID", "e926545b-1b9c-4068-8cef-076830a9a0bc", deploymentConfiguration.ImageID)
+
+	// CPU
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.CPU.Count", 9, deploymentConfiguration.CPU.Count)
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.CPU.CoresPerSocket", 3, deploymentConfiguration.CPU.CoresPerSocket)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.CPU.Speed", "ECONOMY", deploymentConfiguration.CPU.Speed)
+
+	// Memory
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.MemoryGB", 2, deploymentConfiguration.MemoryGB)
+
+	// Network.
+	network := deploymentConfiguration.Network
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.NetworkDomainID", "e926545b-1b9c-4068-8cef-076830a9a0bc", network.NetworkDomainID)
+
+	expect.IsNil("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.VLANID", network.PrimaryAdapter.VLANID)
+	expect.NotNil("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.PrivateIPv4Address", network.PrimaryAdapter.PrivateIPv4Address)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.PrivateIPv4Address", "10.0.1.15", *network.PrimaryAdapter.PrivateIPv4Address)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.AdapterType", "VMXNET3", *network.AdditionalNetworkAdapters[0].AdapterType)
+
+	// Network adapters.
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters.Length", 1, len(network.AdditionalNetworkAdapters))
+
+	expect.NotNil("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].VLANID", network.AdditionalNetworkAdapters[0].VLANID)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].VLANID", "e0b4d43c-c648-11e4-b33a-72802a5322b2", *network.AdditionalNetworkAdapters[0].VLANID)
+	expect.IsNil("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].PrivateIPv4Address", network.AdditionalNetworkAdapters[0].PrivateIPv4Address)
+	expect.NotNil("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].AdapterType", network.AdditionalNetworkAdapters[0].AdapterType)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].AdapterType", "VMXNET3", *network.AdditionalNetworkAdapters[0].AdapterType)
+
+	// Disks.
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.Disks.Length", 2, len(deploymentConfiguration.Disks))
+
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[0].ID", "d99e4d2a-24c0-4c54-b491-e56697b8f004", deploymentConfiguration.Disks[0].ID)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[0].Speed", "ECONOMY", deploymentConfiguration.Disks[0].Speed)
+
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[1].ID", "e6a3c0b7-cd32-4224-b8ec-5f1359940204", deploymentConfiguration.Disks[1].ID)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.Disks[1].Speed)
+}
+
 const addDiskToServerTestRequest = `
 	{
 		"id": "7b62aae5-bdbe-4595-b58d-c78f95db2a7f",
@@ -651,6 +812,23 @@ const deployServerTestResponse = `
 		"error": [],
 		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
 	}
+`
+
+const deployUncustomizedServerTestResponse = `
+	{
+        "operation": "DEPLOY_UNCUSTOMIZED_SERVER",
+        "responseCode": "IN_PROGRESS",
+        "message": "Request to deploy uncustomized Server 'Production Server' has been accepted and is being processed.",
+        "info": [
+            {
+                "name": "serverId",
+                "value": "7b62aae5-bdbe-4595-b58d-c78f95db2a7f"
+            }
+        ],
+        "warning": [],
+        "error": [],
+        "requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+    }
 `
 
 func verifyDeployServerTestResponse(test *testing.T, response *APIResponseV2) {

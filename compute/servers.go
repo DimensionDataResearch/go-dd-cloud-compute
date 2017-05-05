@@ -100,6 +100,18 @@ type ServerDeploymentConfiguration struct {
 	Start                 bool                          `json:"start"`
 }
 
+// UncustomizedServerDeploymentConfiguration represents the configuration for deploying a virtual machine without guest OS customisation.
+type UncustomizedServerDeploymentConfiguration struct {
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	ImageID     string                `json:"imageId"`
+	CPU         VirtualMachineCPU     `json:"cpu"`
+	MemoryGB    int                   `json:"memoryGb,omitempty"`
+	Disks       VirtualMachineDisks   `json:"disk"`
+	Network     VirtualMachineNetwork `json:"networkInfo"`
+	Start       bool                  `json:"start"`
+}
+
 // editServerMetadata represents the request body when modifying server metadata.
 type editServerMetadata struct {
 	ID          string  `json:"id"`
@@ -326,6 +338,40 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
 		return "", apiResponse.ToError("Request to deploy server '%s' failed with status code %d (%s): %s", serverConfiguration.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	// Expected: "info" { "name": "serverId", "value": "the-Id-of-the-new-server" }
+	serverIDMessage := apiResponse.GetFieldMessage("serverId")
+	if serverIDMessage == nil {
+		return "", apiResponse.ToError("Received an unexpected response (missing 'serverId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return *serverIDMessage, nil
+}
+
+// DeployUncustomizedServer deploys a new virtual machine.
+func (client *Client) DeployUncustomizedServer(serverConfiguration UncustomizedServerDeploymentConfiguration) (serverID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/deployUncustomizedServer",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV25(requestURI, http.MethodPost, &serverConfiguration)
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return "", apiResponse.ToError("Request to deploy uncustomised server '%s' failed with status code %d (%s): %s", serverConfiguration.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "serverId", "value": "the-Id-of-the-new-server" }
