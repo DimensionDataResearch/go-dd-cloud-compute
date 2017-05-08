@@ -91,6 +91,11 @@ func (image *CustomerImage) GetOS() OperatingSystem {
 	return image.Guest.OperatingSystem
 }
 
+// RequiresCustomization determines whether the image requires guest OS customisation during deployment.
+func (image *CustomerImage) RequiresCustomization() bool {
+	return image.Guest.OSCustomization
+}
+
 // ApplyTo applies the CustomerImage to the specified ServerDeploymentConfiguration.
 func (image *CustomerImage) ApplyTo(config *ServerDeploymentConfiguration) {
 	config.ImageID = image.ID
@@ -99,6 +104,20 @@ func (image *CustomerImage) ApplyTo(config *ServerDeploymentConfiguration) {
 	config.SCSIControllers = make(VirtualMachineSCSIControllers, len(image.SCSIControllers))
 	for index, scsiController := range image.SCSIControllers {
 		config.SCSIControllers[index] = scsiController
+	}
+}
+
+// ApplyToUncustomized applies the CustomerImage to the specified UncustomizedServerDeploymentConfiguration.
+func (image *CustomerImage) ApplyToUncustomized(config *UncustomizedServerDeploymentConfiguration) {
+	config.ImageID = image.ID
+	config.CPU = image.CPU
+	config.MemoryGB = image.MemoryGB
+	if len(image.SCSIControllers) == 0 {
+		return
+	}
+	config.Disks = make(VirtualMachineDisks, len(image.SCSIControllers[0].Disks))
+	for index, disk := range image.SCSIControllers[0].Disks {
+		config.Disks[index] = disk
 	}
 }
 

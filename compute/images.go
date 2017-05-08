@@ -39,6 +39,12 @@ type Image interface {
 	// GetOS retrieves information about the image's operating system.
 	GetOS() OperatingSystem
 
+	// RequiresCustomization determines whether the image requires guest OS customisation during deployment.
+	RequiresCustomization() bool
+
 	// ApplyTo applies the Image to the specified ServerDeploymentConfiguration.
 	ApplyTo(config *ServerDeploymentConfiguration)
+
+	// ApplyToUncustomized applies the Image to the specified UncustomizedServerDeploymentConfiguration.
+	ApplyToUncustomized(config *UncustomizedServerDeploymentConfiguration)
 }
