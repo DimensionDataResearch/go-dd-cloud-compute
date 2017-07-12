@@ -114,6 +114,11 @@ func (scope *FirewallRuleScope) IsScopePortRange() bool {
 	return scope.Port != nil && scope.Port.End != nil
 }
 
+// IsScopePortList determines whether the firewall rule scope matches a port list.
+func (scope *FirewallRuleScope) IsScopePortList() bool {
+	return scope.PortListID != nil
+}
+
 // IsScopeAddressList determines whether the firewall rule scope matches an IP address list.
 func (scope *FirewallRuleScope) IsScopeAddressList() bool {
 	return scope.AddressList != nil || scope.AddressListID != nil
