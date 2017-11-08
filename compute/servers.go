@@ -90,7 +90,7 @@ type ServerDeploymentConfiguration struct {
 	Name                  string                        `json:"name"`
 	Description           string                        `json:"description"`
 	ImageID               string                        `json:"imageId"`
-	AdministratorPassword string                        `json:"administratorPassword"`
+	AdministratorPassword string                        `json:"administratorPassword,omitempty"`
 	CPU                   VirtualMachineCPU             `json:"cpu"`
 	MemoryGB              int                           `json:"memoryGb,omitempty"`
 	SCSIControllers       VirtualMachineSCSIControllers `json:"scsiController"`
