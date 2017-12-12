@@ -289,97 +289,32 @@ func (client *Client) newRequestV1(relativeURI string, method string, body inter
 
 // Create a basic request for the compute API (V2.2, JSON).
 func (client *Client) newRequestV22(relativeURI string, method string, body interface{}) (*http.Request, error) {
-	requestURI := fmt.Sprintf("%s/caas/2.2/%s", client.baseAddress, relativeURI)
-
-	var (
-		request    *http.Request
-		bodyReader io.Reader
-		err        error
-	)
-
-	bodyReader, err = newReaderFromJSON(body)
-	if err != nil {
-		return nil, err
-	}
-
-	request, err = http.NewRequest(method, requestURI, bodyReader)
-	if err != nil {
-		return nil, err
-	}
-
-	request.SetBasicAuth(client.username, client.password)
-	request.Header.Add("Accept", "application/json")
-
-	if bodyReader != nil {
-		request.Header.Set("Content-Type", "application/json")
-	}
-
-	return request, nil
+	return client.newRequestV2x(2, relativeURI, method, body)
 }
 
 // Create a basic request for the compute API (V2.3, JSON).
 func (client *Client) newRequestV23(relativeURI string, method string, body interface{}) (*http.Request, error) {
-	requestURI := fmt.Sprintf("%s/caas/2.3/%s", client.baseAddress, relativeURI)
-
-	var (
-		request    *http.Request
-		bodyReader io.Reader
-		err        error
-	)
-
-	bodyReader, err = newReaderFromJSON(body)
-	if err != nil {
-		return nil, err
-	}
-
-	request, err = http.NewRequest(method, requestURI, bodyReader)
-	if err != nil {
-		return nil, err
-	}
-
-	request.SetBasicAuth(client.username, client.password)
-	request.Header.Add("Accept", "application/json")
-
-	if bodyReader != nil {
-		request.Header.Set("Content-Type", "application/json")
-	}
-
-	return request, nil
+	return client.newRequestV2x(3, relativeURI, method, body)
 }
 
 // Create a basic request for the compute API (V2.4, JSON).
 func (client *Client) newRequestV24(relativeURI string, method string, body interface{}) (*http.Request, error) {
-	requestURI := fmt.Sprintf("%s/caas/2.4/%s", client.baseAddress, relativeURI)
-
-	var (
-		request    *http.Request
-		bodyReader io.Reader
-		err        error
-	)
-
-	bodyReader, err = newReaderFromJSON(body)
-	if err != nil {
-		return nil, err
-	}
-
-	request, err = http.NewRequest(method, requestURI, bodyReader)
-	if err != nil {
-		return nil, err
-	}
-
-	request.SetBasicAuth(client.username, client.password)
-	request.Header.Add("Accept", "application/json")
-
-	if bodyReader != nil {
-		request.Header.Set("Content-Type", "application/json")
-	}
-
-	return request, nil
+	return client.newRequestV2x(4, relativeURI, method, body)
 }
 
 // Create a basic request for the compute API (V2.5, JSON).
 func (client *Client) newRequestV25(relativeURI string, method string, body interface{}) (*http.Request, error) {
-	requestURI := fmt.Sprintf("%s/caas/2.5/%s", client.baseAddress, relativeURI)
+	return client.newRequestV2x(5, relativeURI, method, body)
+}
+
+// Create a basic request for the compute API (V2.5, JSON).
+func (client *Client) newRequestV26(relativeURI string, method string, body interface{}) (*http.Request, error) {
+	return client.newRequestV2x(6, relativeURI, method, body)
+}
+
+// Create a basic request for the compute API (V2.x, JSON).
+func (client *Client) newRequestV2x(minorVersion int, relativeURI string, method string, body interface{}) (*http.Request, error) {
+	requestURI := fmt.Sprintf("%s/caas/2.%d/%s", client.baseAddress, minorVersion, relativeURI)
 
 	var (
 		request    *http.Request

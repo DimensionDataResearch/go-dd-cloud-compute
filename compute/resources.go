@@ -47,6 +47,12 @@ const (
 
 	// ResourceTypeCustomerImage represents a customer image.
 	ResourceTypeCustomerImage
+
+	// ResourceTypeSSLDomainCertificate represents an SSL certificate for a domain name.
+	ResourceTypeSSLDomainCertificate
+
+	// ResourceTypeSSLCertificateChain represents an SSL certificate chain
+	ResourceTypeSSLCertificateChain
 )
 
 // Resource represents a compute resource.
@@ -102,6 +108,12 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeCustomerImage:
 		return "customer image", nil
 
+	case ResourceTypeSSLDomainCertificate:
+		return "SSL domain certificate", nil
+
+	case ResourceTypeSSLCertificateChain:
+		return "SSL certificate chain", nil
+
 	default:
 		return "", fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
 	}
@@ -147,6 +159,12 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 
 	case ResourceTypeCustomerImage:
 		return client.GetCustomerImage(id)
+
+	case ResourceTypeSSLDomainCertificate:
+		return client.GetSSLDomainCertificate(id)
+
+	case ResourceTypeSSLCertificateChain:
+		return client.GetSSLCertificateChain(id)
 	}
 
 	return nil, fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
