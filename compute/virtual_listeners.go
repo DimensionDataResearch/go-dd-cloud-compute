@@ -81,6 +81,7 @@ type VirtualListener struct {
 	ClientClonePool            VirtualListenerVIPPoolRef `json:"ClientClonePool"`
 	PersistenceProfile         EntityReference           `json:"persistenceProfile"`
 	FallbackPersistenceProfile EntityReference           `json:"fallbackPersistenceProfile"`
+	SSLOffloadProfile          EntityReference           `json:"sslOffloadProfile"`
 	OptimizationProfiles       []string                  `json:"optimizationProfile"`
 	IRules                     []EntityReference         `json:"irule"`
 	State                      string                    `json:"state"`
@@ -156,6 +157,7 @@ type NewVirtualListenerConfiguration struct {
 	ClientClonePoolID            *string  `json:"clientClonePoolId,omitempty"`
 	PersistenceProfileID         *string  `json:"persistenceProfileId,omitempty"`
 	FallbackPersistenceProfileID *string  `json:"fallbackPersistenceProfileId,omitempty"`
+	SSLOffloadProfileID          *string  `json:"sslOffloadProfileId,omitempty"`
 	IRuleIDs                     []string `json:"iruleId"`
 	OptimizationProfiles         []string `json:"optimizationProfile"`
 	NetworkDomainID              string   `json:"networkDomainId"`
@@ -171,6 +173,7 @@ type EditVirtualListenerConfiguration struct {
 	SourcePortPreservation *string   `json:"sourcePortPreservation,omitempty"`
 	PoolID                 *string   `json:"poolId,omitempty"`
 	PersistenceProfileID   *string   `json:"persistenceProfileId,omitempty"`
+	SSLOffloadProfileID    *string   `json:"sslOffloadProfileId,omitempty"`
 	IRuleIDs               *[]string `json:"iruleId,omitempty"`
 	OptimizationProfiles   *[]string `json:"optimizationProfile,omitempty"`
 }

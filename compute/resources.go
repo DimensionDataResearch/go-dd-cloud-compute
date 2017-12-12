@@ -53,6 +53,9 @@ const (
 
 	// ResourceTypeSSLCertificateChain represents an SSL certificate chain
 	ResourceTypeSSLCertificateChain
+
+	// ResourceTypeSSLOffloadProfile represents an SSL-offload profile
+	ResourceTypeSSLOffloadProfile
 )
 
 // Resource represents a compute resource.
@@ -114,6 +117,9 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeSSLCertificateChain:
 		return "SSL certificate chain", nil
 
+	case ResourceTypeSSLOffloadProfile:
+		return "SSL-offload profile", nil
+
 	default:
 		return "", fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
 	}
@@ -165,6 +171,9 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 
 	case ResourceTypeSSLCertificateChain:
 		return client.GetSSLCertificateChain(id)
+
+	case ResourceTypeSSLOffloadProfile:
+		return client.GetSSLOffloadProfile(id)
 	}
 
 	return nil, fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
