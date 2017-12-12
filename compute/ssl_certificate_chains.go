@@ -71,7 +71,7 @@ type importSSLCertificateChain struct {
 
 // Request body when deleting an SSL certificate chain.
 type deleteSSLCertificateChain struct {
-	// The SSL certificate Id.
+	// The SSL certificate chain Id.
 	ID string `json:"id"`
 }
 
@@ -118,6 +118,7 @@ func (client *Client) ListSSLCertificateChainsInNetworkDomain(networkDomainID st
 }
 
 // GetSSLCertificateChain retrieves the SSL certificate chain with the specified Id.
+//
 // Returns nil if no SSL certificate chain is found with the specified Id.
 func (client *Client) GetSSLCertificateChain(id string) (pool *SSLCertificateChain, err error) {
 	organizationID, err := client.getOrganizationID()
@@ -163,7 +164,7 @@ func (client *Client) GetSSLCertificateChain(id string) (pool *SSLCertificateCha
 }
 
 // ImportSSLCertificateChain imports an SSL certificate chain into a network domain.
-func (client *Client) ImportSSLCertificateChain(networkDomainID string, name string, description string, certificateChain string) (certificateID string, err error) {
+func (client *Client) ImportSSLCertificateChain(networkDomainID string, name string, description string, certificateChain string) (certificateChainID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
