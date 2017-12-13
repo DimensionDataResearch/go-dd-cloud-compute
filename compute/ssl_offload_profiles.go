@@ -64,8 +64,19 @@ type SSLOffloadProfiles struct {
 	PagedResult
 }
 
-// Request body when createing an SSL-offload profile.
+// Request body when creating an SSL-offload profile.
 type createSSLOffloadProfile struct {
+	Name                   string  `json:"name"`
+	Description            string  `json:"description"`
+	Ciphers                *string `json:"ciphers"`
+	SSLDomainCertificateID string  `json:"sslDomainCertificateId"`
+	SSLCertificateChainID  string  `json:"sslCertificateChainId,omitempty"`
+	NetworkDomainID        string  `json:"networkDomainId"`
+}
+
+// Request body when editing an SSL-offload profile.
+type editSSLOffloadProfile struct {
+	ID                     string `json:"id"`
 	Name                   string `json:"name"`
 	Description            string `json:"description"`
 	Ciphers                string `json:"ciphers"`
@@ -169,7 +180,7 @@ func (client *Client) GetSSLOffloadProfile(id string) (pool *SSLOffloadProfile, 
 }
 
 // CreateSSLOffloadProfile creates an SSL-offload profile in a network domain.
-func (client *Client) CreateSSLOffloadProfile(networkDomainID string, name string, description string, ciphers string, sslDomainCertificateID string, sslCertificateChainID string) (offloadProfileID string, err error) {
+func (client *Client) CreateSSLOffloadProfile(networkDomainID string, name string, description string, ciphers *string, sslDomainCertificateID string, sslCertificateChainID string) (offloadProfileID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -207,6 +218,42 @@ func (client *Client) CreateSSLOffloadProfile(networkDomainID string, name strin
 	}
 
 	return *sslOffloadProfileIDMessage, nil
+}
+
+// EditSSLOffloadProfile updates an existing SSL-offload profile.
+func (client *Client) EditSSLOffloadProfile(sslOffloadProfile SSLOffloadProfile) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/networkDomainVip/editSslOffloadProfile",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &editSSLOffloadProfile{
+		ID:                     sslOffloadProfile.ID,
+		Name:                   sslOffloadProfile.Name,
+		Description:            sslOffloadProfile.Description,
+		Ciphers:                sslOffloadProfile.Ciphers,
+		SSLDomainCertificateID: sslOffloadProfile.SSLDomainCertificate.ID,
+		SSLCertificateChainID:  sslOffloadProfile.SSLCertificateChain.ID,
+		NetworkDomainID:        sslOffloadProfile.NetworkDomainID,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeOK {
+		return apiResponse.ToError("Request to edit SSL-offload profile '%s' ('%s') failed with status code %d (%s): %s", sslOffloadProfile.Name, sslOffloadProfile.ID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // DeleteSSLOffloadProfile deletes an existing SSL-offload profile.
