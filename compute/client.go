@@ -229,7 +229,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 		}
 
 		if err != nil {
-			err = errors.Wrapf(err,"Unexpected error while performing '%s' request to '%s': %s",
+			err = errors.Wrapf(err, "Unexpected error while performing '%s' request to '%s': %s",
 				request.Method,
 				request.URL.String(),
 			)
@@ -243,7 +243,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 
 	responseBody, err = ioutil.ReadAll(response.Body)
 	if err != nil {
-		err = errors.Wrapf(err,"error reading response body for '%s'", request.URL.String())
+		err = errors.Wrapf(err, "error reading response body for '%s'", request.URL.String())
 	}
 
 	if client.IsExtendedLoggingEnabled() {
@@ -347,7 +347,7 @@ func readAPIResponseV1(responseBody []byte, statusCode int) (apiResponse *APIRes
 	apiResponse = &APIResponseV1{}
 	err = xml.Unmarshal(responseBody, apiResponse)
 	if err != nil {
-		err = errors.Wrapf(err,"error reading API response (v1) from XML")
+		err = errors.Wrapf(err, "error reading API response (v1) from XML")
 
 		return
 	}
@@ -368,7 +368,7 @@ func readAPIResponseAsJSON(responseBody []byte, statusCode int) (apiResponse *AP
 	apiResponse = &APIResponseV2{}
 	err = json.Unmarshal(responseBody, apiResponse)
 	if err != nil {
-		err = errors.Wrapf(err,"error reading API response (v2) from JSON")
+		err = errors.Wrapf(err, "error reading API response (v2) from JSON")
 
 		return
 	}
