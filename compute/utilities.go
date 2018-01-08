@@ -2,10 +2,11 @@ package compute
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 func stringToPtr(value string) *string {
@@ -23,7 +24,8 @@ func getRequestBody(request *http.Request) (requestBody []byte, err error) {
 
 		requestBody, err = ioutil.ReadAll(request.Body)
 		if err != nil {
-			err = fmt.Errorf("Unexpected error reading request body: %s", err.Error())
+			err = errors.Wrapf(err, "unexpected error reading request body")
+
 			return
 		}
 

@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"github.com/pkg/errors"
 )
 
 // CreateSnapshot creates a snapshot of the specified request.
@@ -98,7 +99,8 @@ func CacheBody(request *http.Request) (requestBody []byte, err error) {
 
 		requestBody, err = ioutil.ReadAll(request.Body)
 		if err != nil {
-			err = fmt.Errorf("Unexpected error reading request body: %s", err.Error())
+			err = errors.Wrapf(err,"unexpected error reading request body")
+
 			return
 		}
 

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/DimensionDataResearch/go-dd-cloud-compute/compute/requests"
+	"github.com/pkg/errors"
 )
 
 // Client is the client for Dimension Data's cloud compute API.
@@ -170,7 +171,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 		log.Printf("Unexpected error while performing '%s' request to '%s': %s.",
 			request.Method,
 			request.URL.String(),
-			err.Error(),
+			err,
 		)
 
 		for retryCount := 0; retryCount < client.maxRetryCount; retryCount++ {
@@ -210,7 +211,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 					log.Printf("Still failing - '%s' request to '%s': %s.",
 						request.Method,
 						request.URL.String(),
-						err.Error(),
+						err,
 					)
 				}
 
@@ -228,10 +229,9 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 		}
 
 		if err != nil {
-			err = fmt.Errorf("Unexpected error while performing '%s' request to '%s': %s",
+			err = errors.Wrapf(err,"Unexpected error while performing '%s' request to '%s': %s",
 				request.Method,
 				request.URL.String(),
-				err.Error(),
 			)
 
 			return
@@ -243,7 +243,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 
 	responseBody, err = ioutil.ReadAll(response.Body)
 	if err != nil {
-		err = fmt.Errorf("Error reading response body for '%s': %s", request.URL.String(), err.Error())
+		err = errors.Wrapf(err,"error reading response body for '%s'", request.URL.String())
 	}
 
 	if client.IsExtendedLoggingEnabled() {
@@ -347,7 +347,7 @@ func readAPIResponseV1(responseBody []byte, statusCode int) (apiResponse *APIRes
 	apiResponse = &APIResponseV1{}
 	err = xml.Unmarshal(responseBody, apiResponse)
 	if err != nil {
-		err = fmt.Errorf("Error reading API response (v1) from XML: %s", err.Error())
+		err = errors.Wrapf(err,"error reading API response (v1) from XML")
 
 		return
 	}
@@ -368,7 +368,7 @@ func readAPIResponseAsJSON(responseBody []byte, statusCode int) (apiResponse *AP
 	apiResponse = &APIResponseV2{}
 	err = json.Unmarshal(responseBody, apiResponse)
 	if err != nil {
-		err = fmt.Errorf("Error reading API response (v2) from JSON: %s", err.Error())
+		err = errors.Wrapf(err,"error reading API response (v2) from JSON")
 
 		return
 	}

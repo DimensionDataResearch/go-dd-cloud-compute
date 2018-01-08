@@ -1,5 +1,7 @@
 package compute
 
+import "github.com/pkg/errors"
+
 // APIResponse represents the response to an API call.
 type APIResponse interface {
 	// GetMessage gets the message associated with the API response.
@@ -45,12 +47,19 @@ func IsNoIPAddressAvailableError(err error) bool {
 
 // IsAPIErrorCode determines whether the specified error represents a CloudControl API error with the specified response code.
 func IsAPIErrorCode(err error, responseCode string) bool {
-	apiError, ok := err.(*APIError)
+	apiError, ok := errors.Cause(err).(*APIError)
 	if !ok {
 		return false
 	}
 
 	return apiError.Response.GetResponseCode() == responseCode
+}
+
+// IsAPIError determines whether the specified error represents a CloudControl API error.
+func IsAPIError(err error, responseCode string) bool {
+	_, ok := errors.Cause(err).(*APIError)
+
+	return ok
 }
 
 // Well-known API (v1) results
