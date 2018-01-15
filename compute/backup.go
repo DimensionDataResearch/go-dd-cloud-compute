@@ -2,6 +2,10 @@ package compute
 
 import (
 	"encoding/xml"
+	"fmt"
+	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -11,24 +15,6 @@ const (
 	// BackupServicePlanAdvanced represents the advanced service plan for Cloud Backup
 	BackupServicePlanAdvanced = "Advanced"
 )
-
-// EnableBackup represents the request body when enabling Cloud Backup for a server.
-type EnableBackup struct {
-	// The XML name for the "EnableBackup" structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup NewBackup"`
-
-	// The Cloud Backup service plan ("Essentials" or "Advanced") to use.
-	ServicePlan string `xml:"servicePlan,attr"`
-}
-
-// ChangeBackupServicePlan represents the request body when changing the Cloud Backup service plan for a server.
-type ChangeBackupServicePlan struct {
-	// The XML name for the "ChangeBackupServicePlan" structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup ModifyBackup"`
-
-	// The new service plan ("Essentials" or "Advanced") to use.
-	ServicePlan string `xml:"servicePlan,attr"`
-}
 
 // BackupClientTypes represents the types of backup client enabled for a server.
 type BackupClientTypes struct {
@@ -42,7 +28,7 @@ type BackupClientTypes struct {
 // BackupClientType represents a types of backup client enabled for a server.
 type BackupClientType struct {
 	// The XML name for the BackupClientType structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup BackupClientType"`
+	XMLName xml.Name // Always a child element, so we'll accept element name from containing element's declaration
 
 	Type         string `xml:"type,attr"`
 	IsFileSystem bool   `xml:"isFileSystem,attr"`
@@ -61,7 +47,7 @@ type BackupStoragePolicies struct {
 // BackupStoragePolicy represents a Cloud Backup storage policy.
 type BackupStoragePolicy struct {
 	// The XML name for the BackupStoragePolicy structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup StoragePolicy"`
+	XMLName xml.Name // Always a child element, so we'll accept element name from containing element's declaration
 
 	// The policy name.
 	Name string `xml:"name,attr"`
@@ -85,49 +71,13 @@ type BackupSchedulePolicies struct {
 // BackupSchedulePolicy represents a Cloud Backup schedule policy.
 type BackupSchedulePolicy struct {
 	// The XML name for the BackupSchedulePolicy structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup SchedulePolicy"`
+	XMLName xml.Name // Always a child element, so we'll accept element name from containing element's declaration
 
 	// The policy name.
 	Name string `xml:"name,attr"`
 
 	// The policy description.
 	Description string `xml:"description,attr"`
-}
-
-// NewBackupClient represents the request body when adding a backup client to a server.
-type NewBackupClient struct {
-	// The XML name for the NewBackupClient structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup NewBackupClient"`
-
-	// The client type (e.g. "FA.Linux").
-	Type string `xml:"http://oec.api.opsource.net/schemas/backup type"`
-
-	// The name of the storage policy to use.
-	StoragePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup storagePolicyName"`
-
-	// The name of the schedule policy to use.
-	SchedulePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup schedulePolicyName"`
-
-	// The client alerting configuration (if any).
-	Alerting *BackupClientAlerting `xml:"http://oec.api.opsource.net/schemas/backup alerting,omitempty"`
-}
-
-// ModifyBackupClient represents the request body when modifying a server's backup client.
-type ModifyBackupClient struct {
-	// The XML name for the ModifyBackupClient structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup ModifyBackupClient"`
-
-	// The client type (e.g. "FA.Linux").
-	Type string `xml:"http://oec.api.opsource.net/schemas/backup type"`
-
-	// The name of the storage policy to use.
-	StoragePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup storagePolicyName"`
-
-	// The name of the schedule policy to use.
-	SchedulePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup schedulePolicyName"`
-
-	// The client alerting configuration (if any).
-	Alerting *BackupClientAlerting `xml:"http://oec.api.opsource.net/schemas/backup alerting,omitempty"`
 }
 
 // BackupClientAlerting represents the alerting configuration for a backup client.
@@ -190,4 +140,266 @@ type BackupClientDetail struct {
 
 	// The client download URL.
 	DownloadURL string `xml:"http://oec.api.opsource.net/schemas/backup downloadUrl"`
+}
+
+// newBackup represents the request body when enabling Cloud Backup for a server.
+type newBackup struct {
+	// The XML name for the "newBackup" structure
+	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup NewBackup"`
+
+	// The Cloud Backup service plan ("Essentials" or "Advanced") to use.
+	ServicePlan string `xml:"servicePlan,attr"`
+}
+
+// modifyBackup represents the request body when changing the Cloud Backup service plan for a server.
+type modifyBackup struct {
+	// The XML name for the "modifyBackup" structure
+	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup ModifyBackup"`
+
+	// The new service plan ("Essentials" or "Advanced") to use.
+	ServicePlan string `xml:"servicePlan,attr"`
+}
+
+// newBackupClient represents the request body when adding a backup client to a server.
+type newBackupClient struct {
+	// The XML name for the NewBackupClient structure
+	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup NewBackupClient"`
+
+	// The client type (e.g. "FA.Linux").
+	Type string `xml:"http://oec.api.opsource.net/schemas/backup type"`
+
+	// The name of the storage policy to use.
+	StoragePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup storagePolicyName"`
+
+	// The name of the schedule policy to use.
+	SchedulePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup schedulePolicyName"`
+
+	// The client alerting configuration (if any).
+	Alerting *BackupClientAlerting `xml:"http://oec.api.opsource.net/schemas/backup alerting,omitempty"`
+}
+
+// modifyBackupClient represents the request body when modifying a server's backup client.
+type modifyBackupClient struct {
+	// The XML name for the ModifyBackupClient structure
+	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup ModifyBackupClient"`
+
+	// The client type (e.g. "FA.Linux").
+	Type string `xml:"http://oec.api.opsource.net/schemas/backup type"`
+
+	// The name of the storage policy to use.
+	StoragePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup storagePolicyName"`
+
+	// The name of the schedule policy to use.
+	SchedulePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup schedulePolicyName"`
+
+	// The client alerting configuration (if any).
+	Alerting *BackupClientAlerting `xml:"http://oec.api.opsource.net/schemas/backup alerting,omitempty"`
+}
+
+// EnableServerBackup enables Cloud Backup for a server
+func (client *Client) EnableServerBackup(serverID string, servicePlan string) error {
+	requestURI := fmt.Sprintf("server/%s/backup", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodPost, &newBackup{
+		ServicePlan: servicePlan,
+	})
+	if err != nil {
+		return errors.Wrapf(err, "failed to create request for enabling backup on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return errors.Wrapf(err, "failed to execute request for enabling backup on server '%s'", serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse response for enabling backup on server '%s'", serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return response.ToError("failed to enable backup for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	return nil
+}
+
+// ChangeServerBackupServicePlan changes a server's Cloud Backup service plan
+func (client *Client) ChangeServerBackupServicePlan(serverID string, servicePlan string) error {
+	requestURI := fmt.Sprintf("server/%s/backup/modify", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodPost, &modifyBackup{
+		ServicePlan: servicePlan,
+	})
+	if err != nil {
+		return errors.Wrapf(err, "failed to create request for changing backup service plan on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return errors.Wrapf(err, "failed to execute request for changing backup service plan on server '%s'", serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse response for changing backup service plan on server '%s'", serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return response.ToError("failed to change backup service plan for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	return nil
+}
+
+// DisableServerBackup disables Cloud Backup for a server
+func (client *Client) DisableServerBackup(serverID string) error {
+	requestURI := fmt.Sprintf("server/%s/backup?disable", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create request for disabling backup on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return errors.Wrapf(err, "failed to execute request for disabling backup on server '%s'", serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse response for disabling backup on server '%s'", serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return response.ToError("failed to disable backup for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	return nil
+}
+
+// GetServerBackupClientTypes retrieves a list of a server's configured Cloud Backup clients.
+func (client *Client) GetServerBackupClientTypes(serverID string) (*BackupClientTypes, error) {
+	requestURI := fmt.Sprintf("server/%s/backup/client/type", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create request for retrieving backup client types on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to execute request for retrieving backup client types on server '%s'", serverID)
+	}
+
+	if statusCode != http.StatusOK {
+		response := &APIResponseV1{}
+		err = xml.Unmarshal(responseBody, response)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse response for retrieving backup client types on server '%s'", serverID)
+		}
+
+		return nil, response.ToError("failed to retrieve backup client types for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	clientTypes := &BackupClientTypes{}
+	err = xml.Unmarshal(responseBody, clientTypes)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse response for retrieving backup client types on server '%s'", serverID)
+	}
+
+	return clientTypes, nil
+}
+
+// GetServerBackupStoragePolicies retrieves a list of a server's configured Cloud Backup storage policies.
+func (client *Client) GetServerBackupStoragePolicies(serverID string) (*BackupStoragePolicies, error) {
+	requestURI := fmt.Sprintf("server/%s/backup/client/storagePolicy", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create request for retrieving backup storage policies on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to execute request for retrieving backup storage policies on server '%s'", serverID)
+	}
+
+	if statusCode != http.StatusOK {
+		response := &APIResponseV1{}
+		err = xml.Unmarshal(responseBody, response)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse response for retrieving backup storage policies on server '%s'", serverID)
+		}
+
+		return nil, response.ToError("failed to retrieve backup storage policies for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	clientTypes := &BackupStoragePolicies{}
+	err = xml.Unmarshal(responseBody, clientTypes)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse response for retrieving backup storage policies on server '%s'", serverID)
+	}
+
+	return clientTypes, nil
+}
+
+// GetServerBackupSchedulePolicies retrieves a list of a server's configured Cloud Backup schedule policies.
+func (client *Client) GetServerBackupSchedulePolicies(serverID string) (*BackupSchedulePolicies, error) {
+	requestURI := fmt.Sprintf("server/%s/backup/client/schedulePolicy", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create request for retrieving backup schedule policies on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to execute request for retrieving backup schedule policies on server '%s'", serverID)
+	}
+
+	if statusCode != http.StatusOK {
+		response := &APIResponseV1{}
+		err = xml.Unmarshal(responseBody, response)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse response for retrieving backup schedule policies on server '%s'", serverID)
+		}
+
+		return nil, response.ToError("failed to retrieve backup schedule policies for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	clientTypes := &BackupSchedulePolicies{}
+	err = xml.Unmarshal(responseBody, clientTypes)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse response for retrieving backup schedule policies on server '%s'", serverID)
+	}
+
+	return clientTypes, nil
 }

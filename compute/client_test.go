@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 /*
@@ -26,12 +27,16 @@ func readRequestBodyAsString(request *http.Request) (string, error) {
 	}
 
 	defer request.Body.Close()
-	responseBody, err := ioutil.ReadAll(request.Body)
+	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		return "", err
 	}
 
-	return string(responseBody), nil
+	if os.Getenv("MCP_TEST_DUMP_REQUEST_BODY") != "" {
+		fmt.Printf("RequestBody:\n%s", string(requestBody))
+	}
+
+	return string(requestBody), nil
 }
 
 func readRequestBodyAsJSON(request *http.Request, target interface{}) error {
@@ -40,12 +45,16 @@ func readRequestBodyAsJSON(request *http.Request, target interface{}) error {
 	}
 
 	defer request.Body.Close()
-	responseBody, err := ioutil.ReadAll(request.Body)
+	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		return err
 	}
 
-	return json.Unmarshal(responseBody, target)
+	if os.Getenv("MCP_TEST_DUMP_REQUEST_BODY") != "" {
+		fmt.Printf("RequestBody:\n%s", string(requestBody))
+	}
+
+	return json.Unmarshal(requestBody, target)
 }
 
 func readRequestBodyAsXML(request *http.Request, target interface{}) error {
@@ -57,6 +66,10 @@ func readRequestBodyAsXML(request *http.Request, target interface{}) error {
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		return err
+	}
+
+	if os.Getenv("MCP_TEST_DUMP_REQUEST_BODY") != "" {
+		fmt.Printf("RequestBody:\n%s", string(requestBody))
 	}
 
 	return xml.Unmarshal(requestBody, target)
