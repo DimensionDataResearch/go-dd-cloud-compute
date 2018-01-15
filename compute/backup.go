@@ -229,6 +229,37 @@ func (client *Client) EnableServerBackup(serverID string, servicePlan string) er
 	return nil
 }
 
+// DisableServerBackup disables Cloud Backup for a server
+func (client *Client) DisableServerBackup(serverID string) error {
+	requestURI := fmt.Sprintf("server/%s/backup?disable", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create request for disabling backup on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return errors.Wrapf(err, "failed to execute request for disabling backup on server '%s'", serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse response for disabling backup on server '%s'", serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return response.ToError("failed to disable backup for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	return nil
+}
+
 // ChangeServerBackupServicePlan changes a server's Cloud Backup service plan
 func (client *Client) ChangeServerBackupServicePlan(serverID string, servicePlan string) error {
 	requestURI := fmt.Sprintf("server/%s/backup/modify", serverID)
@@ -252,37 +283,6 @@ func (client *Client) ChangeServerBackupServicePlan(serverID string, servicePlan
 
 	if response.Result != ResultSuccess {
 		return response.ToError("failed to change backup service plan for server '%s' (HTTP %d / %s): %s",
-			serverID,
-			statusCode,
-			response.ResultCode,
-			response.Message,
-		)
-	}
-
-	return nil
-}
-
-// DisableServerBackup disables Cloud Backup for a server
-func (client *Client) DisableServerBackup(serverID string) error {
-	requestURI := fmt.Sprintf("server/%s/backup?disable", serverID)
-	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create request for disabling backup on server '%s'", serverID)
-	}
-
-	responseBody, statusCode, err := client.executeRequest(request)
-	if err != nil {
-		return errors.Wrapf(err, "failed to execute request for disabling backup on server '%s'", serverID)
-	}
-
-	response := &APIResponseV1{}
-	err = xml.Unmarshal(responseBody, response)
-	if err != nil {
-		return errors.Wrapf(err, "failed to parse response for disabling backup on server '%s'", serverID)
-	}
-
-	if response.Result != ResultSuccess {
-		return response.ToError("failed to disable backup for server '%s' (HTTP %d / %s): %s",
 			serverID,
 			statusCode,
 			response.ResultCode,
