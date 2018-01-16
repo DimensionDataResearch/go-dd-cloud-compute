@@ -9,6 +9,29 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Get server backup details (successful).
+func TestClient_GetServerBackupDetails_Success(test *testing.T) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "text/xml")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, getServerBackupDetailsResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	backupDetails, err := client.GetServerBackupDetails("5a32d6e4-9707-4813-a269-56ab4d989f4d")
+	if err != nil {
+		test.Fatal("Failed to retrieve server backup details: ", err)
+	}
+
+	verifyGetServerBackupDetailsResponse(test, backupDetails)
+}
+
 // Enable backup for server (successful).
 func TestClient_EnableServerBackup_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -101,6 +124,40 @@ func verifyEnableServerBackupTestRequest(test *testing.T, request *newBackup) {
 /*
  * Test responses.
  */
+
+const getServerBackupDetailsResponse = `
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<BackupDetails assetId="30fea016-db07-4935-919d-bfd18caaae62" servicePlan="Enterprise" state="NORMAL" xmlns="http://oec.api.opsource.net/schemas/backup">
+	<backupClient id="f1921082-94bc-491d-9136-0e7072df4823" type="FA.Linux" isFileSystem="true" status="Active">
+		<description>Linux File Agent</description>
+		<schedulePolicyName>12AM - 6AM</schedulePolicyName>
+		<storagePolicyName>14 Day Storage Policy + Secondary Copy</storagePolicyName>
+		<alerting trigger="ON_SUCCESS">
+			<emailAddress>backup@example.com</emailAddress>
+		</alerting>
+		<times lastBackup="2013-11-07T14:42:56" nextBackup="2013-1108T06:00:00"/>
+		<totalBackupSizeGb>1</totalBackupSizeGb>
+		<downloadUrl>http://10.161.212.55:8081/PCS/BackupClientInstallerDownload/7786e cd024ed47900a068f27e7867a08049d6d8c</downloadUrl>
+	</backupClient>
+</BackupDetails>
+`
+
+func verifyGetServerBackupDetailsResponse(test *testing.T, response *ServerBackupDetails) {
+	expect := expect(test)
+
+	expect.EqualsString("ServerBackupDetails.AssetID", "30fea016-db07-4935-919d-bfd18caaae62", response.AssetID)
+	expect.EqualsString("ServerBackupDetails.ServicePlan", BackupServicePlanEnterprise, response.ServicePlan)
+	expect.EqualsString("ServerBackupDetails.State", ResourceStatusNormal, response.State)
+
+	expect.EqualsInt("ServerBackupDetails.Clients.Length", 1, len(response.Clients))
+
+	expect.EqualsString("ServerBackupDetails.Clients[0].ID", "f1921082-94bc-491d-9136-0e7072df4823", response.Clients[0].ID)
+	expect.EqualsString("ServerBackupDetails.Clients[0].Type", "FA.Linux", response.Clients[0].Type)
+	expect.EqualsString("ServerBackupDetails.Clients[0].Description", "Linux File Agent", response.Clients[0].Description)
+	expect.EqualsString("ServerBackupDetails.Clients[0].SchedulePolicyName", "12AM - 6AM", response.Clients[0].SchedulePolicyName)
+	expect.EqualsString("ServerBackupDetails.Clients[0].StoragePolicyName", "14 Day Storage Policy + Secondary Copy", response.Clients[0].StoragePolicyName)
+	expect.EqualsInt("ServerBackupDetails.Clients[0].TotalBackupSizeGb", 1, response.Clients[0].TotalBackupSizeGb)
+}
 
 const enableBackupForServerResponse = `
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>

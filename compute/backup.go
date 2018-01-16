@@ -14,6 +14,9 @@ const (
 
 	// BackupServicePlanAdvanced represents the advanced service plan for Cloud Backup
 	BackupServicePlanAdvanced = "Advanced"
+
+	// BackupServicePlanAdvanced represents the enterprise service plan for Cloud Backup
+	BackupServicePlanEnterprise = "Enterprise"
 )
 
 // BackupClientTypes represents the types of backup client enabled for a server.
@@ -83,7 +86,7 @@ type BackupSchedulePolicy struct {
 // BackupClientAlerting represents the alerting configuration for a backup client.
 type BackupClientAlerting struct {
 	// The XML name for the BackupClientAlerting structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup BackupClientAlerting"`
+	XMLName xml.Name // Always a child element, so we'll accept element name from containing element's declaration
 
 	// When should the alert be triggered?
 	//
@@ -115,7 +118,7 @@ type ServerBackupDetails struct {
 // BackupClientDetail represents the detail for a specific backup client on a server.
 type BackupClientDetail struct {
 	// The XML name for the BackupClientDetail structure
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup BackupClientDetail"`
+	XMLName xml.Name // Always a child element, so we'll accept element name from containing element's declaration
 
 	// The client Id.
 	ID string `xml:"id,attr"`
@@ -127,7 +130,7 @@ type BackupClientDetail struct {
 	IsFileSystem bool `xml:"isFileSystem,attr"`
 
 	// A description of the backup client.
-	Description string `xml:"description,attr"`
+	Description string `xml:"http://oec.api.opsource.net/schemas/backup description"`
 
 	// The name of the storage policy to use.
 	StoragePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup storagePolicyName"`
@@ -137,6 +140,9 @@ type BackupClientDetail struct {
 
 	// The client alerting configuration (if any).
 	Alerting *BackupClientAlerting `xml:"http://oec.api.opsource.net/schemas/backup alerting,omitempty"`
+
+	// The server's total backup size (in GB).
+	TotalBackupSizeGb int `xml:"http://oec.api.opsource.net/schemas/backup totalBackupSizeGb"`
 
 	// The client download URL.
 	DownloadURL string `xml:"http://oec.api.opsource.net/schemas/backup downloadUrl"`
@@ -183,9 +189,6 @@ type modifyBackupClient struct {
 	// The XML name for the ModifyBackupClient structure
 	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/backup ModifyBackupClient"`
 
-	// The client type (e.g. "FA.Linux").
-	Type string `xml:"http://oec.api.opsource.net/schemas/backup type"`
-
 	// The name of the storage policy to use.
 	StoragePolicyName string `xml:"http://oec.api.opsource.net/schemas/backup storagePolicyName"`
 
@@ -194,6 +197,44 @@ type modifyBackupClient struct {
 
 	// The client alerting configuration (if any).
 	Alerting *BackupClientAlerting `xml:"http://oec.api.opsource.net/schemas/backup alerting,omitempty"`
+}
+
+// GetServerBackupDetails retrieves detailed information about a server's Cloud Backup status
+func (client *Client) GetServerBackupDetails(serverID string) (*ServerBackupDetails, error) {
+	requestURI := fmt.Sprintf("server/%s/backup", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create request for enabling backup on server '%s'", serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to execute request for enabling backup on server '%s'", serverID)
+	}
+
+	if statusCode != http.StatusOK {
+		response := &APIResponseV1{}
+		err = xml.Unmarshal(responseBody, response)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse error response for retrieval backup details of server '%s'", serverID)
+		}
+
+		return nil, response.ToError("failed to enable backup for server '%s' (HTTP %d / %s): %s",
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	serverBackupDetails := &ServerBackupDetails{}
+	err = xml.Unmarshal(responseBody, serverBackupDetails)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse response for retrieval backup details of server '%s'", serverID)
+	}
+
+	return serverBackupDetails, nil
 }
 
 // EnableServerBackup enables Cloud Backup for a server
@@ -484,4 +525,45 @@ func (client *Client) RemoveServerBackupClient(serverID string, clientID string)
 	}
 
 	return nil
+}
+
+// ModifyServerBackupClient modifies one of a server's existing backup clients.
+func (client *Client) ModifyServerBackupClient(serverID string, clientID string, schedulePolicyName string, storagePolicyName string, alerting *BackupClientAlerting) (clientDownloadURL string, err error) {
+	requestURI := fmt.Sprintf("server/%s/backup/client/%s", serverID, clientID)
+	request, err := client.newRequestV1(requestURI, http.MethodPost, &modifyBackupClient{
+		SchedulePolicyName: schedulePolicyName,
+		StoragePolicyName:  storagePolicyName,
+		Alerting:           alerting,
+	})
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create request for modifying backup client '%s' in server '%s'", clientID, serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to execute request for modifying backup client '%s' in server '%s'", clientID, serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to parse response for modifying backup client '%s' in server '%s'", clientID, serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return "", response.ToError("failed to modify backup client '%s' in server '%s' (HTTP %d / %s): %s",
+			clientID,
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	backupClientDownloadURL := response.GetAdditionalInformation("backupClient.downloadUrl")
+	if backupClientDownloadURL == nil {
+		return "", nil // No specific download URL for this client.
+	}
+
+	return *backupClientDownloadURL, nil
 }
