@@ -15,7 +15,7 @@ const (
 	// BackupServicePlanAdvanced represents the advanced service plan for Cloud Backup
 	BackupServicePlanAdvanced = "Advanced"
 
-	// BackupServicePlanAdvanced represents the enterprise service plan for Cloud Backup
+	// BackupServicePlanEnterprise represents the enterprise service plan for Cloud Backup
 	BackupServicePlanEnterprise = "Enterprise"
 )
 
