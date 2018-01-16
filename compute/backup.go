@@ -403,3 +403,85 @@ func (client *Client) GetServerBackupSchedulePolicies(serverID string) (*BackupS
 
 	return clientTypes, nil
 }
+
+// AddServerBackupClient adds a backup client to a server.
+func (client *Client) AddServerBackupClient(serverID string, clientType string, schedulePolicyName string, storagePolicyName string, alerting *BackupClientAlerting) (clientID string, clientDownloadURL string, err error) {
+	requestURI := fmt.Sprintf("server/%s/backup/client", serverID)
+	request, err := client.newRequestV1(requestURI, http.MethodPost, &newBackupClient{
+		Type:               clientType,
+		SchedulePolicyName: schedulePolicyName,
+		StoragePolicyName:  storagePolicyName,
+		Alerting:           alerting,
+	})
+	if err != nil {
+		return "", "", errors.Wrapf(err, "failed to create request for adding '%s' backup client to server '%s'", clientType, serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", "", errors.Wrapf(err, "failed to execute request for adding '%s' backup client to server '%s'", clientType, serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return "", "", errors.Wrapf(err, "failed to parse response for adding '%s' backup client to server '%s'", clientType, serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return "", "", response.ToError("failed to add '%s' backup client to server '%s' (HTTP %d / %s): %s",
+			clientType,
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	backupClientID := response.GetAdditionalInformation("backupClient.id")
+	if backupClientID == nil {
+		return "", "", response.ToError("request to add '%s' backup client to server '%s' succeeded, but the CloudControl API did not return a valid Id for the new backup client",
+			clientType,
+			serverID,
+		)
+	}
+
+	backupClientDownloadURL := response.GetAdditionalInformation("backupClient.downloadUrl")
+	if backupClientDownloadURL == nil {
+		return *backupClientID, "", nil // No specific download URL for this client.
+	}
+
+	return *backupClientID, *backupClientDownloadURL, nil
+}
+
+// RemoveServerBackupClient removes a backup client from a server.
+func (client *Client) RemoveServerBackupClient(serverID string, clientID string) error {
+	requestURI := fmt.Sprintf("server/%s/backup/client/%s?remove", serverID, clientID)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create request for removing backup client '%s' from server '%s'", clientID, serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return errors.Wrapf(err, "failed to execute request for removing backup client '%s' from server '%s'", clientID, serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse response for removing backup client '%s' from server '%s'", clientID, serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return response.ToError("failed to remove backup client '%s' from server '%s' (HTTP %d / %s): %s",
+			clientID,
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	return nil
+}
