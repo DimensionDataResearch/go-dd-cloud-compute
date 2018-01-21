@@ -39,7 +39,7 @@ func (response *APIResponseV1) GetMessage() string {
 
 // GetResponseCode gets the response code associated with the API response.
 func (response *APIResponseV1) GetResponseCode() string {
-	return response.Result
+	return response.ResultCode
 }
 
 // GetRequestID gets the request correlation ID.
