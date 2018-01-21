@@ -205,22 +205,26 @@ func (client *Client) GetServerBackupDetails(serverID string) (*ServerBackupDeta
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create request for enabling backup on server '%s'", serverID)
+		return nil, errors.Wrapf(err, "failed to create request for retrieving backup details of server '%s'", serverID)
 	}
 
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to execute request for enabling backup on server '%s'", serverID)
+		return nil, errors.Wrapf(err, "failed to execute request for retrieving backup details of server '%s'", serverID)
 	}
 
 	if statusCode != http.StatusOK {
 		response := &APIResponseV1{}
 		err = xml.Unmarshal(responseBody, response)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse error response for retrieval backup details of server '%s'", serverID)
+			return nil, errors.Wrapf(err, "failed to parse error response for retrieving backup details of server '%s'", serverID)
 		}
 
-		return nil, response.ToError("failed to enable backup for server '%s' (HTTP %d / %s): %s",
+		if response.ResultCode == ResultCodeBackupNotEnabledForServer {
+			return nil, nil
+		}
+
+		return nil, response.ToError("failed to retrieve backup details of server '%s' (HTTP %d / %s): %s",
 			serverID,
 			statusCode,
 			response.ResultCode,

@@ -81,6 +81,12 @@ const (
 
 	// ResultCodeExceedsLimit is a v1 API result code indicating that an operation cannot be performed on a resource because a resource limit was exceeded.
 	ResultCodeExceedsLimit = "REASON_751"
+
+	// ResultCodeBackupNotEnabledForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is not enabled for it.
+	ResultCodeBackupNotEnabledForServer = "REASON_543"
+
+	// ResultCodeBackupEnabledForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is enabled for it.
+	ResultCodeBackupEnabledForServer = "REASON_550"
 )
 
 // Well-known API (v2) response codes
