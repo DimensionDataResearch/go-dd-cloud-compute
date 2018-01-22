@@ -23,6 +23,9 @@ const (
 	// ResourceTypeServerAntiAffinityRule represents a server anti-affinity rule.
 	ResourceTypeServerAntiAffinityRule
 
+	// ResourceTypeServerBackup represents the backup configuration for a virtual machine.
+	ResourceTypeServerBackup
+
 	// ResourceTypeNetworkAdapter represents a network adapter in a virtual machine.
 	// Note that when calling methods such as WaitForChange, the Id must be of the form 'serverId/networkAdapterId'.
 	ResourceTypeNetworkAdapter

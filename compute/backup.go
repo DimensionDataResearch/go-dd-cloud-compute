@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/pkg/errors"
 )
@@ -18,6 +19,12 @@ const (
 	// BackupServicePlanEnterprise represents the enterprise service plan for Cloud Backup
 	BackupServicePlanEnterprise = "Enterprise"
 )
+
+// ServerBackup represents the backup configuration for a server.
+type ServerBackup struct {
+	ServicePlan string `json:"servicePlan"`
+	State       string `json:"state"`
+}
 
 // BackupClientTypes represents the types of backup client enabled for a server.
 type BackupClientTypes struct {
@@ -201,7 +208,15 @@ type modifyBackupClient struct {
 
 // GetServerBackupDetails retrieves detailed information about a server's Cloud Backup status
 func (client *Client) GetServerBackupDetails(serverID string) (*ServerBackupDetails, error) {
-	requestURI := fmt.Sprintf("server/%s/backup", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 
 	if err != nil {
@@ -220,7 +235,7 @@ func (client *Client) GetServerBackupDetails(serverID string) (*ServerBackupDeta
 			return nil, errors.Wrapf(err, "failed to parse error response for retrieving backup details of server '%s'", serverID)
 		}
 
-		if response.ResultCode == ResultCodeBackupNotEnabledForServer {
+		if response.ResultCode == ResultCodeBackupNotEnabledForServer || response.ResultCode == ResultCodeBackupEnablementInProgressForServer {
 			return nil, nil
 		}
 
@@ -243,7 +258,15 @@ func (client *Client) GetServerBackupDetails(serverID string) (*ServerBackupDeta
 
 // EnableServerBackup enables Cloud Backup for a server
 func (client *Client) EnableServerBackup(serverID string, servicePlan string) error {
-	requestURI := fmt.Sprintf("server/%s/backup", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodPost, &newBackup{
 		ServicePlan: servicePlan,
 	})
@@ -276,7 +299,15 @@ func (client *Client) EnableServerBackup(serverID string, servicePlan string) er
 
 // DisableServerBackup disables Cloud Backup for a server
 func (client *Client) DisableServerBackup(serverID string) error {
-	requestURI := fmt.Sprintf("server/%s/backup?disable", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup?disable",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create request for disabling backup on server '%s'", serverID)
@@ -307,7 +338,15 @@ func (client *Client) DisableServerBackup(serverID string) error {
 
 // ChangeServerBackupServicePlan changes a server's Cloud Backup service plan
 func (client *Client) ChangeServerBackupServicePlan(serverID string, servicePlan string) error {
-	requestURI := fmt.Sprintf("server/%s/backup/modify", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/modify",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodPost, &modifyBackup{
 		ServicePlan: servicePlan,
 	})
@@ -340,7 +379,15 @@ func (client *Client) ChangeServerBackupServicePlan(serverID string, servicePlan
 
 // GetServerBackupClientTypes retrieves a list of a server's configured Cloud Backup clients.
 func (client *Client) GetServerBackupClientTypes(serverID string) (*BackupClientTypes, error) {
-	requestURI := fmt.Sprintf("server/%s/backup/client/type", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client/type",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create request for retrieving backup client types on server '%s'", serverID)
@@ -377,7 +424,15 @@ func (client *Client) GetServerBackupClientTypes(serverID string) (*BackupClient
 
 // GetServerBackupStoragePolicies retrieves a list of a server's configured Cloud Backup storage policies.
 func (client *Client) GetServerBackupStoragePolicies(serverID string) (*BackupStoragePolicies, error) {
-	requestURI := fmt.Sprintf("server/%s/backup/client/storagePolicy", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client/storagePolicy",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create request for retrieving backup storage policies on server '%s'", serverID)
@@ -414,7 +469,15 @@ func (client *Client) GetServerBackupStoragePolicies(serverID string) (*BackupSt
 
 // GetServerBackupSchedulePolicies retrieves a list of a server's configured Cloud Backup schedule policies.
 func (client *Client) GetServerBackupSchedulePolicies(serverID string) (*BackupSchedulePolicies, error) {
-	requestURI := fmt.Sprintf("server/%s/backup/client/schedulePolicy", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client/schedulePolicy",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create request for retrieving backup schedule policies on server '%s'", serverID)
@@ -451,7 +514,15 @@ func (client *Client) GetServerBackupSchedulePolicies(serverID string) (*BackupS
 
 // AddServerBackupClient adds a backup client to a server.
 func (client *Client) AddServerBackupClient(serverID string, clientType string, schedulePolicyName string, storagePolicyName string, alerting *BackupClientAlerting) (clientID string, clientDownloadURL string, err error) {
-	requestURI := fmt.Sprintf("server/%s/backup/client", serverID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodPost, &newBackupClient{
 		Type:               clientType,
 		SchedulePolicyName: schedulePolicyName,
@@ -501,7 +572,16 @@ func (client *Client) AddServerBackupClient(serverID string, clientType string, 
 
 // RemoveServerBackupClient removes a backup client from a server.
 func (client *Client) RemoveServerBackupClient(serverID string, clientID string) error {
-	requestURI := fmt.Sprintf("server/%s/backup/client/%s?remove", serverID, clientID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client/%s?remove",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+		url.QueryEscape(clientID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create request for removing backup client '%s' from server '%s'", clientID, serverID)
@@ -533,7 +613,16 @@ func (client *Client) RemoveServerBackupClient(serverID string, clientID string)
 
 // ModifyServerBackupClient modifies one of a server's existing backup clients.
 func (client *Client) ModifyServerBackupClient(serverID string, clientID string, schedulePolicyName string, storagePolicyName string, alerting *BackupClientAlerting) (clientDownloadURL string, err error) {
-	requestURI := fmt.Sprintf("server/%s/backup/client/%s", serverID, clientID)
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client/%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+		url.QueryEscape(clientID),
+	)
 	request, err := client.newRequestV1(requestURI, http.MethodPost, &modifyBackupClient{
 		SchedulePolicyName: schedulePolicyName,
 		StoragePolicyName:  storagePolicyName,
@@ -570,4 +659,45 @@ func (client *Client) ModifyServerBackupClient(serverID string, clientID string,
 	}
 
 	return *backupClientDownloadURL, nil
+}
+
+// CancelBackupClientJobs cancels all running jobs (if any) for a backup client.
+func (client *Client) CancelBackupClientJobs(serverID string, clientID string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client/%s?cancelJob",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+		url.QueryEscape(clientID),
+	)
+	request, err := client.newRequestV1(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create request for canceling all jobs for backup client '%s' on server '%s'", clientID, serverID)
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return errors.Wrapf(err, "failed to execute request for canceling all jobs for backup client '%s' on server '%s'", clientID, serverID)
+	}
+
+	response := &APIResponseV1{}
+	err = xml.Unmarshal(responseBody, response)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse response for canceling all jobs for backup client '%s' on server '%s'", clientID, serverID)
+	}
+
+	if response.Result != ResultSuccess {
+		return response.ToError("failed to cancel jobs for backup client '%s' on server '%s' (HTTP %d / %s): %s",
+			clientID,
+			serverID,
+			statusCode,
+			response.ResultCode,
+			response.Message,
+		)
+	}
+
+	return nil
 }

@@ -18,6 +18,7 @@ type Server struct {
 	MemoryGB        int                           `json:"memoryGb"`
 	SCSIControllers VirtualMachineSCSIControllers `json:"scsiController"`
 	Network         VirtualMachineNetwork         `json:"networkInfo"`
+	Backup          *ServerBackup                 `json:"backup,omitempty"`
 	SourceImageID   string                        `json:"sourceImageId"`
 	State           string                        `json:"state"`
 	Deployed        bool                          `json:"deployed"`

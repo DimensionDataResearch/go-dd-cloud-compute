@@ -1,6 +1,10 @@
 package compute
 
-import "github.com/pkg/errors"
+import (
+	"log"
+
+	"github.com/pkg/errors"
+)
 
 // APIResponse represents the response to an API call.
 type APIResponse interface {
@@ -57,6 +61,11 @@ func IsAPIErrorCode(err error, responseCode string) bool {
 		return false
 	}
 
+	log.Printf("IsAPIErrorCode: %#v => '%s'",
+		apiError,
+		apiError.Response.GetResponseCode(),
+	)
+
 	return apiError.Response.GetResponseCode() == responseCode
 }
 
@@ -79,14 +88,26 @@ const (
 	// ResultCodeResourceBusy is a v1 API result code indicating that an operation cannot be performed on a resource because the resource is busy.
 	ResultCodeResourceBusy = "REASON_392"
 
-	// ResultCodeExceedsLimit is a v1 API result code indicating that an operation cannot be performed on a resource because a resource limit was exceeded.
-	ResultCodeExceedsLimit = "REASON_751"
+	// ResultCodeServerNotFound is a v1 API result code indicating that an operation cannot be performed on a server because the server could not be found.
+	ResultCodeServerNotFound = "REASON_395"
 
-	// ResultCodeBackupNotEnabledForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is not enabled for it.
+	// ResultCodeBackupNotEnabledForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is not enabled for that server.
 	ResultCodeBackupNotEnabledForServer = "REASON_543"
 
-	// ResultCodeBackupEnabledForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is enabled for it.
+	// ResultCodeBackupEnablementInProgressForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is in the process of being enabled for that server.
+	ResultCodeBackupEnablementInProgressForServer = "REASON_544"
+
+	// ResultCodeBackupJobInProgress is a v1 API result code indicating that an operation cannot be performed on a server because one or more backup jobs are in progress for that server.
+	ResultCodeBackupJobInProgress = "REASON_547"
+
+	// ResultCodeServerHasBackupAgents is a v1 API result code indicating that an operation cannot be performed on a server because the server still has one or more backup agents assigned to it.
+	ResultCodeServerHasBackupAgents = "REASON_548"
+
+	// ResultCodeBackupEnabledForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is enabled for that server.
 	ResultCodeBackupEnabledForServer = "REASON_550"
+
+	// ResultCodeExceedsLimit is a v1 API result code indicating that an operation cannot be performed on a resource because a resource limit was exceeded.
+	ResultCodeExceedsLimit = "REASON_751"
 )
 
 // Well-known API (v2) response codes

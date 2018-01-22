@@ -12,6 +12,9 @@ const (
 
 	// ResourceStatusPendingDelete indicates that a delete operation is pending for the resource.
 	ResourceStatusPendingDelete = "PENDING_DELETE"
+
+	// ResourceStatusDeleted is a pseudo-status indicates that a resource has been deleted.
+	ResourceStatusDeleted = ""
 )
 
 const (

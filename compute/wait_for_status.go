@@ -45,6 +45,79 @@ func (client *Client) WaitForDelete(resourceType ResourceType, id string, timeou
 	return err
 }
 
+// WaitForServerBackupStatus waits for a server to have the specified backup status.
+func (client *Client) WaitForServerBackupStatus(serverID string, actionDescription string, targetStatus string, timeout time.Duration) (server *Server, err error) {
+	waitTimeout := time.NewTimer(timeout)
+	defer waitTimeout.Stop()
+
+	pollTicker := time.NewTicker(5 * time.Second)
+	defer pollTicker.Stop()
+
+	for {
+		select {
+		case <-waitTimeout.C:
+			return nil, fmt.Errorf("Timed out after waiting %d seconds for %s of server '%s' to complete",
+				timeout/time.Second,
+				actionDescription,
+				serverID,
+			)
+
+		case <-pollTicker.C:
+			log.Printf("Polling status for server '%s'...", serverID)
+			if client.isCancellationRequested {
+				log.Printf("Client indicates that cancellation of pending requests has been requested.")
+
+				return nil, &OperationCancelledError{
+					OperationDescription: fmt.Sprintf("Wait for %s of server '%s'",
+						actionDescription,
+						serverID,
+					),
+				}
+			}
+
+			server, err := client.GetServer(serverID)
+			if err != nil {
+				return nil, err
+			}
+
+			if server == nil {
+				return nil, fmt.Errorf("no server was found with Id '%s'", serverID)
+			}
+			if server.Backup == nil {
+				if targetStatus == ResourceStatusDeleted {
+					return nil, nil
+				}
+
+				return nil, fmt.Errorf("expected backup status for server '%s' to become '%s', but server backup is now disabled", serverID, targetStatus)
+			}
+
+			switch server.Backup.State {
+			case ResourceStatusNormal:
+				log.Printf("%s of server '%s' has successfully completed.", actionDescription, serverID)
+
+				return server, nil
+
+			case ResourceStatusPendingAdd:
+				log.Printf("%s of server '%s' is still in progress...", actionDescription, serverID)
+
+				continue
+			case ResourceStatusPendingChange:
+				log.Printf("%s of server '%s' is still in progress...", actionDescription, serverID)
+
+				continue
+			case ResourceStatusPendingDelete:
+				log.Printf("%s of server '%s' is still in progress...", actionDescription, serverID)
+
+				continue
+			default:
+				log.Printf("Unexpected backup status for server '%s' ('%s').", serverID, server.Backup.State)
+
+				return nil, fmt.Errorf("%s failed for server '%s' ('%s'): encountered unexpected state '%s'", actionDescription, serverID, server.Name, server.Backup.State)
+			}
+		}
+	}
+}
+
 // waitForPendingOperation waits for a resource's pending operation to complete (i.e. for its status to become ResourceStatusNormal or the resource to disappear if expectedStatus is ResourceStatusPendingDelete).
 func (client *Client) waitForPendingOperation(resourceType ResourceType, id string, actionDescription string, expectedStatus string, isDelete bool, timeout time.Duration) (resource Resource, err error) {
 	return client.waitForResourceStatus(resourceType, id, actionDescription, expectedStatus, ResourceStatusNormal, isDelete, timeout)
@@ -90,9 +163,6 @@ func (client *Client) waitForResourceStatus(resourceType ResourceType, id string
 			}
 
 			resource, err := client.GetResource(id, resourceType)
-			if err != nil {
-				return nil, err
-			}
 			if err != nil {
 				return nil, err
 			}
