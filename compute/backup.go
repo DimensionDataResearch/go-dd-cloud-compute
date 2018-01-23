@@ -122,6 +122,18 @@ type ServerBackupDetails struct {
 	Clients []BackupClientDetail `xml:"http://oec.api.opsource.net/schemas/backup backupClient"`
 }
 
+// GetClientByID retrieves the BackupClientDetail (if any) with the specified Id.
+func (backupDetails *ServerBackupDetails) GetClientByID(id string) *BackupClientDetail {
+	for index := range backupDetails.Clients {
+		backupClient := &backupDetails.Clients[index]
+		if backupClient.ID == id {
+			return backupClient
+		}
+	}
+
+	return nil
+}
+
 // BackupClientDetail represents the detail for a specific backup client on a server.
 type BackupClientDetail struct {
 	// The XML name for the BackupClientDetail structure
