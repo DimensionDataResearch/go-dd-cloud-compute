@@ -23,9 +23,6 @@ const (
 	// ResourceTypeServerAntiAffinityRule represents a server anti-affinity rule.
 	ResourceTypeServerAntiAffinityRule
 
-	// ResourceTypeServerBackup represents the backup configuration for a virtual machine.
-	ResourceTypeServerBackup
-
 	// ResourceTypeNetworkAdapter represents a network adapter in a virtual machine.
 	// Note that when calling methods such as WaitForChange, the Id must be of the form 'serverId/networkAdapterId'.
 	ResourceTypeNetworkAdapter
@@ -79,22 +76,22 @@ type Resource interface {
 func GetResourceDescription(resourceType ResourceType) (string, error) {
 	switch resourceType {
 	case ResourceTypeNetworkDomain:
-		return "Network domain", nil
+		return "network domain", nil
 
 	case ResourceTypeVLAN:
 		return "VLAN", nil
 
 	case ResourceTypeServer:
-		return "Server", nil
+		return "server", nil
 
 	case ResourceTypeServerAntiAffinityRule:
-		return "Server anti-affinity rule", nil
+		return "server anti-affinity rule", nil
 
 	case ResourceTypeNetworkAdapter:
-		return "Network adapter", nil
+		return "network adapter", nil
 
 	case ResourceTypePublicIPBlock:
-		return "Public IPv4 address block", nil
+		return "public IPv4 address block", nil
 
 	case ResourceTypeFirewallRule:
 		return "Firewall rule", nil
