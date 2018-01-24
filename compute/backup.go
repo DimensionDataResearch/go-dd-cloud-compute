@@ -645,7 +645,7 @@ func (client *Client) ModifyServerBackupClient(serverID string, clientID string,
 		return "", err
 	}
 
-	requestURI := fmt.Sprintf("%s/server/%s/backup/client/%s",
+	requestURI := fmt.Sprintf("%s/server/%s/backup/client/%s/modify",
 		url.QueryEscape(organizationID),
 		url.QueryEscape(serverID),
 		url.QueryEscape(clientID),
