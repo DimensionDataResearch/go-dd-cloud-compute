@@ -148,6 +148,9 @@ type BackupClientDetail struct {
 	// Does the backup client operate at the file-system level?
 	IsFileSystem bool `xml:"isFileSystem,attr"`
 
+	// The backup client's status (e.g. "Unregistered", etc).
+	Status string `xml:"status,attr"`
+
 	// A description of the backup client.
 	Description string `xml:"http://oec.api.opsource.net/schemas/backup description"`
 

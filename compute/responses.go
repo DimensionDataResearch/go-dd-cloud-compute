@@ -1,8 +1,6 @@
 package compute
 
 import (
-	"log"
-
 	"github.com/pkg/errors"
 )
 
@@ -61,11 +59,6 @@ func IsAPIErrorCode(err error, responseCode string) bool {
 		return false
 	}
 
-	log.Printf("IsAPIErrorCode: %#v => '%s'",
-		apiError,
-		apiError.Response.GetResponseCode(),
-	)
-
 	return apiError.Response.GetResponseCode() == responseCode
 }
 
@@ -96,6 +89,9 @@ const (
 
 	// ResultCodeBackupEnablementInProgressForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is in the process of being enabled for that server.
 	ResultCodeBackupEnablementInProgressForServer = "REASON_544"
+
+	// ResultCodeBackupClientNotFound is a v1 API result code indicating that an operation cannot be performed on a backup client because the backup client does not exist (or was never actually installed on the target server).
+	ResultCodeBackupClientNotFound = "REASON_545"
 
 	// ResultCodeBackupJobInProgress is a v1 API result code indicating that an operation cannot be performed on a server because one or more backup jobs are in progress for that server.
 	ResultCodeBackupJobInProgress = "REASON_547"
