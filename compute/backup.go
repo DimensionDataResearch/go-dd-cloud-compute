@@ -18,6 +18,18 @@ const (
 
 	// BackupServicePlanEnterprise represents the enterprise service plan for Cloud Backup
 	BackupServicePlanEnterprise = "Enterprise"
+
+	// BackupClientStatusOffline indicates that a backup client is not currently contactable by Cloud Backup.
+	BackupClientStatusOffline = "Offline"
+
+	// BackupClientStatusUnregistered indicates that a backup client has never registered with Cloud Backup.
+	BackupClientStatusUnregistered = "Unregistered"
+
+	// BackupClientStatusUnconfigured indicates that a backup client has not been configured by Cloud Backup.
+	BackupClientStatusUnconfigured = "Unconfigured"
+
+	// BackupClientStatusActive indicates that a backup client is currently contactable by Cloud Backup and is ready to service requests.
+	BackupClientStatusActive = "Active"
 )
 
 // ServerBackup represents the backup configuration for a server.
