@@ -82,7 +82,7 @@ type VirtualListener struct {
 	PersistenceProfile         EntityReference           `json:"persistenceProfile"`
 	FallbackPersistenceProfile EntityReference           `json:"fallbackPersistenceProfile"`
 	SSLOffloadProfile          EntityReference           `json:"sslOffloadProfile"`
-	OptimizationProfiles       []string                  `json:"optimizationProfile"`
+	OptimizationProfile        string                    `json:"optimizationProfile"`
 	IRules                     []EntityReference         `json:"irule"`
 	State                      string                    `json:"state"`
 	CreateTime                 string                    `json:"createTime"`
@@ -159,7 +159,7 @@ type NewVirtualListenerConfiguration struct {
 	FallbackPersistenceProfileID *string  `json:"fallbackPersistenceProfileId,omitempty"`
 	SSLOffloadProfileID          *string  `json:"sslOffloadProfileId,omitempty"`
 	IRuleIDs                     []string `json:"iruleId"`
-	OptimizationProfiles         []string `json:"optimizationProfile"`
+	OptimizationProfile          *string  `json:"optimizationProfile,omitempty"`
 	NetworkDomainID              string   `json:"networkDomainId"`
 }
 
@@ -175,7 +175,7 @@ type EditVirtualListenerConfiguration struct {
 	PersistenceProfileID   *string   `json:"persistenceProfileId,omitempty"`
 	SSLOffloadProfileID    *string   `json:"sslOffloadProfileId,omitempty"`
 	IRuleIDs               *[]string `json:"iruleId,omitempty"`
-	OptimizationProfiles   *[]string `json:"optimizationProfile,omitempty"`
+	OptimizationProfile    *string   `json:"optimizationProfile,omitempty"`
 }
 
 // Request body for deleting a virtual listener.
@@ -196,7 +196,7 @@ func (client *Client) ListVirtualListenersInNetworkDomain(networkDomainID string
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (client *Client) GetVirtualListener(id string) (listener *VirtualListener, 
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func (client *Client) CreateVirtualListener(listenerConfiguration NewVirtualList
 	requestURI := fmt.Sprintf("%s/networkDomainVip/createVirtualListener",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &listenerConfiguration)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &listenerConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err
@@ -319,7 +319,7 @@ func (client *Client) EditVirtualListener(id string, listenerConfiguration EditV
 	requestURI := fmt.Sprintf("%s/networkDomainVip/editVirtualListener",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, editListenerConfiguration)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, editListenerConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -348,7 +348,7 @@ func (client *Client) DeleteVirtualListener(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/networkDomainVip/deleteVirtualListener",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteVirtualListener{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &deleteVirtualListener{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

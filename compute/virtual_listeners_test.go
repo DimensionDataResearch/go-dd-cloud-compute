@@ -42,7 +42,7 @@ func TestClient_CreateVirtualListener_Success(test *testing.T) {
 				FallbackPersistenceProfileID: stringToPtr("6f2f5d7b-cdd9-4d84-8ad7-999b64a87978"),
 				SSLOffloadProfileID:          stringToPtr("233a97dc-ee9b-4808-97ea-50b06624fd18"),
 				IRuleIDs:                     []string{"2b20abd9-ffdc-11e4-b010-005056806999"},
-				OptimizationProfiles:         []string{"TCP"},
+				OptimizationProfile:          stringToPtr("TCP"),
 			})
 			if err != nil {
 				test.Fatal(err)
@@ -81,9 +81,7 @@ const createVirtualListenerTestRequest = `
 	"iruleId": [
 		"2b20abd9-ffdc-11e4-b010-005056806999"
 	],
-	"optimizationProfile": [
-		"TCP"
-	]
+	"optimizationProfile": "TCP"
 }
 `
 
@@ -224,7 +222,6 @@ const getVirtualListenerTestResponse = `
         "id": "a34ca3f6-f3db-11e4-b010-005056806999",
         "name": "CCDEFAULT.SourceAddress"
     },
-	"optimizationProfile": [],
 	"sslOffloadProfile": {
 		"id": "9e6b496d-5261-4542-91aa-b50c7f569c55",
 		"name": "mySslProfile"
