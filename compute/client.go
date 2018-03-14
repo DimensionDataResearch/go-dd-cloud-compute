@@ -232,6 +232,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 			err = errors.Wrapf(err, "Unexpected error while performing '%s' request to '%s': %s",
 				request.Method,
 				request.URL.String(),
+				err,
 			)
 
 			return
