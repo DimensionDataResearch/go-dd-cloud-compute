@@ -135,7 +135,7 @@ func (client *Client) GetOSImage(id string) (image *OSImage, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSIm
 		url.QueryEscape(name),
 		url.QueryEscape(dataCenterID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (client *Client) ListOSImagesInDatacenter(dataCenterID string, paging *Pagi
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}

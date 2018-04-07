@@ -107,7 +107,7 @@ func (client *Client) GetAssetTagsByType(assetType string, datacenterID string, 
 			url.QueryEscape(datacenterID),
 		)
 	}
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (client *Client) GetAssetTags(assetID string, assetType string, paging *Pag
 		url.QueryEscape(assetType),
 		paging.toQueryParameters(),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (client *Client) ApplyAssetTags(assetID string, assetType string, tags ...T
 	requestURI := fmt.Sprintf("%s/tag/applyTags",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &applyTags{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &applyTags{
 		AssetID:   assetID,
 		AssetType: assetType,
 		Tags:      tags,
@@ -216,7 +216,7 @@ func (client *Client) RemoveAssetTags(assetID string, assetType string, tagNames
 	requestURI := fmt.Sprintf("%s/tag/removeTags",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &removeTags{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &removeTags{
 		AssetID:   assetID,
 		AssetType: assetType,
 		TagNames:  tagNames,
@@ -244,7 +244,7 @@ func (client *Client) GetTagKey(id string) (tagKey *TagKey, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func (client *Client) ListTagKeys(paging *Paging) (tagKeys *TagKeys, err error) 
 		url.QueryEscape(organizationID),
 		paging.toQueryParameters(),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +325,7 @@ func (client *Client) CreateTagKey(name string, description string, isValueRequi
 	requestURI := fmt.Sprintf("%s/tag/createTagKey",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &tagKey{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &tagKey{
 		Name:             name,
 		Description:      description,
 		IsValueRequired:  isValueRequired,
@@ -363,7 +363,7 @@ func (client *Client) DeleteTagKey(id string) error {
 	requestURI := fmt.Sprintf("%s/tag/deleteTagKey",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost,
+	request, err := client.newRequestV26(requestURI, http.MethodPost,
 		&deleteTagKey{id},
 	)
 	responseBody, statusCode, err := client.executeRequest(request)

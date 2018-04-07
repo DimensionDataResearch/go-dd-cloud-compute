@@ -54,7 +54,7 @@ func (client *Client) ListDefaultIRules(networkDomainID string, paging *Paging) 
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -133,7 +133,7 @@ func (client *Client) ListNetworkDomains(paging *Paging) (domains *NetworkDomain
 		url.QueryEscape(organizationID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err er
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func (client *Client) GetNetworkDomainByName(name string, dataCenterID string) (
 		url.QueryEscape(name),
 		url.QueryEscape(dataCenterID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +269,7 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &deployNetworkDomain{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &deployNetworkDomain{
 		Name:         name,
 		Description:  description,
 		Type:         plan,
@@ -310,7 +310,7 @@ func (client *Client) EditNetworkDomain(id string, name *string, description *st
 	requestURI := fmt.Sprintf("%s/network/editNetworkDomain",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &editNetworkDomain{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &editNetworkDomain{
 		ID:          id,
 		Name:        name,
 		Description: description,
@@ -344,7 +344,7 @@ func (client *Client) DeleteNetworkDomain(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &deleteNetworkDomain{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &deleteNetworkDomain{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

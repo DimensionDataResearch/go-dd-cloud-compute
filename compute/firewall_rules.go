@@ -562,7 +562,7 @@ func (client *Client) GetFirewallRule(id string) (rule *FirewallRule, err error)
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -607,7 +607,7 @@ func (client *Client) ListFirewallRules(networkDomainID string, paging *Paging) 
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -644,7 +644,7 @@ func (client *Client) CreateFirewallRule(configuration FirewallRuleConfiguration
 	requestURI := fmt.Sprintf("%s/network/createFirewallRule",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &configuration)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &configuration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err
@@ -679,7 +679,7 @@ func (client *Client) EditFirewallRule(id string, enabled bool) error {
 	requestURI := fmt.Sprintf("%s/network/editFirewallRule",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &editFirewallRule{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &editFirewallRule{
 		ID:      id,
 		Enabled: enabled,
 	})
@@ -710,7 +710,7 @@ func (client *Client) DeleteFirewallRule(id string) error {
 	requestURI := fmt.Sprintf("%s/network/deleteFirewallRule",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost,
+	request, err := client.newRequestV26(requestURI, http.MethodPost,
 		&deleteFirewallRule{id},
 	)
 	responseBody, statusCode, err := client.executeRequest(request)

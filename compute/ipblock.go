@@ -102,7 +102,7 @@ func (client *Client) GetPublicIPBlock(id string) (block *PublicIPBlock, err err
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (client *Client) ListPublicIPBlocks(networkDomainID string, paging *Paging)
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func (client *Client) AddPublicIPBlock(networkDomainID string) (blockID string, 
 	requestURI := fmt.Sprintf("%s/network/addPublicIpBlock",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost,
+	request, err := client.newRequestV26(requestURI, http.MethodPost,
 		&addPublicAddressBlock{networkDomainID},
 	)
 	responseBody, statusCode, err := client.executeRequest(request)
@@ -221,7 +221,7 @@ func (client *Client) RemovePublicIPBlock(id string) error {
 	requestURI := fmt.Sprintf("%s/network/removePublicIpBlock",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost,
+	request, err := client.newRequestV26(requestURI, http.MethodPost,
 		&removePublicAddressBlock{id},
 	)
 	responseBody, statusCode, err := client.executeRequest(request)
@@ -253,7 +253,7 @@ func (client *Client) ListReservedPublicIPAddresses(networkDomainID string, pagi
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -84,7 +84,7 @@ func (client *Client) GetIPAddressList(id string) (addressList *IPAddressList, e
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (client *Client) ListIPAddressLists(networkDomainID string) (addressLists *
 		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 	requestURI := fmt.Sprintf("%s/network/createIpAddressList",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &createIPAddressList{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &createIPAddressList{
 		Name:            name,
 		Description:     description,
 		IPVersion:       ipVersion,
@@ -211,7 +211,7 @@ func (client *Client) EditIPAddressList(edit EditIPAddressList) error {
 	requestURI := fmt.Sprintf("%s/network/editIpAddressList",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, edit)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, edit)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -242,7 +242,7 @@ func (client *Client) DeleteIPAddressList(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/network/deleteIpAddressList",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteIPAddressList{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &deleteIPAddressList{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

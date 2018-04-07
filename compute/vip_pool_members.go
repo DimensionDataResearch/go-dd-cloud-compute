@@ -58,7 +58,7 @@ func (client *Client) ListVIPPoolMembers(poolID string, paging *Paging) (members
 		url.QueryEscape(poolID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (client *Client) ListVIPPoolMembershipsInNetworkDomain(networkDomainID stri
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (client *Client) GetVIPPoolMember(id string) (member *VIPPoolMember, err er
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func (client *Client) AddVIPPoolMember(poolID string, nodeID string, status stri
 	requestURI := fmt.Sprintf("%s/networkDomainVip/addPoolMember",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &addPoolMember{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &addPoolMember{
 		PoolID: poolID,
 		NodeID: nodeID,
 		Status: status,
@@ -227,7 +227,7 @@ func (client *Client) EditVIPPoolMember(id string, status string) error {
 	requestURI := fmt.Sprintf("%s/networkDomainVip/editPoolMember",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &editPoolMember{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &editPoolMember{
 		ID:     id,
 		Status: status,
 	})
@@ -258,7 +258,7 @@ func (client *Client) RemoveVIPPoolMember(id string) error {
 	requestURI := fmt.Sprintf("%s/networkDomainVip/removePoolMember",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &removePoolMember{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &removePoolMember{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

@@ -55,7 +55,7 @@ func (client *Client) AddSCSIControllerToServer(serverID string, adapterType str
 	requestURI := fmt.Sprintf("%s/server/addScsiController",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &addSCSIControllerToServer{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &addSCSIControllerToServer{
 		ServerID:    serverID,
 		AdapterType: adapterType,
 		BusNumber:   busNumber,
@@ -87,7 +87,7 @@ func (client *Client) RemoveSCSIControllerFromServer(controllerID string) error 
 	requestURI := fmt.Sprintf("%s/server/removeScsiController",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &removeSCSIControllerFromServer{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &removeSCSIControllerFromServer{
 		ControllerID: controllerID,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
@@ -117,7 +117,7 @@ func (client *Client) AddDiskToSCSIController(controllerID string, scsiUnitID in
 	requestURI := fmt.Sprintf("%s/server/addDisk",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &addDiskToSCSIController{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &addDiskToSCSIController{
 		SCSIController: scsiController{
 			ControllerID: controllerID,
 			SCSIUnitID:   scsiUnitID,
@@ -157,7 +157,7 @@ func (client *Client) ExpandDisk(diskID string, newSizeGB int) (response *APIRes
 	requestURI := fmt.Sprintf("%s/server/expandDisk",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &expandDisk{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &expandDisk{
 		DiskID:    diskID,
 		NewSizeGB: newSizeGB,
 	})
@@ -181,7 +181,7 @@ func (client *Client) RemoveDisk(diskID string) error {
 	requestURI := fmt.Sprintf("%s/server/removeDisk",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &removeDisk{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &removeDisk{
 		DiskID: diskID,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)

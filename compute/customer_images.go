@@ -149,7 +149,7 @@ func (client *Client) GetCustomerImage(id string) (image *CustomerImage, err err
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (client *Client) FindCustomerImage(name string, dataCenterID string) (image
 		url.QueryEscape(name),
 		url.QueryEscape(dataCenterID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func (client *Client) ListCustomerImagesInDatacenter(dataCenterID string, paging
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (client *Client) ImportCustomerImage(imageName string, imageDescription str
 	requestURI := fmt.Sprintf("%s/image/importImage",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &importCustomerImage{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &importCustomerImage{
 		ImageName:            imageName,
 		ImageDescription:     imageDescription,
 		DatacenterID:         datacenterID,
@@ -339,7 +339,7 @@ func (client *Client) ExportCustomerImage(imageID string, ovfPackagePrefix strin
 	requestURI := fmt.Sprintf("%s/image/exportImage",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &exportCustomerImage{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &exportCustomerImage{
 		ImageID:          imageID,
 		OVFPackagePrefix: ovfPackagePrefix,
 	})

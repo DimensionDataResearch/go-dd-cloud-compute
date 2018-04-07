@@ -69,7 +69,7 @@ func (client *Client) ListDatacenters(paging *Paging) (datacenters *Datacenters,
 		url.QueryEscape(organizationID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (client *Client) GetDatacenter(id string) (datacenter *Datacenter, err erro
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -50,7 +50,7 @@ func (client *Client) GetNATRule(id string) (rule *NATRule, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (client *Client) ListNATRules(networkDomainID string, paging *Paging) (rule
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (client *Client) AddNATRule(networkDomainID string, internalIPAddress strin
 	requestURI := fmt.Sprintf("%s/network/createNatRule",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &createNATRule{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &createNATRule{
 		NetworkDomainID:   networkDomainID,
 		InternalIPAddress: internalIPAddress,
 		ExternalIPAddress: externalIPAddress,
@@ -173,7 +173,7 @@ func (client *Client) DeleteNATRule(id string) error {
 	requestURI := fmt.Sprintf("%s/network/deleteNatRule",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost,
+	request, err := client.newRequestV26(requestURI, http.MethodPost,
 		&deleteNATRule{id},
 	)
 	responseBody, statusCode, err := client.executeRequest(request)

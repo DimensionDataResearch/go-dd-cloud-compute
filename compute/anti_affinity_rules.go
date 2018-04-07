@@ -101,7 +101,7 @@ func (client *Client) GetServerAntiAffinityRule(ruleID string, networkDomainID s
 		url.QueryEscape(ruleID),
 		url.QueryEscape(networkDomainID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (client *Client) ListServerAntiAffinityRules(networkDomainID string, paging
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}

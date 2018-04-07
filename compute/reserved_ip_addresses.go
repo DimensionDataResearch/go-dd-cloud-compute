@@ -45,7 +45,7 @@ func (client *Client) ListReservedPrivateIPv4AddressesInVLAN(vlanID string) (res
 		url.QueryEscape(organizationID),
 		url.QueryEscape(vlanID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (client *Client) ReservePrivateIPv4Address(vlanID string, ipAddress string)
 	requestURI := fmt.Sprintf("%s/network/reservePrivateIpv4Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV26(requestURI, http.MethodGet, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
 	})
@@ -116,7 +116,7 @@ func (client *Client) UnreservePrivateIPv4Address(vlanID string, ipAddress strin
 	requestURI := fmt.Sprintf("%s/network/unreservePrivateIpv4Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV26(requestURI, http.MethodGet, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
 	})
@@ -151,7 +151,7 @@ func (client *Client) ListReservedIPv6AddressesInVLAN(vlanID string) (reservedIP
 		url.QueryEscape(organizationID),
 		url.QueryEscape(vlanID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (client *Client) ReserveIPv6Address(vlanID string, ipAddress string) error 
 	requestURI := fmt.Sprintf("%s/network/reserveIpv6Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV26(requestURI, http.MethodGet, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
 	})
@@ -222,7 +222,7 @@ func (client *Client) UnreserveIPv6Address(vlanID string, ipAddress string) erro
 	requestURI := fmt.Sprintf("%s/network/unreserveIpv6Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV26(requestURI, http.MethodGet, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
 	})

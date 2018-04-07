@@ -81,7 +81,7 @@ func (client *Client) GetPortList(id string) (portList *PortList, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (client *Client) ListPortLists(networkDomainID string) (portLists *PortList
 		url.QueryEscape(organizationID),
 		url.QueryEscape(networkDomainID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (client *Client) CreatePortList(name string, description string, networkDom
 	requestURI := fmt.Sprintf("%s/network/createPortList",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &createPortList{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &createPortList{
 		Name:            name,
 		Description:     description,
 		Ports:           ports,
@@ -207,7 +207,7 @@ func (client *Client) EditPortList(id string, edit EditPortList) error {
 	requestURI := fmt.Sprintf("%s/network/editPortList",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, edit)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, edit)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -238,7 +238,7 @@ func (client *Client) DeletePortList(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/network/deletePortList",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deletePortList{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &deletePortList{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

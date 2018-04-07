@@ -172,7 +172,7 @@ func (client *Client) ListVIPPoolsInNetworkDomain(networkDomainID string, paging
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (client *Client) GetVIPPool(id string) (pool *VIPPool, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +258,7 @@ func (client *Client) CreateVIPPool(poolConfiguration NewVIPPoolConfiguration) (
 	requestURI := fmt.Sprintf("%s/networkDomainVip/createPool",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &poolConfiguration)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &poolConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err
@@ -295,7 +295,7 @@ func (client *Client) EditVIPPool(id string, poolConfiguration EditVIPPoolConfig
 	requestURI := fmt.Sprintf("%s/networkDomainVip/editPool",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, editPoolConfiguration)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, editPoolConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -324,7 +324,7 @@ func (client *Client) DeleteVIPPool(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/networkDomainVip/deletePool",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteVIPPool{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &deleteVIPPool{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

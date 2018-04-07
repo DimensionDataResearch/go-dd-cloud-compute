@@ -137,7 +137,7 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (client *Client) GetVLANByName(name string, networkDomainID string) (*VLAN,
 		url.QueryEscape(name),
 		url.QueryEscape(networkDomainID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 	requestURI := fmt.Sprintf("%s/network/deployVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployVLAN{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &DeployVLAN{
 		VLANID:          networkDomainID,
 		Name:            name,
 		Description:     description,
@@ -308,7 +308,7 @@ func (client *Client) EditVLAN(id string, name *string, description *string) (er
 	requestURI := fmt.Sprintf("%s/network/editVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditVLAN{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &EditVLAN{
 		ID:          id,
 		Name:        name,
 		Description: description,
@@ -341,7 +341,7 @@ func (client *Client) DeleteVLAN(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/network/deleteVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteVLAN{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &DeleteVLAN{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

@@ -23,7 +23,7 @@ func (client *Client) CloneServer(serverID string, imageName string, imageDescri
 	requestURI := fmt.Sprintf("%s/server/cloneServer",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &cloneServer{
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &cloneServer{
 		ServerID:             serverID,
 		ImageName:            imageName,
 		ImageDescription:     imageDescription,
