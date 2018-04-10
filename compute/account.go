@@ -3,6 +3,7 @@ package compute
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -71,6 +72,11 @@ func (client *Client) GetAccount() (*Account, error) {
 	account := &Account{}
 	err = xml.Unmarshal(responseBody, account)
 	if err != nil {
+		log.Printf("Received invalid XML response from the CloudControl account-details API: %s\n'%s'",
+			err,
+			string(responseBody),
+		)
+
 		return nil, err
 	}
 
