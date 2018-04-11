@@ -279,7 +279,7 @@ func (client *Client) newRequestV1(relativeURI string, method string, body inter
 	}
 
 	request.SetBasicAuth(client.username, client.password)
-	request.Header.Set("Accept", "text/xml")
+	request.Header.Set("Accept", "text/xml; charset=utf-8")
 
 	if bodyReader != nil {
 		request.Header.Set("Content-Type", "text/xml")
