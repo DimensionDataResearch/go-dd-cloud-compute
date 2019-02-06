@@ -38,32 +38,47 @@ var findOSImageTestResponse = `
 	{
 		"osImage": [
 			{
-			  "name": "CentOS 7 64-bit 2 CPU",
-			  "description": "CentOS Release 7.1 64-bit",
-			  "operatingSystem": {
-				"id": "CENTOS764",
-				"displayName": "CENTOS7/64",
-				"family": "UNIX"
-			  },
-			  "cpu": {
-				"count": 2,
-				"speed": "STANDARD",
-				"coresPerSocket": 1
-			  },
-			  "memoryGb": 4,
-			  "disk": [
-				{
-				  "id": "55f6780c-bcc6-49d5-8e9b-26c26b6381fa",
-				  "scsiId": 0,
-				  "sizeGb": 10,
-				  "speed": "STANDARD"
+				"name": "CentOS 7 64-bit 2 CPU",
+				"description": "CentOS Release 7.2 64-bit",
+				"cpu": {
+					"count": 2,
+					"speed": "STANDARD",
+					"coresPerSocket": 1
+				},
+				"memoryGb": 4,
+				"scsiController": [
+					{
+						"id": "eec5a912-0fb0-11e7-b626-001b21cfdbe0",
+						"adapterType": "LSI_LOGIC_PARALLEL",
+						"key": 1000,
+						"disk": [
+							{
+								"id": "fab8c94e-5f8a-4617-8be9-6514fc779bf1",
+								"sizeGb": 10,
+								"speed": "STANDARD",
+								"scsiId": 0
+							}
+						],
+						"busNumber": 0
+					}
+				],
+				"sataController": [],
+				"floppy": [],
+				"nic": [],
+				"softwareLabel": [],
+				"createTime": "2016-08-10T14:05:12.000Z",
+				"id": "e1b4e0cc-35ba-47be-a2d7-1b5601b87119",
+				"datacenterId": "AU9",
+				"osImageKey": "T-CENT-7-64-2-4-10",
+				"sortOrder": 65,
+				"guest": {
+					"operatingSystem": {
+						"id": "CENTOS764",
+						"displayName": "CENTOS7/64",
+						"family": "UNIX"
+					},
+					"osCustomization": true
 				}
-			  ],
-			  "softwareLabel": [],
-			  "createTime": "2015-10-26T10:34:40.000Z",
-			  "id": "7e68acb4-bbb8-4206-b30b-0e6c878056bc",
-			  "datacenterId": "AU9",
-			  "osImageKey": "T-CENT-7-64-2-4-10"
 			}
 		],
 		"pageNumber": 1,
@@ -77,27 +92,33 @@ func verifyFindOSImageTestResponse(test *testing.T, image *OSImage) {
 	expect := expect(test)
 
 	expect.NotNil("OSImage", image)
-	expect.EqualsString("OSImage.ID", "7e68acb4-bbb8-4206-b30b-0e6c878056bc", image.ID)
+	expect.EqualsString("OSImage.ID", "e1b4e0cc-35ba-47be-a2d7-1b5601b87119", image.ID)
 	expect.EqualsString("OSImage.Name", "CentOS 7 64-bit 2 CPU", image.Name)
-	expect.EqualsString("OSImage.Description", "CentOS Release 7.1 64-bit", image.Description)
+	expect.EqualsString("OSImage.Description", "CentOS Release 7.2 64-bit", image.Description)
 
-	expect.EqualsString("OSImage.OperatingSystem.ID", "CENTOS764", image.OperatingSystem.ID)
-	expect.EqualsString("OSImage.OperatingSystem.DisplayName", "CENTOS7/64", image.OperatingSystem.DisplayName)
-	expect.EqualsString("OSImage.OperatingSystem.Family", "UNIX", image.OperatingSystem.Family)
+	expect.EqualsString("OSImage.Guest.OperatingSystem.ID", "CENTOS764", image.Guest.OperatingSystem.ID)
+	expect.EqualsString("OSImage.Guest.OperatingSystem.DisplayName", "CENTOS7/64", image.Guest.OperatingSystem.DisplayName)
+	expect.EqualsString("OSImage.Guest.OperatingSystem.Family", "UNIX", image.Guest.OperatingSystem.Family)
 
 	expect.EqualsInt("OSImage.CPU.Count", 2, image.CPU.Count)
 	expect.EqualsString("OSImage.CPU.Speed", "STANDARD", image.CPU.Speed)
 	expect.EqualsInt("OSImage.CPU.CoresPerSocket", 1, image.CPU.CoresPerSocket)
 
-	expect.NotNil("OSImage.Disks", image.Disks)
+	expect.EqualsInt("OSImage.SCSIControllers.Length", 1, len(image.SCSIControllers))
 
-	disk1 := image.Disks[0]
-	expect.NotNil("OSImage.Disks[0].ID", disk1.ID)
-	expect.EqualsString("OSImage.Disks[0].ID", "55f6780c-bcc6-49d5-8e9b-26c26b6381fa", *disk1.ID)
+	controller1 := image.SCSIControllers[0]
+	expect.EqualsString("OSImage.SCSIControllers[0].ID", "eec5a912-0fb0-11e7-b626-001b21cfdbe0", controller1.ID)
+	expect.EqualsString("OSImage.SCSIControllers[0].AdapterType", StorageControllerAdapterTypeLSILogicParallel, controller1.AdapterType)
+	expect.EqualsInt("OSImage.SCSIControllers[0].BusNumber", 0, controller1.BusNumber)
+
+	expect.EqualsInt("OSImage.SCSIControllers[0].Disks.Length", 1, len(controller1.Disks))
+
+	disk1 := controller1.Disks[0]
+	expect.EqualsString("OSImage.Disks[0].ID", "fab8c94e-5f8a-4617-8be9-6514fc779bf1", disk1.ID)
 	expect.EqualsInt("OSImage.Disks[0].SCSIUnitID", 0, disk1.SCSIUnitID)
 	expect.EqualsInt("OSImage.Disks[0].SizeGB", 10, disk1.SizeGB)
 	expect.EqualsString("OSImage.Disks[0].Speed", "STANDARD", disk1.Speed)
 
-	expect.EqualsString("OSImage.CreateTime", "2015-10-26T10:34:40.000Z", image.CreateTime)
+	expect.EqualsString("OSImage.CreateTime", "2016-08-10T14:05:12.000Z", image.CreateTime)
 	expect.EqualsString("OSImage.OSImageKey", "T-CENT-7-64-2-4-10", image.OSImageKey)
 }

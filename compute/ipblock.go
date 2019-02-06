@@ -45,6 +45,17 @@ func (block *PublicIPBlock) IsDeleted() bool {
 	return block == nil
 }
 
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (block *PublicIPBlock) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID: block.ID,
+		Name: fmt.Sprintf("%s+%d",
+			block.BaseIP,
+			block.Size,
+		),
+	}
+}
+
 var _ Resource = &PublicIPBlock{}
 
 // PublicIPBlocks represents a page of PublicIPBlock results.
@@ -329,7 +340,7 @@ func calculateBlockAddresses(block PublicIPBlock) ([]string, error) {
 
 	baseAddressComponents := strings.Split(block.BaseIP, ".")
 	if len(baseAddressComponents) != 4 {
-		return addresses, fmt.Errorf("Invalid base IP address '%s'.", block.BaseIP)
+		return addresses, fmt.Errorf("invalid base IP address '%s'", block.BaseIP)
 	}
 	baseOctet, err := strconv.Atoi(baseAddressComponents[3])
 	if err != nil {

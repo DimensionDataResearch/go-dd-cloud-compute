@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/DimensionDataResearch/go-dd-cloud-compute/compute/requests"
+	"github.com/pkg/errors"
 )
 
 // Client is the client for Dimension Data's cloud compute API.
@@ -27,6 +28,7 @@ type Client struct {
 	stateLock                *sync.Mutex
 	httpClient               *http.Client
 	account                  *Account
+	isCancellationRequested  bool
 	isExtendedLoggingEnabled bool
 }
 
@@ -52,16 +54,26 @@ func NewClientWithBaseAddress(baseAddress string, username string, password stri
 		&sync.Mutex{},
 		&http.Client{},
 		nil,
+		false, // isCancellationRequested
 		isExtendedLoggingEnabled,
 	}
 }
 
-// Reset clears all cached data from the Client.
+// Cancel cancels all pending WaitForXXX or HTTP request operations.
+func (client *Client) Cancel() {
+	client.stateLock.Lock()
+	defer client.stateLock.Unlock()
+
+	client.isCancellationRequested = true
+}
+
+// Reset clears all cached data from the Client and resets cancellation (if required).
 func (client *Client) Reset() {
 	client.stateLock.Lock()
 	defer client.stateLock.Unlock()
 
 	client.account = nil
+	client.isCancellationRequested = false
 }
 
 // EnableExtendedLogging enables logging of HTTP requests and responses.
@@ -159,7 +171,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 		log.Printf("Unexpected error while performing '%s' request to '%s': %s.",
 			request.Method,
 			request.URL.String(),
-			err.Error(),
+			err,
 		)
 
 		for retryCount := 0; retryCount < client.maxRetryCount; retryCount++ {
@@ -169,6 +181,19 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 					request.URL.String(),
 					retryCount-client.maxRetryCount,
 				)
+			}
+
+			if client.isCancellationRequested {
+				log.Printf("Client indicates that cancellation of pending requests has been requested.")
+
+				err = &OperationCancelledError{
+					OperationDescription: fmt.Sprintf("%s of '%s'",
+						request.Method,
+						request.RequestURI,
+					),
+				}
+
+				return
 			}
 
 			// Try again with a fresh request.
@@ -186,7 +211,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 					log.Printf("Still failing - '%s' request to '%s': %s.",
 						request.Method,
 						request.URL.String(),
-						err.Error(),
+						err,
 					)
 				}
 
@@ -204,10 +229,10 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 		}
 
 		if err != nil {
-			err = fmt.Errorf("Unexpected error while performing '%s' request to '%s': %s",
+			err = errors.Wrapf(err, "Unexpected error while performing '%s' request to '%s': %s",
 				request.Method,
 				request.URL.String(),
-				err.Error(),
+				err,
 			)
 
 			return
@@ -219,7 +244,7 @@ func (client *Client) executeRequest(request *http.Request) (responseBody []byte
 
 	responseBody, err = ioutil.ReadAll(response.Body)
 	if err != nil {
-		err = fmt.Errorf("Error reading response body for '%s': %s", request.URL.String(), err.Error())
+		err = errors.Wrapf(err, "error reading response body for '%s'", request.URL.String())
 	}
 
 	if client.IsExtendedLoggingEnabled() {
@@ -254,7 +279,7 @@ func (client *Client) newRequestV1(relativeURI string, method string, body inter
 	}
 
 	request.SetBasicAuth(client.username, client.password)
-	request.Header.Set("Accept", "text/xml")
+	request.Header.Set("Accept", "text/xml; charset=utf-8")
 
 	if bodyReader != nil {
 		request.Header.Set("Content-Type", "text/xml")
@@ -265,37 +290,32 @@ func (client *Client) newRequestV1(relativeURI string, method string, body inter
 
 // Create a basic request for the compute API (V2.2, JSON).
 func (client *Client) newRequestV22(relativeURI string, method string, body interface{}) (*http.Request, error) {
-	requestURI := fmt.Sprintf("%s/caas/2.2/%s", client.baseAddress, relativeURI)
-
-	var (
-		request    *http.Request
-		bodyReader io.Reader
-		err        error
-	)
-
-	bodyReader, err = newReaderFromJSON(body)
-	if err != nil {
-		return nil, err
-	}
-
-	request, err = http.NewRequest(method, requestURI, bodyReader)
-	if err != nil {
-		return nil, err
-	}
-
-	request.SetBasicAuth(client.username, client.password)
-	request.Header.Add("Accept", "application/json")
-
-	if bodyReader != nil {
-		request.Header.Set("Content-Type", "application/json")
-	}
-
-	return request, nil
+	return client.newRequestV2x(2, relativeURI, method, body)
 }
 
 // Create a basic request for the compute API (V2.3, JSON).
 func (client *Client) newRequestV23(relativeURI string, method string, body interface{}) (*http.Request, error) {
-	requestURI := fmt.Sprintf("%s/caas/2.3/%s", client.baseAddress, relativeURI)
+	return client.newRequestV2x(3, relativeURI, method, body)
+}
+
+// Create a basic request for the compute API (V2.4, JSON).
+func (client *Client) newRequestV24(relativeURI string, method string, body interface{}) (*http.Request, error) {
+	return client.newRequestV2x(4, relativeURI, method, body)
+}
+
+// Create a basic request for the compute API (V2.5, JSON).
+func (client *Client) newRequestV25(relativeURI string, method string, body interface{}) (*http.Request, error) {
+	return client.newRequestV2x(5, relativeURI, method, body)
+}
+
+// Create a basic request for the compute API (V2.5, JSON).
+func (client *Client) newRequestV26(relativeURI string, method string, body interface{}) (*http.Request, error) {
+	return client.newRequestV2x(6, relativeURI, method, body)
+}
+
+// Create a basic request for the compute API (V2.x, JSON).
+func (client *Client) newRequestV2x(minorVersion int, relativeURI string, method string, body interface{}) (*http.Request, error) {
+	requestURI := fmt.Sprintf("%s/caas/2.%d/%s", client.baseAddress, minorVersion, relativeURI)
 
 	var (
 		request    *http.Request
@@ -328,7 +348,7 @@ func readAPIResponseV1(responseBody []byte, statusCode int) (apiResponse *APIRes
 	apiResponse = &APIResponseV1{}
 	err = xml.Unmarshal(responseBody, apiResponse)
 	if err != nil {
-		err = fmt.Errorf("Error reading API response (v1) from XML: %s", err.Error())
+		err = errors.Wrapf(err, "error reading API response (v1) from XML")
 
 		return
 	}
@@ -349,7 +369,7 @@ func readAPIResponseAsJSON(responseBody []byte, statusCode int) (apiResponse *AP
 	apiResponse = &APIResponseV2{}
 	err = json.Unmarshal(responseBody, apiResponse)
 	if err != nil {
-		err = fmt.Errorf("Error reading API response (v2) from JSON: %s", err.Error())
+		err = errors.Wrapf(err, "error reading API response (v2) from JSON")
 
 		return
 	}

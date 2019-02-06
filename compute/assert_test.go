@@ -29,7 +29,13 @@ func (expect expectHelper) IsFalse(description string, condition bool) {
 
 func (expect expectHelper) IsNil(description string, actual interface{}) {
 	if !reflect.ValueOf(actual).IsNil() {
-		expect.test.Fatalf("%s was not nil.", description)
+		// Convenience
+		str, ok := actual.(*string)
+		if ok {
+			actual = *str
+		}
+
+		expect.test.Fatalf("%s was not nil (%#v).", description, actual)
 	}
 }
 

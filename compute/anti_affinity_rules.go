@@ -55,6 +55,22 @@ func (rule *ServerAntiAffinityRule) IsDeleted() bool {
 	return rule == nil
 }
 
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (rule *ServerAntiAffinityRule) ToEntityReference() EntityReference {
+	name := ""
+	if len(rule.Servers) == 2 {
+		name = fmt.Sprintf("%s/%s",
+			rule.Servers[0].Name,
+			rule.Servers[1].Name,
+		)
+	}
+
+	return EntityReference{
+		ID:   rule.ID,
+		Name: name,
+	}
+}
+
 var _ Resource = &ServerAntiAffinityRule{}
 
 // ServerAntiAffinityRules represents a page of ServerAntiAffinityRule results.

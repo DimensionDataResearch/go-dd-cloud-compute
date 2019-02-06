@@ -15,6 +15,16 @@ type IRule struct {
 	VirtualListenerProtocol string `json:"virtualListenerProtocol"`
 }
 
+// GetID retrieves the iRule's ID.
+func (iRule *IRule) GetID() string {
+	return iRule.ID
+}
+
+// GetName retrieves the iRule's name.
+func (iRule *IRule) GetName() string {
+	return iRule.Name
+}
+
 // ToEntityReference creates an EntityReference representing the IRule.
 func (iRule *IRule) ToEntityReference() EntityReference {
 	return EntityReference{

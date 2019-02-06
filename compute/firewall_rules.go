@@ -75,6 +75,14 @@ func (rule *FirewallRule) IsDeleted() bool {
 	return rule == nil
 }
 
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (rule *FirewallRule) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   rule.ID,
+		Name: rule.Name,
+	}
+}
+
 var _ Resource = &FirewallRule{}
 
 // FirewallRuleScope represents a scope (IP and / or port) for firewall configuration (source or destination).
@@ -104,6 +112,11 @@ func (scope *FirewallRuleScope) IsScopePort() bool {
 // IsScopePortRange determines whether the firewall rule scope matches a port range.
 func (scope *FirewallRuleScope) IsScopePortRange() bool {
 	return scope.Port != nil && scope.Port.End != nil
+}
+
+// IsScopePortList determines whether the firewall rule scope matches a port list.
+func (scope *FirewallRuleScope) IsScopePortList() bool {
+	return scope.PortListID != nil
 }
 
 // IsScopeAddressList determines whether the firewall rule scope matches an IP address list.

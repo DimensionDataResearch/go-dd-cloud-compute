@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"log"
 )
 
 // IPAddressList represents an IP address list.
@@ -22,6 +23,7 @@ type IPAddressList struct {
 // BuildEditRequest creates an EditIPAddressList using the existing addresses and child list references in the IP address list.
 func (addressList *IPAddressList) BuildEditRequest() EditIPAddressList {
 	edit := &EditIPAddressList{
+		ID:           addressList.ID,
 		Description:  addressList.Description,
 		Addresses:    addressList.Addresses,
 		ChildListIDs: make([]string, len(addressList.ChildLists)),
@@ -201,7 +203,7 @@ func (client *Client) CreateIPAddressList(name string, description string, ipVer
 // You can IPAddressList.BuildEditRequest() to create an EditIPAddressList request that copies the current state of the IPAddressList (and then apply customisations).
 //
 // This operation is synchronous.
-func (client *Client) EditIPAddressList(id string, edit EditIPAddressList) error {
+func (client *Client) EditIPAddressList(edit EditIPAddressList) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -221,6 +223,7 @@ func (client *Client) EditIPAddressList(id string, edit EditIPAddressList) error
 		return err
 	}
 
+	log.Printf("response code: %s", apiResponse.ResponseCode)
 	if apiResponse.ResponseCode != ResponseCodeOK {
 		return apiResponse.ToError("Request to edit IP address list failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
@@ -258,3 +261,66 @@ func (client *Client) DeleteIPAddressList(id string) (err error) {
 
 	return nil
 }
+
+// GetIPAddressList retrieves the IP address list by name.
+// Name is the name of the IP address list to retrieve.
+// Returns nil if no addressList is found with the specified name.
+func (client *Client) GetIPAddressListByName(name string, networkDomainID string) (addressList *IPAddressList, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/ipAddressList?networkDomainId=%s&name=%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(networkDomainID),
+		url.QueryEscape(name),
+	)
+	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
+			return nil, nil // Not an error, but was not found.
+		}
+
+		return nil, apiResponse.ToError("Request to retrieve IP address list failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	addressLists := &IPAddressLists{}
+	err = json.Unmarshal(responseBody, addressLists)
+
+	if err != nil {
+		log.Printf("XXXX address list unmarshall error: %s", err)
+		return nil, err
+	}
+	if addressLists.IsEmpty() {
+		log.Printf("XXXX address list unmarshall is empty")
+		return nil, nil // No matching addresslist was found.
+	}
+
+	if len(addressLists.AddressLists) != 1 {
+		log.Printf("XXXX Found multiple address list")
+		return nil, fmt.Errorf("found multiple addresslist (%d) named '%s'",
+			len(addressLists.AddressLists), name)
+	}
+
+	log.Printf("XXXX address list 0 : %s", addressLists.AddressLists[0].Addresses[0].Begin)
+	log.Printf("XXXX addresses : %v", addressLists.AddressLists[0])
+
+	return &addressLists.AddressLists[0], err
+}
+

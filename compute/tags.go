@@ -82,6 +82,58 @@ type deleteTagKey struct {
 	ID string `json:"id"`
 }
 
+// GetAssetTagsByType gets all tags applied to assets of the specified type.
+//
+// datacenterID is optional (pass an empty string for tags from all datacenters).
+//
+// Note that due to a bug in the CloudControl API, when you go past the last page if results, you'll receive an UNEXPECTED_ERROR response code.
+func (client *Client) GetAssetTagsByType(assetType string, datacenterID string, paging *Paging) (tags *TagDetails, err error) {
+	if paging == nil {
+		paging = DefaultPaging()
+	}
+
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/tag/tag?assetType=%s&%s",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(assetType),
+		paging.toQueryParameters(),
+	)
+	if datacenterID != "" {
+		requestURI += fmt.Sprintf("&datacenterId=%s",
+			url.QueryEscape(datacenterID),
+		)
+	}
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, apiResponse.ToError("Request failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	tags = &TagDetails{}
+	err = json.Unmarshal(responseBody, tags)
+
+	return tags, err
+}
+
 // GetAssetTags gets all tags applied to the specified asset.
 //
 // Note that due to a bug in the CloudControl API, when you go past the last page if results, you'll receive an UNEXPECTED_ERROR response code.
@@ -101,7 +153,7 @@ func (client *Client) GetAssetTags(assetID string, assetType string, paging *Pag
 		url.QueryEscape(assetType),
 		paging.toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +190,7 @@ func (client *Client) ApplyAssetTags(assetID string, assetType string, tags ...T
 	requestURI := fmt.Sprintf("%s/tag/applyTags",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &applyTags{
+	request, err := client.newRequestV25(requestURI, http.MethodPost, &applyTags{
 		AssetID:   assetID,
 		AssetType: assetType,
 		Tags:      tags,
@@ -164,7 +216,7 @@ func (client *Client) RemoveAssetTags(assetID string, assetType string, tagNames
 	requestURI := fmt.Sprintf("%s/tag/removeTags",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &removeTags{
+	request, err := client.newRequestV25(requestURI, http.MethodPost, &removeTags{
 		AssetID:   assetID,
 		AssetType: assetType,
 		TagNames:  tagNames,
@@ -192,7 +244,7 @@ func (client *Client) GetTagKey(id string) (tagKey *TagKey, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +288,7 @@ func (client *Client) ListTagKeys(paging *Paging) (tagKeys *TagKeys, err error) 
 		url.QueryEscape(organizationID),
 		paging.toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +325,7 @@ func (client *Client) CreateTagKey(name string, description string, isValueRequi
 	requestURI := fmt.Sprintf("%s/tag/createTagKey",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &tagKey{
+	request, err := client.newRequestV25(requestURI, http.MethodPost, &tagKey{
 		Name:             name,
 		Description:      description,
 		IsValueRequired:  isValueRequired,
@@ -311,7 +363,7 @@ func (client *Client) DeleteTagKey(id string) error {
 	requestURI := fmt.Sprintf("%s/tag/deleteTagKey",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost,
+	request, err := client.newRequestV25(requestURI, http.MethodPost,
 		&deleteTagKey{id},
 	)
 	responseBody, statusCode, err := client.executeRequest(request)

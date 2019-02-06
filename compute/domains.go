@@ -21,8 +21,11 @@ type NetworkDomain struct {
 	// The network domain type.
 	Type string `json:"type"`
 
-	// Network domain's NAT IPv4 address.
+	// The network domain's NAT IPv4 address.
 	NatIPv4Address string `json:"snatIpv4Address"`
+
+	// The network domain's outside transit IPv4 subnet.
+	OutsideTransitVLANIPv4Subnet IPv4Range `json:"outsideTransitVlanIpv4Subnet"`
 
 	// The network domain's creation timestamp.
 	CreateTime string `json:"createTime"`
@@ -130,7 +133,7 @@ func (client *Client) ListNetworkDomains(paging *Paging) (domains *NetworkDomain
 		url.QueryEscape(organizationID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +176,7 @@ func (client *Client) GetNetworkDomain(id string) (domain *NetworkDomain, err er
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +221,7 @@ func (client *Client) GetNetworkDomainByName(name string, dataCenterID string) (
 		url.QueryEscape(name),
 		url.QueryEscape(dataCenterID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV24(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +252,7 @@ func (client *Client) GetNetworkDomainByName(name string, dataCenterID string) (
 	}
 
 	if len(domains.Domains) != 1 {
-		return nil, fmt.Errorf("Found multiple network domains (%d) named '%s' in data centre '%s'.", len(domains.Domains), name, dataCenterID)
+		return nil, fmt.Errorf("found multiple network domains (%d) named '%s' in data centre '%s'", len(domains.Domains), name, dataCenterID)
 	}
 
 	return &domains.Domains[0], nil
@@ -266,7 +269,7 @@ func (client *Client) DeployNetworkDomain(name string, description string, plan 
 	requestURI := fmt.Sprintf("%s/network/deployNetworkDomain",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deployNetworkDomain{
+	request, err := client.newRequestV24(requestURI, http.MethodPost, &deployNetworkDomain{
 		Name:         name,
 		Description:  description,
 		Type:         plan,
@@ -307,7 +310,7 @@ func (client *Client) EditNetworkDomain(id string, name *string, description *st
 	requestURI := fmt.Sprintf("%s/network/editNetworkDomain",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &editNetworkDomain{
+	request, err := client.newRequestV24(requestURI, http.MethodPost, &editNetworkDomain{
 		ID:          id,
 		Name:        name,
 		Description: description,
@@ -341,7 +344,7 @@ func (client *Client) DeleteNetworkDomain(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/network/deleteNetworkDomain",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteNetworkDomain{id})
+	request, err := client.newRequestV24(requestURI, http.MethodPost, &deleteNetworkDomain{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

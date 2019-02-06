@@ -210,7 +210,7 @@ func (client *Client) GetVLANByName(name string, networkDomainID string) (*VLAN,
 	}
 
 	if len(vlans.VLANs) != 1 {
-		return nil, fmt.Errorf("Found multiple VLANs (%d) named '%s' in network domain '%s'.", len(vlans.VLANs), name, networkDomainID)
+		return nil, fmt.Errorf("found multiple VLANs (%d) named '%s' in network domain '%s'", len(vlans.VLANs), name, networkDomainID)
 	}
 
 	return &vlans.VLANs[0], nil

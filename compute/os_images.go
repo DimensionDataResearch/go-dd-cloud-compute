@@ -9,16 +9,27 @@ import (
 
 // OSImage represents a DD-provided virtual machine image.
 type OSImage struct {
-	ID              string               `json:"id"`
-	Name            string               `json:"name"`
-	Description     string               `json:"description"`
-	DataCenterID    string               `json:"datacenterId"`
-	OperatingSystem OperatingSystem      `json:"operatingSystem"`
-	CPU             VirtualMachineCPU    `json:"cpu"`
-	MemoryGB        int                  `json:"memoryGb"`
-	Disks           []VirtualMachineDisk `json:"disk"`
-	CreateTime      string               `json:"createTime"`
-	OSImageKey      string               `json:"osImageKey"`
+	ID              string                        `json:"id"`
+	Name            string                        `json:"name"`
+	Description     string                        `json:"description"`
+	DataCenterID    string                        `json:"datacenterId"`
+	Guest           ImageGuestInformation         `json:"guest"`
+	CPU             VirtualMachineCPU             `json:"cpu"`
+	MemoryGB        int                           `json:"memoryGb"`
+	SCSIControllers VirtualMachineSCSIControllers `json:"scsiController"`
+	State           string                        `json:"state"`
+	CreateTime      string                        `json:"createTime"`
+	OSImageKey      string                        `json:"osImageKey"`
+}
+
+// GetID retrieves the image ID.
+func (image *OSImage) GetID() string {
+	return image.ID
+}
+
+// GetName retrieves the image name.
+func (image *OSImage) GetName() string {
+	return image.Name
 }
 
 // ToEntityReference creates an EntityReference representing the OSImage.
@@ -30,6 +41,70 @@ func (image *OSImage) ToEntityReference() EntityReference {
 }
 
 var _ NamedEntity = &OSImage{}
+
+// GetResourceType retrieves the resource type.
+func (image *OSImage) GetResourceType() ResourceType {
+	return ResourceTypeOSImage
+}
+
+// GetState retrieves the resource's current state (e.g. ResourceStatusNormal, etc).
+func (image *OSImage) GetState() string {
+	return image.State
+}
+
+// IsDeleted determines whether the resource been deleted (i.e. the underlying struct is nil)?
+func (image *OSImage) IsDeleted() bool {
+	return image == nil
+}
+
+var _ Resource = &OSImage{}
+
+// GetType determines the image type.
+func (image *OSImage) GetType() ImageType {
+	return ImageTypeOS
+}
+
+// GetDatacenterID retrieves Id of the datacenter where the image is located.
+func (image *OSImage) GetDatacenterID() string {
+	return image.DataCenterID
+}
+
+// GetOS retrieves information about the image's operating system.
+func (image *OSImage) GetOS() OperatingSystem {
+	return image.Guest.OperatingSystem
+}
+
+// RequiresCustomization determines whether the image requires guest OS customisation during deployment.
+func (image *OSImage) RequiresCustomization() bool {
+	return image.Guest.OSCustomization
+}
+
+// ApplyTo applies the OSImage to the specified ServerDeploymentConfiguration.
+func (image *OSImage) ApplyTo(config *ServerDeploymentConfiguration) {
+	config.ImageID = image.ID
+	config.CPU = image.CPU
+	config.MemoryGB = image.MemoryGB
+	config.SCSIControllers = make(VirtualMachineSCSIControllers, len(image.SCSIControllers))
+	for index, scsiController := range image.SCSIControllers {
+		config.SCSIControllers[index] = scsiController
+	}
+}
+
+// ApplyToUncustomized applies the OSImage to the specified UncustomizedServerDeploymentConfiguration.
+func (image *OSImage) ApplyToUncustomized(config *UncustomizedServerDeploymentConfiguration) {
+	config.ImageID = image.ID
+	config.CPU = image.CPU
+	config.MemoryGB = image.MemoryGB
+	if len(image.SCSIControllers) == 0 {
+		return
+	}
+	config.Disks = make(VirtualMachineDisks, len(image.SCSIControllers[0].Disks))
+	for index, disk := range image.SCSIControllers[0].Disks {
+		config.Disks[index] = disk
+	}
+}
+
+var _ Image = &OSImage{}
 
 // OSImages represents a page of OSImage results.
 type OSImages struct {
@@ -60,7 +135,7 @@ func (client *Client) GetOSImage(id string) (image *OSImage, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +180,7 @@ func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSIm
 		url.QueryEscape(name),
 		url.QueryEscape(dataCenterID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +212,7 @@ func (client *Client) FindOSImage(name string, dataCenterID string) (image *OSIm
 	}
 
 	if images.PageCount != 1 {
-		return nil, fmt.Errorf("Found multiple images (%d) matching '%s' in data centre '%s'.", images.TotalCount, name, dataCenterID)
+		return nil, fmt.Errorf("found multiple images (%d) matching '%s' in data centre '%s'", images.TotalCount, name, dataCenterID)
 	}
 
 	return &images.Images[0], err
@@ -155,7 +230,7 @@ func (client *Client) ListOSImagesInDatacenter(dataCenterID string, paging *Pagi
 		url.QueryEscape(dataCenterID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}

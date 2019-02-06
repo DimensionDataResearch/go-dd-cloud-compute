@@ -81,7 +81,8 @@ type VirtualListener struct {
 	ClientClonePool            VirtualListenerVIPPoolRef `json:"ClientClonePool"`
 	PersistenceProfile         EntityReference           `json:"persistenceProfile"`
 	FallbackPersistenceProfile EntityReference           `json:"fallbackPersistenceProfile"`
-	OptimizationProfiles       []string                  `json:"optimizationProfile"`
+	SSLOffloadProfile          EntityReference           `json:"sslOffloadProfile"`
+	OptimizationProfile        string                    `json:"optimizationProfile"`
 	IRules                     []EntityReference         `json:"irule"`
 	State                      string                    `json:"state"`
 	CreateTime                 string                    `json:"createTime"`
@@ -112,6 +113,14 @@ func (virtualListener *VirtualListener) GetState() string {
 // IsDeleted determines whether the virtual listener has been deleted (is nil).
 func (virtualListener *VirtualListener) IsDeleted() bool {
 	return virtualListener == nil
+}
+
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (virtualListener *VirtualListener) ToEntityReference() EntityReference {
+	return EntityReference{
+		ID:   virtualListener.ID,
+		Name: virtualListener.Name,
+	}
 }
 
 var _ Resource = &VirtualListener{}
@@ -148,8 +157,9 @@ type NewVirtualListenerConfiguration struct {
 	ClientClonePoolID            *string  `json:"clientClonePoolId,omitempty"`
 	PersistenceProfileID         *string  `json:"persistenceProfileId,omitempty"`
 	FallbackPersistenceProfileID *string  `json:"fallbackPersistenceProfileId,omitempty"`
+	SSLOffloadProfileID          *string  `json:"sslOffloadProfileId,omitempty"`
 	IRuleIDs                     []string `json:"iruleId"`
-	OptimizationProfiles         []string `json:"optimizationProfile"`
+	OptimizationProfile          *string  `json:"optimizationProfile,omitempty"`
 	NetworkDomainID              string   `json:"networkDomainId"`
 }
 
@@ -163,8 +173,9 @@ type EditVirtualListenerConfiguration struct {
 	SourcePortPreservation *string   `json:"sourcePortPreservation,omitempty"`
 	PoolID                 *string   `json:"poolId,omitempty"`
 	PersistenceProfileID   *string   `json:"persistenceProfileId,omitempty"`
+	SSLOffloadProfileID    *string   `json:"sslOffloadProfileId,omitempty"`
 	IRuleIDs               *[]string `json:"iruleId,omitempty"`
-	OptimizationProfiles   *[]string `json:"optimizationProfile,omitempty"`
+	OptimizationProfile    *string   `json:"optimizationProfile,omitempty"`
 }
 
 // Request body for deleting a virtual listener.
@@ -185,7 +196,7 @@ func (client *Client) ListVirtualListenersInNetworkDomain(networkDomainID string
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +238,7 @@ func (client *Client) GetVirtualListener(id string) (listener *VirtualListener, 
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV26(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +282,7 @@ func (client *Client) CreateVirtualListener(listenerConfiguration NewVirtualList
 	requestURI := fmt.Sprintf("%s/networkDomainVip/createVirtualListener",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &listenerConfiguration)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &listenerConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err
@@ -308,7 +319,7 @@ func (client *Client) EditVirtualListener(id string, listenerConfiguration EditV
 	requestURI := fmt.Sprintf("%s/networkDomainVip/editVirtualListener",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, editListenerConfiguration)
+	request, err := client.newRequestV26(requestURI, http.MethodPost, editListenerConfiguration)
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -337,7 +348,7 @@ func (client *Client) DeleteVirtualListener(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/networkDomainVip/deleteVirtualListener",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteVirtualListener{id})
+	request, err := client.newRequestV26(requestURI, http.MethodPost, &deleteVirtualListener{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

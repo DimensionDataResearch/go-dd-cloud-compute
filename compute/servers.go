@@ -8,28 +8,21 @@ import (
 	"net/url"
 )
 
-const (
-	// NetworkAdapterTypeE1000 represents the E1000 network adapter type.
-	NetworkAdapterTypeE1000 = "E1000"
-
-	// NetworkAdapterTypeVMXNET3 represents the VMXNET3 network adapter type.
-	NetworkAdapterTypeVMXNET3 = "VMXNET3"
-)
-
 // Server represents a virtual machine.
 type Server struct {
-	ID              string                `json:"id"`
-	Name            string                `json:"name"`
-	Description     string                `json:"description"`
-	OperatingSystem OperatingSystem       `json:"operatingSystem"`
-	CPU             VirtualMachineCPU     `json:"cpu"`
-	MemoryGB        int                   `json:"memoryGb"`
-	Disks           []VirtualMachineDisk  `json:"disk"`
-	Network         VirtualMachineNetwork `json:"networkInfo"`
-	SourceImageID   string                `json:"sourceImageId"`
-	State           string                `json:"state"`
-	Deployed        bool                  `json:"deployed"`
-	Started         bool                  `json:"started"`
+	ID              string                        `json:"id"`
+	Name            string                        `json:"name"`
+	Description     string                        `json:"description"`
+	OperatingSystem OperatingSystem               `json:"operatingSystem"`
+	CPU             VirtualMachineCPU             `json:"cpu"`
+	MemoryGB        int                           `json:"memoryGb"`
+	SCSIControllers VirtualMachineSCSIControllers `json:"scsiController"`
+	Network         VirtualMachineNetwork         `json:"networkInfo"`
+	Backup          *ServerBackup                 `json:"backup,omitempty"`
+	SourceImageID   string                        `json:"sourceImageId"`
+	State           string                        `json:"state"`
+	Deployed        bool                          `json:"deployed"`
+	Started         bool                          `json:"started"`
 }
 
 // GetID returns the server's Id.
@@ -95,17 +88,29 @@ func (serverSummary *ServerSummary) ToEntityReference() EntityReference {
 
 // ServerDeploymentConfiguration represents the configuration for deploying a virtual machine.
 type ServerDeploymentConfiguration struct {
-	Name                  string                `json:"name"`
-	Description           string                `json:"description"`
-	ImageID               string                `json:"imageId"`
-	AdministratorPassword string                `json:"administratorPassword"`
-	CPU                   VirtualMachineCPU     `json:"cpu"`
-	MemoryGB              int                   `json:"memoryGb,omitempty"`
-	Disks                 []VirtualMachineDisk  `json:"disk"`
-	Network               VirtualMachineNetwork `json:"networkInfo"`
-	PrimaryDNS            string                `json:"primaryDns"`
-	SecondaryDNS          string                `json:"secondaryDns"`
-	Start                 bool                  `json:"start"`
+	Name                  string                        `json:"name"`
+	Description           string                        `json:"description"`
+	ImageID               string                        `json:"imageId"`
+	AdministratorPassword string                        `json:"administratorPassword,omitempty"`
+	CPU                   VirtualMachineCPU             `json:"cpu"`
+	MemoryGB              int                           `json:"memoryGb,omitempty"`
+	SCSIControllers       VirtualMachineSCSIControllers `json:"scsiController"`
+	Network               VirtualMachineNetwork         `json:"networkInfo"`
+	PrimaryDNS            string                        `json:"primaryDns,omitempty"`
+	SecondaryDNS          string                        `json:"secondaryDns,omitempty"`
+	Start                 bool                          `json:"start"`
+}
+
+// UncustomizedServerDeploymentConfiguration represents the configuration for deploying a virtual machine without guest OS customisation.
+type UncustomizedServerDeploymentConfiguration struct {
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	ImageID     string                `json:"imageId"`
+	CPU         VirtualMachineCPU     `json:"cpu"`
+	MemoryGB    int                   `json:"memoryGb,omitempty"`
+	Disks       VirtualMachineDisks   `json:"disk"`
+	Network     VirtualMachineNetwork `json:"networkInfo"`
+	Start       bool                  `json:"start"`
 }
 
 // editServerMetadata represents the request body when modifying server metadata.
@@ -145,6 +150,11 @@ type addDiskToServer struct {
 	SCSIUnitID int    `json:"scsiId"`
 }
 
+// removeDiskFromServer represents the request body when removing an existing disk from a server.
+type removeDiskFromServer struct {
+	DiskID string `json:"id"`
+}
+
 type serverNic struct {
 	VlanID      string  `json:"vlanId,omitempty"`
 	PrivateIPv4 string  `json:"privateIpv4,omitempty"`
@@ -166,38 +176,13 @@ type resizeServerDisk struct {
 	NewSizeGB int `xml:"newSizeGb"`
 }
 
-// ApplyOSImage applies the specified OS image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
-func (config *ServerDeploymentConfiguration) ApplyOSImage(image *OSImage) error {
-	if image == nil {
-		return fmt.Errorf("Cannot apply image defaults (no image was supplied).")
-	}
+// changeServerDiskSpeed represents the request body when changing a server disk's speed.
+type changeServerDiskSpeed struct {
+	// The XML name for the "resizeServerDisk" data contract
+	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/server ChangeDiskSpeed"`
 
-	config.ImageID = image.ID
-	config.CPU = image.CPU
-	config.MemoryGB = image.MemoryGB
-	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
-	for index, disk := range image.Disks {
-		config.Disks[index] = disk
-	}
-
-	return nil
-}
-
-// ApplyCustomerImage applies the specified OS image (and its default values for CPU, memory, and disks) to the ServerDeploymentConfiguration.
-func (config *ServerDeploymentConfiguration) ApplyCustomerImage(image *CustomerImage) error {
-	if image == nil {
-		return fmt.Errorf("Cannot apply image defaults (no image was supplied).")
-	}
-
-	config.ImageID = image.ID
-	config.CPU = image.CPU
-	config.MemoryGB = image.MemoryGB
-	config.Disks = make([]VirtualMachineDisk, len(image.Disks))
-	for index, disk := range image.Disks {
-		config.Disks[index] = disk
-	}
-
-	return nil
+	// The new disk speed.
+	Speed string `xml:"speed"`
 }
 
 // Request body when deleting a server.
@@ -218,10 +203,19 @@ type stopServer struct {
 	ID string `json:"id"`
 }
 
-// Request body when deleting a server.
+// Request body when deleting a network adapter.
 type deleteNic struct {
-	// The server Id.
+	// The network adapter Id.
 	ID string `json:"id"`
+}
+
+// Request body when changing network adapter type.
+type changeNicType struct {
+	// The network adapter Id.
+	ID string `json:"nicId"`
+
+	// The network adapter type.
+	Type string `json:"networkAdapter"`
 }
 
 // GetServer retrieves the server with the specified Id.
@@ -237,7 +231,7 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV23(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +284,7 @@ func (client *Client) ListServersInNetworkDomain(networkDomainID string, paging 
 	)
 
 	var request *http.Request
-	request, err = client.newRequestV23(requestURI, http.MethodGet, nil)
+	request, err = client.newRequestV25(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return
 	}
@@ -345,6 +339,40 @@ func (client *Client) DeployServer(serverConfiguration ServerDeploymentConfigura
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
 		return "", apiResponse.ToError("Request to deploy server '%s' failed with status code %d (%s): %s", serverConfiguration.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	// Expected: "info" { "name": "serverId", "value": "the-Id-of-the-new-server" }
+	serverIDMessage := apiResponse.GetFieldMessage("serverId")
+	if serverIDMessage == nil {
+		return "", apiResponse.ToError("Received an unexpected response (missing 'serverId') with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return *serverIDMessage, nil
+}
+
+// DeployUncustomizedServer deploys a new virtual machine.
+func (client *Client) DeployUncustomizedServer(serverConfiguration UncustomizedServerDeploymentConfiguration) (serverID string, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return "", err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/deployUncustomizedServer",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV25(requestURI, http.MethodPost, &serverConfiguration)
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return "", err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return "", apiResponse.ToError("Request to deploy uncustomised server '%s' failed with status code %d (%s): %s", serverConfiguration.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "serverId", "value": "the-Id-of-the-new-server" }
@@ -455,6 +483,61 @@ func (client *Client) ResizeServerDisk(serverID string, diskID string, newSizeGB
 	response, err = readAPIResponseV1(responseBody, statusCode)
 
 	return
+}
+
+// ChangeServerDiskSpeed requests changing of a server disk's speed.
+func (client *Client) ChangeServerDiskSpeed(serverID string, diskID string, newSpeed string) (response *APIResponseV1, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return
+	}
+
+	requestURI := fmt.Sprintf("%s/server/%s/disk/%s/changeSpeed",
+		url.QueryEscape(organizationID),
+		url.QueryEscape(serverID),
+		url.QueryEscape(diskID),
+	)
+	request, err := client.newRequestV1(requestURI, http.MethodPost, &changeServerDiskSpeed{
+		Speed: newSpeed,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return
+	}
+
+	response, err = readAPIResponseV1(responseBody, statusCode)
+
+	return
+}
+
+// RemoveDiskFromServer removes an existing disk from a server.
+func (client *Client) RemoveDiskFromServer(diskID string) error {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/removeDisk",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV22(requestURI, http.MethodPost, &removeDiskFromServer{
+		DiskID: diskID,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return apiResponse.ToError("Request to remove disk '%s' failed with status code %d (%s): %s", diskID, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
 }
 
 // DeleteServer deletes an existing Server.
@@ -641,7 +724,7 @@ func (client *Client) ReconfigureServer(serverID string, memoryGB *int, cpuCount
 
 // AddNicToServer adds a network adapter to a server
 func (client *Client) AddNicToServer(serverID string, ipv4Address string, vlanID string) (nicID string, err error) {
-	return client.addNicToServer(serverID, serverNic{
+	return client.addNicToServer(serverID, &serverNic{
 		PrivateIPv4: ipv4Address,
 		VlanID:      vlanID,
 	})
@@ -649,7 +732,7 @@ func (client *Client) AddNicToServer(serverID string, ipv4Address string, vlanID
 
 // AddNicWithTypeToServer adds a network adapter of a specific type to a server
 func (client *Client) AddNicWithTypeToServer(serverID string, ipv4Address string, vlanID string, adapterType string) (nicID string, err error) {
-	return client.addNicToServer(serverID, serverNic{
+	return client.addNicToServer(serverID, &serverNic{
 		PrivateIPv4: ipv4Address,
 		VlanID:      vlanID,
 		AdapterType: &adapterType,
@@ -657,7 +740,16 @@ func (client *Client) AddNicWithTypeToServer(serverID string, ipv4Address string
 }
 
 // AddNicToServer adds a network adapter to a server
-func (client *Client) addNicToServer(serverID string, nicConfiguration serverNic) (nicID string, err error) {
+func (client *Client) addNicToServer(serverID string, nicConfiguration *serverNic) (nicID string, err error) {
+	if nicConfiguration == nil {
+		return "", fmt.Errorf("Must supply a valid server NIC configuration")
+	}
+
+	// Don't submit VLAN ID to CloudControl when IPv4 address has been supplied (one implies the other)
+	if nicConfiguration.PrivateIPv4 != "" {
+		nicConfiguration.VlanID = ""
+	}
+
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -666,9 +758,9 @@ func (client *Client) addNicToServer(serverID string, nicConfiguration serverNic
 	requestURI := fmt.Sprintf("%s/server/addNic",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &addNicConfiguration{
+	request, err := client.newRequestV23(requestURI, http.MethodPost, &addNicConfiguration{
 		ServerID: serverID,
-		Nic:      nicConfiguration,
+		Nic:      *nicConfiguration,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
@@ -713,6 +805,37 @@ func (client *Client) RemoveNicFromServer(networkAdapterID string) (err error) {
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
 		return apiResponse.ToError("Request to notify remove a nic failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return nil
+}
+
+// ChangeNetworkAdapterType changes the type of a server's network adapter.
+func (client *Client) ChangeNetworkAdapterType(networkAdapterID string, networkAdapterType string) (err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return err
+	}
+
+	requestURI := fmt.Sprintf("%s/server/changeNetworkAdapter",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV24(requestURI, http.MethodPost, &changeNicType{
+		ID:   networkAdapterID,
+		Type: networkAdapterType,
+	})
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return err
+	}
+
+	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	if err != nil {
+		return err
+	}
+
+	if apiResponse.ResponseCode != ResponseCodeInProgress {
+		return apiResponse.ToError("Request to notify change NIC type failed with unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	return nil

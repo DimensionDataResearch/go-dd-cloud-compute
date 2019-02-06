@@ -16,6 +16,16 @@ type PersistenceProfile struct {
 	VirtualListenerProtocol string `json:"virtualListenerProtocol"`
 }
 
+// GetID retrieves the persistence profile's ID.
+func (profile *PersistenceProfile) GetID() string {
+	return profile.ID
+}
+
+// GetName retrieves the persistence profile's name.
+func (profile *PersistenceProfile) GetName() string {
+	return profile.Name
+}
+
 // ToEntityReference creates an EntityReference representing the PersistenceProfile.
 func (profile *PersistenceProfile) ToEntityReference() EntityReference {
 	return EntityReference{

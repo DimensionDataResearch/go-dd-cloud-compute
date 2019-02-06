@@ -223,6 +223,10 @@ var networkDomainTestResponse = `
 		"description": "This is a new Network Domain",
 		"type": "ESSENTIALS",
 		"snatIpv4Address": "165.180.9.252",
+		"outsideTransitVlanIpv4Subnet": {
+			"address": "100.64.8.128",
+			"prefixSize": 28
+		},
 		"createTime": "2015-02-24T10:47:21.000Z",
 		"state": "NORMAL",
 		"id": "8cdfd607-f429-4df6-9352-162cfc0891be",
@@ -239,6 +243,8 @@ func verifyNetworkDomainTestResponse(test *testing.T, networkDomain *NetworkDoma
 	expect.EqualsString("NetworkDomain.Type", "ESSENTIALS", networkDomain.Type)
 	expect.EqualsString("NetworkDomain.State", "NORMAL", networkDomain.State)
 	expect.EqualsString("NetworkDomain.NatIPv4Address", "165.180.9.252", networkDomain.NatIPv4Address)
+	expect.EqualsString("OutsideTransitVLANIPv4Subnet.BaseAddress", "100.64.8.128", networkDomain.OutsideTransitVLANIPv4Subnet.BaseAddress)
+	expect.EqualsInt("OutsideTransitVLANIPv4Subnet.PrefixSize", 28, networkDomain.OutsideTransitVLANIPv4Subnet.PrefixSize)
 	expect.EqualsString("NetworkDomain.DatacenterID", "NA9", networkDomain.DatacenterID)
 }
 

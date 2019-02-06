@@ -82,19 +82,93 @@ func TestClient_DeployServer_Success(test *testing.T) {
 				},
 			},
 		},
-		Disks: []VirtualMachineDisk{
-			VirtualMachineDisk{
-				SCSIUnitID: 0,
-				Speed:      "STANDARD",
-			},
-			VirtualMachineDisk{
-				SCSIUnitID: 1,
-				Speed:      "HIGHPERFORMANCE",
+		SCSIControllers: []VirtualMachineSCSIController{
+			VirtualMachineSCSIController{
+				BusNumber:   0,
+				AdapterType: StorageControllerAdapterTypeLSILogicParallel,
+				Disks: []VirtualMachineDisk{
+					VirtualMachineDisk{
+						SCSIUnitID: 0,
+						Speed:      "STANDARD",
+					},
+					VirtualMachineDisk{
+						SCSIUnitID: 1,
+						Speed:      "HIGHPERFORMANCE",
+					},
+				},
 			},
 		},
 	}
 
 	serverID, err := client.DeployServer(serverConfiguration)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	expect.EqualsString("serverID", "7b62aae5-bdbe-4595-b58d-c78f95db2a7f", serverID)
+}
+
+// Deploy uncustomised server (successful).
+func TestClient_DeployUncustomizedServer_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		deploymentConfiguration := &UncustomizedServerDeploymentConfiguration{}
+		err := readRequestBodyAsJSON(request, deploymentConfiguration)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		verifyDeployUncustomizedServerTestRequest(test, deploymentConfiguration)
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, deployUncustomizedServerTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	serverConfiguration := UncustomizedServerDeploymentConfiguration{
+		Name:        "Production Server",
+		Description: "Uncustomized appliance server.",
+		ImageID:     "e926545b-1b9c-4068-8cef-076830a9a0bc",
+		CPU: VirtualMachineCPU{
+			Count:          9,
+			CoresPerSocket: 3,
+			Speed:          "ECONOMY",
+		},
+		MemoryGB: 2,
+		Network: VirtualMachineNetwork{
+			NetworkDomainID: "e926545b-1b9c-4068-8cef-076830a9a0bc",
+			PrimaryAdapter: VirtualMachineNetworkAdapter{
+				PrivateIPv4Address: stringToPtr("10.0.1.15"),
+				AdapterType:        stringToPtr(NetworkAdapterTypeVMXNET3),
+			},
+			AdditionalNetworkAdapters: []VirtualMachineNetworkAdapter{
+				VirtualMachineNetworkAdapter{
+					VLANID:      stringToPtr("e0b4d43c-c648-11e4-b33a-72802a5322b2"),
+					AdapterType: stringToPtr(NetworkAdapterTypeVMXNET3),
+				},
+			},
+		},
+		Disks: []VirtualMachineDisk{
+			VirtualMachineDisk{
+				ID:    "d99e4d2a-24c0-4c54-b491-e56697b8f004",
+				Speed: "ECONOMY",
+			},
+			VirtualMachineDisk{
+				ID:    "e6a3c0b7-cd32-4224-b8ec-5f1359940204",
+				Speed: "HIGHPERFORMANCE",
+			},
+		},
+	}
+
+	serverID, err := client.DeployUncustomizedServer(serverConfiguration)
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -172,6 +246,45 @@ func TestClient_ResizeServerDisk_Success(test *testing.T) {
 	}
 
 	verifyResizeServerDiskTestResponse(test, response)
+}
+
+// Change server disk speed (successful).
+func TestClient_ChangeServerDiskSpeed_Success(test *testing.T) {
+	expect := expect(test)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		expect.EqualsString(
+			"Request.URL",
+			"/oec/0.9/dummy-organization-id/server/7b62aae5-bdbe-4595-b58d-c78f95db2a7f/disk/92b1819e-6f91-4abe-88c7-607841959f90/changeSpeed",
+			request.URL.Path,
+		)
+
+		requestBody := &changeServerDiskSpeed{}
+		err := readRequestBodyAsXML(request, requestBody)
+		if err != nil {
+			test.Fatal(err.Error())
+		}
+
+		verifyChangeServerDiskSpeedRequest(test, requestBody)
+
+		writer.Header().Set("Content-Type", "application/xml")
+		writer.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(writer, changeServerDiskSpeedTestResponse)
+	}))
+	defer testServer.Close()
+
+	client := NewClientWithBaseAddress(testServer.URL, "user1", "password")
+	client.setAccount(&Account{
+		OrganizationID: "dummy-organization-id",
+	})
+
+	response, err := client.ChangeServerDiskSpeed("7b62aae5-bdbe-4595-b58d-c78f95db2a7f", "92b1819e-6f91-4abe-88c7-607841959f90", ServerDiskSpeedStandard)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	verifyChangeServerDiskSpeedTestResponse(test, response)
 }
 
 // Add Nic (successful).
@@ -362,13 +475,107 @@ func verifyDeployServerTestRequest(test *testing.T, deploymentConfiguration *Ser
 	expect.EqualsString("ServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[1].AdapterType", "VMXNET3", *network.AdditionalNetworkAdapters[1].AdapterType)
 
 	// Disks.
-	expect.EqualsInt("ServerDeploymentConfiguration.Disks.Length", 2, len(deploymentConfiguration.Disks))
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers.Length", 1, len(deploymentConfiguration.SCSIControllers))
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers[0].Disks.Length", 2, len(deploymentConfiguration.SCSIControllers[0].Disks))
 
-	expect.EqualsInt("ServerDeploymentConfiguration.Disks[0].SCSIUnitID", 0, deploymentConfiguration.Disks[0].SCSIUnitID)
-	expect.EqualsString("ServerDeploymentConfiguration.Disks[0].Speed", "STANDARD", deploymentConfiguration.Disks[0].Speed)
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers[0].Disks[0].SCSIUnitID", 0, deploymentConfiguration.SCSIControllers[0].Disks[0].SCSIUnitID)
+	expect.EqualsString("ServerDeploymentConfiguration.SCSIControllers[0].Disks[0].Speed", "STANDARD", deploymentConfiguration.SCSIControllers[0].Disks[0].Speed)
 
-	expect.EqualsInt("ServerDeploymentConfiguration.Disks[1].SCSIUnitID", 1, deploymentConfiguration.Disks[1].SCSIUnitID)
-	expect.EqualsString("ServerDeploymentConfiguration.Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.Disks[1].Speed)
+	expect.EqualsInt("ServerDeploymentConfiguration.SCSIControllers[0].Disks[1].SCSIUnitID", 1, deploymentConfiguration.SCSIControllers[0].Disks[1].SCSIUnitID)
+	expect.EqualsString("ServerDeploymentConfiguration.SCSIControllers[0].Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.SCSIControllers[0].Disks[1].Speed)
+}
+
+const deployUncustomizedServerTestRequest = `
+	{
+		"name": "Production Server",
+		"description": "Uncustomized appliance server.",
+		"imageId": "e926545b-1b9c-4068-8cef-076830a9a0bc",
+		"start": false,
+		"cpu": {
+			"speed": "ECONOMY",
+			"count": "9",
+			"coresPerSocket": "3"
+		},
+		"memoryGb": "2",
+		"clusterId": "NA9-01",
+		"networkInfo": {
+			"networkDomainId": "e926545b-1b9c-4068-8cef-076830a9a0bc",
+			"primaryNic": {
+				"privateIpv4": "10.0.1.15",
+				"networkAdapter": "VMXNET3"
+			},
+			"additionalNic": [
+				{
+					"vlanId": "e0b4d43c-c648-11e4-b33a-72802a5322b2",
+					"networkAdapter": "VMXNET3"
+				}
+			]
+		},
+		"disk": [
+			{
+				"id": "d99e4d2a-24c0-4c54-b491-e56697b8f004",
+				"speed": "ECONOMY"
+			},
+			{
+				"id": "e6a3c0b7-cd32-4224-b8ec-5f1359940204",
+				"speed": "HIGHPERFORMANCE"
+			}
+		],
+		"tag": [
+			{
+				"tagKeyName": "department",
+				"value": "IT"
+			},
+			{
+				"tagKeyName": "backup",
+				"value": "nope"
+			}
+		]
+	}
+`
+
+func verifyDeployUncustomizedServerTestRequest(test *testing.T, deploymentConfiguration *UncustomizedServerDeploymentConfiguration) {
+	expect := expect(test)
+
+	expect.NotNil("UncustomizedServerDeploymentConfiguration", deploymentConfiguration)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Name", "Production Server", deploymentConfiguration.Name)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Description", "Uncustomized appliance server.", deploymentConfiguration.Description)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.ImageID", "e926545b-1b9c-4068-8cef-076830a9a0bc", deploymentConfiguration.ImageID)
+
+	// CPU
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.CPU.Count", 9, deploymentConfiguration.CPU.Count)
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.CPU.CoresPerSocket", 3, deploymentConfiguration.CPU.CoresPerSocket)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.CPU.Speed", "ECONOMY", deploymentConfiguration.CPU.Speed)
+
+	// Memory
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.MemoryGB", 2, deploymentConfiguration.MemoryGB)
+
+	// Network.
+	network := deploymentConfiguration.Network
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.NetworkDomainID", "e926545b-1b9c-4068-8cef-076830a9a0bc", network.NetworkDomainID)
+
+	expect.IsNil("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.VLANID", network.PrimaryAdapter.VLANID)
+	expect.NotNil("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.PrivateIPv4Address", network.PrimaryAdapter.PrivateIPv4Address)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.PrivateIPv4Address", "10.0.1.15", *network.PrimaryAdapter.PrivateIPv4Address)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.PrimaryAdapter.AdapterType", "VMXNET3", *network.AdditionalNetworkAdapters[0].AdapterType)
+
+	// Network adapters.
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters.Length", 1, len(network.AdditionalNetworkAdapters))
+
+	expect.NotNil("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].VLANID", network.AdditionalNetworkAdapters[0].VLANID)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].VLANID", "e0b4d43c-c648-11e4-b33a-72802a5322b2", *network.AdditionalNetworkAdapters[0].VLANID)
+	expect.IsNil("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].PrivateIPv4Address", network.AdditionalNetworkAdapters[0].PrivateIPv4Address)
+	expect.NotNil("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].AdapterType", network.AdditionalNetworkAdapters[0].AdapterType)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Network.AdditionalNetworkAdapters[0].AdapterType", "VMXNET3", *network.AdditionalNetworkAdapters[0].AdapterType)
+
+	// Disks.
+	expect.EqualsInt("UncustomizedServerDeploymentConfiguration.Disks.Length", 2, len(deploymentConfiguration.Disks))
+
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[0].ID", "d99e4d2a-24c0-4c54-b491-e56697b8f004", deploymentConfiguration.Disks[0].ID)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[0].Speed", "ECONOMY", deploymentConfiguration.Disks[0].Speed)
+
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[1].ID", "e6a3c0b7-cd32-4224-b8ec-5f1359940204", deploymentConfiguration.Disks[1].ID)
+	expect.EqualsString("UncustomizedServerDeploymentConfiguration.Disks[1].Speed", "HIGHPERFORMANCE", deploymentConfiguration.Disks[1].Speed)
 }
 
 const addDiskToServerTestRequest = `
@@ -405,7 +612,8 @@ func verifyAddNicToServerTestRequest(test *testing.T, request *addNicConfigurati
 	expect := expect(test)
 	expect.EqualsString("addNicConfiguration.ServerID", "1c7762ca-f379-4eef-b08e-aa526d602589", request.ServerID)
 	expect.EqualsString("addNicConfiguration.Nic.PrivateIPv4", "10.0.3.18", request.Nic.PrivateIPv4)
-	expect.EqualsString("addNicConfiguration.VlanID", "2e312054-532a-46aa-ab4f-226660bfba6d", request.Nic.VlanID)
+	// VLANID will not be submitted because private IPv4 has been submitted.
+	expect.EqualsString("addNicConfiguration.VlanID", "", request.Nic.VlanID)
 }
 
 const resizeServerDiskTestRequest = `
@@ -419,6 +627,19 @@ func verifyResizeServerDiskRequest(test *testing.T, request *resizeServerDisk) {
 
 	expect.NotNil("ReconfigureServer", request)
 	expect.EqualsInt("ReconfigureServer.NewSizeGB", 23, request.NewSizeGB)
+}
+
+const changeServerDiskSpeedTestRequest = `
+	<ChangeServerDiskSpeed xmlns="http://oec.api.opsource.net/schemas/server">
+		<speed>STANDARD</speed>
+	</ChangeServerDiskSpeed>
+`
+
+func verifyChangeServerDiskSpeedRequest(test *testing.T, request *changeServerDiskSpeed) {
+	expect := expect(test)
+
+	expect.NotNil("ChangeServerDiskSpeed", request)
+	expect.EqualsString("ChangeServerDiskSpeed.Speed", ServerDiskSpeedStandard, request.Speed)
 }
 
 const notifyServerIPAddressChangeTestRequest = `
@@ -484,13 +705,22 @@ const getServerTestResponse = `
 			"coresPerSocket": 1
 		},
 		"memoryGb": 4,
-		"disk": [
+		"scsiController": [
 			{
-				"id": "c2e1f199-116e-4dbc-9960-68720b832b0a",
-				"scsiId": 0,
-				"sizeGb": 50,
-				"speed": "STANDARD",
-				"state": "NORMAL"
+				"id": "00cbc4-1b3b-49c4-a4e6-697caff4b872",
+				"adapterType": "BUS_LOGIC",
+				"key": 1000,
+				"state": "NORMAL",
+				"busNumber": 0,
+				"disk": [
+					{
+						"id": "c2e1f199-116e-4dbc-9960-68720b832b0a",
+						"scsiId": 0,
+						"sizeGb": 50,
+						"speed": "STANDARD",
+						"state": "NORMAL"
+					}
+				]
 			}
 		],
 		"networkInfo": {
@@ -546,8 +776,25 @@ func verifyGetServerTestResponse(test *testing.T, server *Server) {
 
 	expect.NotNil("Server", server)
 	expect.EqualsString("Server.Name", "Production Web Server", server.Name)
-	// TODO: Verify the rest of these fields.
 	expect.EqualsString("Server.State", ResourceStatusPendingChange, server.State)
+
+	expect.EqualsInt("Server.SCSIControllers.Length", 1, len(server.SCSIControllers))
+
+	controller1 := server.SCSIControllers[0]
+	expect.EqualsString("Server.SCSIControllers[0].ID", "00cbc4-1b3b-49c4-a4e6-697caff4b872", controller1.ID)
+	expect.EqualsInt("Server.SCSIControllers[0].BusNumber", 0, controller1.BusNumber)
+	expect.EqualsString("Server.SCSIControllers[0].AdapterType", "BUS_LOGIC", controller1.AdapterType)
+	expect.EqualsString("Server.SCSIControllers[0].State", ResourceStatusNormal, controller1.State)
+
+	controller1Disks := controller1.Disks
+	expect.EqualsInt("Server.SCSIControllers[0].Disks.Length", 1, len(controller1Disks))
+
+	disk1 := controller1Disks[0]
+	expect.EqualsString("Server.SCSIControllers[0].Disks[0].ID", "c2e1f199-116e-4dbc-9960-68720b832b0a", disk1.ID)
+	expect.EqualsInt("Server.SCSIControllers[0].Disks[0].SCSIUnitID", 0, disk1.SCSIUnitID)
+	expect.EqualsInt("Server.SCSIControllers[0].Disks[0].SizeGB", 50, disk1.SizeGB)
+	expect.EqualsString("Server.SCSIControllers[0].Disks[0].Speed", ServerDiskSpeedStandard, disk1.Speed)
+	expect.EqualsString("Server.SCSIControllers[0].Disks[0].State", ResourceStatusNormal, disk1.State)
 }
 
 const deployServerTestResponse = `
@@ -565,6 +812,23 @@ const deployServerTestResponse = `
 		"error": [],
 		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
 	}
+`
+
+const deployUncustomizedServerTestResponse = `
+	{
+        "operation": "DEPLOY_UNCUSTOMIZED_SERVER",
+        "responseCode": "IN_PROGRESS",
+        "message": "Request to deploy uncustomized Server 'Production Server' has been accepted and is being processed.",
+        "info": [
+            {
+                "name": "serverId",
+                "value": "7b62aae5-bdbe-4595-b58d-c78f95db2a7f"
+            }
+        ],
+        "warning": [],
+        "error": [],
+        "requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+    }
 `
 
 func verifyDeployServerTestResponse(test *testing.T, response *APIResponseV2) {
@@ -626,6 +890,25 @@ func verifyResizeServerDiskTestResponse(test *testing.T, response *APIResponseV1
 	expect.EqualsString("Response.Operation", "Change Server Disk Size", response.Operation)
 	expect.EqualsString("Response.ResponseCode", ResultSuccess, response.Result)
 	expect.EqualsString("Response.Message", "Server 'Change Server Disk Size' Issued", response.Message)
+	expect.EqualsString("Response.ResultCode", "RESULT_0", response.ResultCode)
+}
+
+const changeServerDiskSpeedTestResponse = `
+	<Status>
+		<operation>Change Server Disk Speed</operation>
+		<result>SUCCESS</result>
+		<resultDetail>Change Server Disk Speed Issued</resultDetail>
+		<resultCode>RESULT_0</resultCode>
+	</Status>
+`
+
+func verifyChangeServerDiskSpeedTestResponse(test *testing.T, response *APIResponseV1) {
+	expect := expect(test)
+
+	expect.NotNil("APIResponse", response)
+	expect.EqualsString("Response.Operation", "Change Server Disk Speed", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResultSuccess, response.Result)
+	expect.EqualsString("Response.Message", "Change Server Disk Speed Issued", response.Message)
 	expect.EqualsString("Response.ResultCode", "RESULT_0", response.ResultCode)
 }
 

@@ -41,18 +41,29 @@ const (
 
 	// ResourceTypeVirtualListener represents a virtual listener.
 	ResourceTypeVirtualListener
+
+	// ResourceTypeOSImage represents an OS image.
+	ResourceTypeOSImage
+
+	// ResourceTypeCustomerImage represents a customer image.
+	ResourceTypeCustomerImage
+
+	// ResourceTypeSSLDomainCertificate represents an SSL certificate for a domain name.
+	ResourceTypeSSLDomainCertificate
+
+	// ResourceTypeSSLCertificateChain represents an SSL certificate chain
+	ResourceTypeSSLCertificateChain
+
+	// ResourceTypeSSLOffloadProfile represents an SSL-offload profile
+	ResourceTypeSSLOffloadProfile
 )
 
 // Resource represents a compute resource.
 type Resource interface {
-	// The resource ID.
-	GetID() string
+	NamedEntity
 
 	// The resource type.
 	GetResourceType() ResourceType
-
-	// The resource name.
-	GetName() string
 
 	// The resource's current state (e.g. ResourceStatusNormal, etc).
 	GetState() string
@@ -65,22 +76,22 @@ type Resource interface {
 func GetResourceDescription(resourceType ResourceType) (string, error) {
 	switch resourceType {
 	case ResourceTypeNetworkDomain:
-		return "Network domain", nil
+		return "network domain", nil
 
 	case ResourceTypeVLAN:
 		return "VLAN", nil
 
 	case ResourceTypeServer:
-		return "Server", nil
+		return "server", nil
 
 	case ResourceTypeServerAntiAffinityRule:
-		return "Server anti-affinity rule", nil
+		return "server anti-affinity rule", nil
 
 	case ResourceTypeNetworkAdapter:
-		return "Network adapter", nil
+		return "network adapter", nil
 
 	case ResourceTypePublicIPBlock:
-		return "Public IPv4 address block", nil
+		return "public IPv4 address block", nil
 
 	case ResourceTypeFirewallRule:
 		return "Firewall rule", nil
@@ -94,8 +105,23 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeVirtualListener:
 		return "virtual listener", nil
 
+	case ResourceTypeOSImage:
+		return "OS image", nil
+
+	case ResourceTypeCustomerImage:
+		return "customer image", nil
+
+	case ResourceTypeSSLDomainCertificate:
+		return "SSL domain certificate", nil
+
+	case ResourceTypeSSLCertificateChain:
+		return "SSL certificate chain", nil
+
+	case ResourceTypeSSLOffloadProfile:
+		return "SSL-offload profile", nil
+
 	default:
-		return "", fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
+		return "", fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
 	}
 }
 
@@ -133,9 +159,24 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 
 	case ResourceTypeVirtualListener:
 		return client.GetVirtualListener(id)
+
+	case ResourceTypeOSImage:
+		return client.GetCustomerImage(id)
+
+	case ResourceTypeCustomerImage:
+		return client.GetCustomerImage(id)
+
+	case ResourceTypeSSLDomainCertificate:
+		return client.GetSSLDomainCertificate(id)
+
+	case ResourceTypeSSLCertificateChain:
+		return client.GetSSLCertificateChain(id)
+
+	case ResourceTypeSSLOffloadProfile:
+		return client.GetSSLOffloadProfile(id)
 	}
 
-	return nil, fmt.Errorf("Unrecognised resource type (value = %d).", resourceType)
+	return nil, fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
 }
 
 func (client *Client) getNetworkAdapterByID(id string) (Resource, error) {

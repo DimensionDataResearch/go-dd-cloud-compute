@@ -2,8 +2,19 @@ package compute
 
 import "fmt"
 
+// Entity represents a Cloud Control entity.
+type Entity interface {
+	// GetID retrieves the entity's ID.
+	GetID() string
+}
+
 // NamedEntity represents a named Cloud Control entity.
 type NamedEntity interface {
+	Entity
+
+	// GetName retrieves the entity's name.
+	GetName() string
+
 	// ToEntityReference creates an EntityReference representing the entity.
 	ToEntityReference() EntityReference
 }
@@ -60,6 +71,12 @@ type OperatingSystem struct {
 	DisplayName string `json:"displayName"`
 }
 
+// ImageGuestInformation represents guest-related information about a virtual machine image.
+type ImageGuestInformation struct {
+	OperatingSystem OperatingSystem `json:"operatingSystem"`
+	OSCustomization bool            `json:"osCustomization"`
+}
+
 // VirtualMachineCPU represents the CPU configuration for a virtual machine.
 type VirtualMachineCPU struct {
 	Count          int    `json:"count,omitempty"`
@@ -67,12 +84,96 @@ type VirtualMachineCPU struct {
 	CoresPerSocket int    `json:"coresPerSocket,omitempty"`
 }
 
-// VirtualMachineDisk represents the disk configuration for a virtual machine.
+// VirtualMachineSCSIController represents the configuration for a SCSI controller in a virtual machine.
+type VirtualMachineSCSIController struct {
+	ID          string              `json:"id,omitempty"`
+	BusNumber   int                 `json:"busNumber"`
+	Key         int                 `json:"key"`
+	AdapterType string              `json:"adapterType"`
+	Disks       VirtualMachineDisks `json:"disk"`
+	State       string              `json:"state,omitempty"`
+}
+
+// GetDiskByUnitID retrieves the VirtualMachineDisk (if any) attached to the VirtualMachineSCSIController that matches the specified SCSI logical unit ID.
+func (controller *VirtualMachineSCSIController) GetDiskByUnitID(unitID int) *VirtualMachineDisk {
+	if controller == nil {
+		return nil
+	}
+
+	return controller.Disks.GetByUnitID(unitID)
+}
+
+// GetDiskCount determines the number of VirtualMachineDisk entries contained in the VirtualMachineSCSIControllers.
+func (controllers VirtualMachineSCSIControllers) GetDiskCount() (count int) {
+	for _, controller := range controllers {
+		count += len(controller.Disks)
+	}
+
+	return
+}
+
+// VirtualMachineSCSIControllers is an array of VirtualMachineSCSIController that adds various convenience methods.
+type VirtualMachineSCSIControllers []VirtualMachineSCSIController
+
+// GetByID retrieves the VirtualMachineSCSIController that matches the specified CloudControl identifier.
+func (controllers VirtualMachineSCSIControllers) GetByID(controllerID string) *VirtualMachineSCSIController {
+	for _, controller := range controllers {
+		if controller.ID == controllerID {
+			return &controller
+		}
+	}
+
+	return nil
+}
+
+// GetByBusNumber retrieves the VirtualMachineSCSIController that matches the specified SCSI bus number.
+func (controllers VirtualMachineSCSIControllers) GetByBusNumber(busNumber int) *VirtualMachineSCSIController {
+	for _, controller := range controllers {
+		if controller.BusNumber == busNumber {
+			return &controller
+		}
+	}
+
+	return nil
+}
+
+// GetDiskBySCSIPath retrieves the VirtualMachineDisk (if any) attached to a VirtualMachineSCSIController that matches the specified SCSI device path (bus number and unit ID).
+func (controllers VirtualMachineSCSIControllers) GetDiskBySCSIPath(busNumber int, unitID int) *VirtualMachineDisk {
+	return controllers.GetByBusNumber(busNumber).GetDiskByUnitID(unitID)
+}
+
+// VirtualMachineDisk represents the configuration for disk in a virtual machine.
 type VirtualMachineDisk struct {
-	ID         *string `json:"id,omitempty"`
-	SCSIUnitID int     `json:"scsiId"`
-	SizeGB     int     `json:"sizeGb"`
-	Speed      string  `json:"speed"`
+	ID         string `json:"id,omitempty"`
+	SCSIUnitID int    `json:"scsiId"`
+	SizeGB     int    `json:"sizeGb"`
+	Speed      string `json:"speed"`
+	State      string `json:"state,omitempty"`
+}
+
+// VirtualMachineDisks is an array of VirtualMachineDisk that adds convenience methods.
+type VirtualMachineDisks []VirtualMachineDisk
+
+// GetByID retrieves the disk (if any) with the specified Id.
+func (disks VirtualMachineDisks) GetByID(id string) *VirtualMachineDisk {
+	for index := range disks {
+		if disks[index].ID == id {
+			return &disks[index]
+		}
+	}
+
+	return nil
+}
+
+// GetByUnitID retrieves the disk (if any) with the specified SCSI unit Id.
+func (disks VirtualMachineDisks) GetByUnitID(unitID int) *VirtualMachineDisk {
+	for index := range disks {
+		if disks[index].SCSIUnitID == unitID {
+			return &disks[index]
+		}
+	}
+
+	return nil
 }
 
 // VirtualMachineNetwork represents the networking configuration for a virtual machine.
@@ -88,11 +189,13 @@ type VirtualMachineNetwork struct {
 // AdapterType (if specified) must be either E1000 or VMXNET3.
 type VirtualMachineNetworkAdapter struct {
 	ID                 *string `json:"id,omitempty"`
+	MACAddress         *string `json:"macAddress,omitempty"` // CloudControl v2.4 and higher
 	VLANID             *string `json:"vlanId,omitempty"`
 	VLANName           *string `json:"vlanName,omitempty"`
 	PrivateIPv4Address *string `json:"privateIpv4,omitempty"`
 	PrivateIPv6Address *string `json:"ipv6,omitempty"`
 	AdapterType        *string `json:"networkAdapter,omitempty"`
+	AdapterKey         *int    `json:"key,omitempty"` // CloudControl v2.4 and higher
 	State              *string `json:"state,omitempty"`
 }
 
@@ -127,6 +230,23 @@ func (networkAdapter *VirtualMachineNetworkAdapter) GetState() string {
 // IsDeleted determines whether the network adapter has been deleted (is nil).
 func (networkAdapter *VirtualMachineNetworkAdapter) IsDeleted() bool {
 	return networkAdapter == nil
+}
+
+// ToEntityReference creates an EntityReference representing the CustomerImage.
+func (networkAdapter *VirtualMachineNetworkAdapter) ToEntityReference() EntityReference {
+	id := ""
+	if networkAdapter.ID != nil {
+		id = *networkAdapter.ID
+	}
+	name := ""
+	if networkAdapter.VLANName != nil {
+		name = *networkAdapter.VLANName
+	}
+
+	return EntityReference{
+		ID:   id,
+		Name: name,
+	}
 }
 
 var _ Resource = &VirtualMachineNetworkAdapter{}

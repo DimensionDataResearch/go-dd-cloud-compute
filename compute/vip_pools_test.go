@@ -2,7 +2,7 @@ package compute
 
 import "testing"
 
-// Deploy network domain (successful).
+// Create VIP pool (successful).
 func TestClient_CreateVIPPool_Success(test *testing.T) {
 	expect := expect(test)
 
