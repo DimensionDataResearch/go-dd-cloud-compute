@@ -56,6 +56,9 @@ const (
 
 	// ResourceTypeSSLOffloadProfile represents an SSL-offload profile
 	ResourceTypeSSLOffloadProfile
+
+	// ResourceStaticRoutes represents network domain static routes
+	ResourceTypeStaticRoutes
 )
 
 // Resource represents a compute resource.
@@ -120,6 +123,9 @@ func GetResourceDescription(resourceType ResourceType) (string, error) {
 	case ResourceTypeSSLOffloadProfile:
 		return "SSL-offload profile", nil
 
+	case ResourceTypeStaticRoutes:
+		return "Static Routes", nil
+
 	default:
 		return "", fmt.Errorf("unrecognised resource type (value = %d)", resourceType)
 	}
@@ -174,6 +180,9 @@ func (client *Client) GetResource(id string, resourceType ResourceType) (Resourc
 
 	case ResourceTypeSSLOffloadProfile:
 		return client.GetSSLOffloadProfile(id)
+
+	case ResourceTypeStaticRoutes:
+		return client.GetStaticRoute(id)
 	}
 
 	return nil, fmt.Errorf("unrecognised resource type (value = %d)", resourceType)

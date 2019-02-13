@@ -25,3 +25,5 @@ _testmain.go
 
 # Mac
 .DS_Store
+
+**/*.ignore
