@@ -3,6 +3,7 @@ package compute
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -165,21 +166,27 @@ func (client *Client) CreateStaticRoute(networkDomainId string, name string, des
 		NextHopAddress: 			nextHopAddress,
 
 	})
-
+	log.Printf("CreateStaticRoute before client.executeRequest")
 	responseBody, statusCode, err := client.executeRequest(request)
+	log.Printf("CreateStaticRoute after client.executeRequest")
 	if err != nil {
+		log.Printf("CreateStaticRoute after client.executeRequest inside ERROR")
 		return "", err
 	}
 
 	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
+	log.Printf("CreateStaticRoute after readAPIResponseAsJSON")
 
 	if statusCode != http.StatusOK {
-		var apiResponse *APIResponseV2
 
-
+		log.Printf("CreateStaticRoute NOT OK ")
 		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
+			log.Printf("CreateStaticRoute ResponseCodeResourceNotFound ")
 			return "", nil // Not an error, but was not found.
 		}
+
+		log.Printf("Request to create Static Route failed with status_code:%d response_code:%s  Msg: %s",
+			statusCode, apiResponse.ResponseCode, apiResponse.Message)
 
 		return "", apiResponse.ToError(
 			"Request to create Static Route failed with status code %d (%s): %s",
@@ -187,6 +194,7 @@ func (client *Client) CreateStaticRoute(networkDomainId string, name string, des
 	}
 
 	staticRouteIdCreated := apiResponse.GetFieldMessage("staticRouteId")
+
 	if staticRouteIdCreated == nil {
 		return "", apiResponse.ToError("Unknown error occured. Request to create Static Route failed" +
 			" with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
@@ -349,7 +357,7 @@ func (client *Client) DeleteStaticRoute(id string) (err error) {
 		return err
 	}
 
-	if apiResponse.ResponseCode != ResponseCodeInProgress {
+	if apiResponse.ResponseCode != ResponseCodeOK {
 		return apiResponse.ToError("Request to delete Static Route failed with unexpected status code %d (%s): %s",
 			statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
@@ -386,3 +394,4 @@ func (client *Client) RestoreStaticRoute(networkDomainId string) (err error){
 
 	return nil
 }
+

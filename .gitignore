@@ -26,4 +26,5 @@ _testmain.go
 # Mac
 .DS_Store
 
+**/.idea
 **/*.ignore
