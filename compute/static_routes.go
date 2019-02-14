@@ -166,22 +166,18 @@ func (client *Client) CreateStaticRoute(networkDomainId string, name string, des
 		NextHopAddress: 			nextHopAddress,
 
 	})
-	log.Printf("CreateStaticRoute before client.executeRequest")
+
 	responseBody, statusCode, err := client.executeRequest(request)
-	log.Printf("CreateStaticRoute after client.executeRequest")
+
 	if err != nil {
-		log.Printf("CreateStaticRoute after client.executeRequest inside ERROR")
 		return "", err
 	}
 
 	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
-	log.Printf("CreateStaticRoute after readAPIResponseAsJSON")
+
 
 	if statusCode != http.StatusOK {
-
-		log.Printf("CreateStaticRoute NOT OK ")
 		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
-			log.Printf("CreateStaticRoute ResponseCodeResourceNotFound ")
 			return "", nil // Not an error, but was not found.
 		}
 
