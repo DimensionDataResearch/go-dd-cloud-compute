@@ -74,13 +74,10 @@ func (staticRoute *StaticRoute) GetName() string {
 	return staticRoute.Name
 }
 
-
-
 // GetResourceType returns the static route resource type.
 func (staticRoute *StaticRoute) GetResourceType() ResourceType {
 	return ResourceTypeStaticRoutes
 }
-
 
 // GetState returns the Static Routes current state.
 func (staticRoute *StaticRoute) GetState() string {
@@ -145,10 +142,9 @@ type restoreStaticRoute struct {
 	NetworkDomainId string `json:"networkDomainId"`
 }
 
-
 // Create enterprise static route
 func (client *Client) CreateStaticRoute(networkDomainId string, name string, description string, ipVersion string,
-	destinationNetworkAddress string, destinationPrefixSize int, nextHopAddress string) (staticRouteID string, err error){
+	destinationNetworkAddress string, destinationPrefixSize int, nextHopAddress string) (staticRouteID string, err error) {
 
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
@@ -157,14 +153,13 @@ func (client *Client) CreateStaticRoute(networkDomainId string, name string, des
 
 	requestURI := fmt.Sprintf("%s/network/createStaticRoute", url.QueryEscape(organizationID))
 	request, err := client.newRequestV29(requestURI, http.MethodPost, &CreateStaticRoute{
-		NetworkDomainId: 			networkDomainId,
-		Name:						name,
-		Description: 				description,
-		IpVersion: 					ipVersion,
-		DestinationNetworkAddress: 	destinationNetworkAddress,
-		DestinationPrefixSize:		destinationPrefixSize,
-		NextHopAddress: 			nextHopAddress,
-
+		NetworkDomainId:           networkDomainId,
+		Name:                      name,
+		Description:               description,
+		IpVersion:                 ipVersion,
+		DestinationNetworkAddress: destinationNetworkAddress,
+		DestinationPrefixSize:     destinationPrefixSize,
+		NextHopAddress:            nextHopAddress,
 	})
 
 	responseBody, statusCode, err := client.executeRequest(request)
@@ -174,7 +169,6 @@ func (client *Client) CreateStaticRoute(networkDomainId string, name string, des
 	}
 
 	apiResponse, err := readAPIResponseAsJSON(responseBody, statusCode)
-
 
 	if statusCode != http.StatusOK {
 		if apiResponse.ResponseCode == ResponseCodeResourceNotFound {
@@ -192,7 +186,7 @@ func (client *Client) CreateStaticRoute(networkDomainId string, name string, des
 	staticRouteIdCreated := apiResponse.GetFieldMessage("staticRouteId")
 
 	if staticRouteIdCreated == nil {
-		return "", apiResponse.ToError("Unknown error occured. Request to create Static Route failed" +
+		return "", apiResponse.ToError("Unknown error occured. Request to create Static Route failed"+
 			" with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
@@ -200,7 +194,7 @@ func (client *Client) CreateStaticRoute(networkDomainId string, name string, des
 }
 
 // List static route of a network domain
-func (client *Client) ListStaticRoute(paging *Paging) (staticRoutes *StaticRoutes, err error){
+func (client *Client) ListStaticRoute(paging *Paging) (staticRoutes *StaticRoutes, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
@@ -243,7 +237,7 @@ func (client *Client) ListStaticRoute(paging *Paging) (staticRoutes *StaticRoute
 }
 
 // List static route of a network domain by Name
-func (client *Client) GetStaticRouteByName(name string) (staticRoute *StaticRoute, err error){
+func (client *Client) GetStaticRouteByName(name string) (staticRoute *StaticRoute, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
@@ -282,10 +276,16 @@ func (client *Client) GetStaticRouteByName(name string) (staticRoute *StaticRout
 		return nil, err
 	}
 
-	return &staticRoutes.Routes[0], nil
+	if len(staticRoutes.Routes) > 0 {
+		return &staticRoutes.Routes[0], nil
+	} else {
+		return nil, nil
+	}
+
 }
 
-func (client *Client) GetStaticRoute(id string) (staticRoute *StaticRoute, err error){
+// Get static route by ID
+func (client *Client) GetStaticRoute(id string) (staticRoute *StaticRoute, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
@@ -363,7 +363,7 @@ func (client *Client) DeleteStaticRoute(id string) (err error) {
 
 // Restores the Static Routes of a Network Domain (networkDomainId) belonging to the organization identified by {org-id}
 // to the system default (also referred to as baseline) configuration applied when the Network Domain was first deployed
-func (client *Client) RestoreStaticRoute(networkDomainId string) (err error){
+func (client *Client) RestoreStaticRoute(networkDomainId string) (err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -390,4 +390,3 @@ func (client *Client) RestoreStaticRoute(networkDomainId string) (err error){
 
 	return nil
 }
-
