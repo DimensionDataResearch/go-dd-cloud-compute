@@ -278,10 +278,9 @@ func (client *Client) GetStaticRouteByName(name string) (staticRoute *StaticRout
 
 	if len(staticRoutes.Routes) > 0 {
 		return &staticRoutes.Routes[0], nil
-	} else {
-		return nil, nil
 	}
 
+	return nil, nil
 }
 
 // Get static route by ID
@@ -383,7 +382,7 @@ func (client *Client) RestoreStaticRoute(networkDomainId string) (err error) {
 		return err
 	}
 
-	if apiResponse.ResponseCode != ResponseCodeInProgress {
+	if apiResponse.ResponseCode != ResponseCodeOK {
 		return apiResponse.ToError("Request to restore default static route failed with "+
 			"unexpected status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
