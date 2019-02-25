@@ -39,8 +39,6 @@ func TestClient_DeployVlan_Success(test *testing.T) {
 	testClientRequest(test, &ClientTestConfig{
 		Request: func(test *testing.T, client *Client) {
 
-			//deployVLANTestRequest := &DeployVLAN{}
-
 			VlanConfiguration := DeployVLAN{
 				VLANID:          "484174a2-ae74-4658-9e56-50fc90e086cf",
 				Name:            "Production VLAN",
