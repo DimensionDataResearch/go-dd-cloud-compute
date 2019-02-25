@@ -3,9 +3,9 @@ package compute
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
-	"log"
 )
 
 // IPAddressList represents an IP address list.
@@ -262,7 +262,7 @@ func (client *Client) DeleteIPAddressList(id string) (err error) {
 	return nil
 }
 
-// GetIPAddressList retrieves the IP address list by name.
+// GetIPAddressListByName retrieves the IP address list by name.
 // Name is the name of the IP address list to retrieve.
 // Returns nil if no addressList is found with the specified name.
 func (client *Client) GetIPAddressListByName(name string, networkDomainID string) (addressList *IPAddressList, err error) {
@@ -323,4 +323,3 @@ func (client *Client) GetIPAddressListByName(name string, networkDomainID string
 
 	return &addressLists.AddressLists[0], err
 }
-

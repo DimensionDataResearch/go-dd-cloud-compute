@@ -35,16 +35,23 @@ func TestClient_ListVLANs_Success(test *testing.T) {
 // Deploy VLAN (successful).
 func TestClient_DeployVlan_Success(test *testing.T) {
 	expect := expect(test)
-
+	//deployVlanConfiguration
 	testClientRequest(test, &ClientTestConfig{
 		Request: func(test *testing.T, client *Client) {
-			vlanID, err := client.DeployVLAN(
-				"484174a2-ae74-4658-9e56-50fc90e086cf",
-				"Production VLAN",
-				"For hosting our Production Cloud Servers",
-				"10.0.3.0",
-				23,
-			)
+
+			//deployVLANTestRequest := &DeployVLAN{}
+
+			VlanConfiguration := DeployVLAN{
+				VLANID:          "484174a2-ae74-4658-9e56-50fc90e086cf",
+				Name:            "Production VLAN",
+				Description:     "For hosting our Production Cloud Servers",
+				IPv4BaseAddress: "10.0.3.0",
+				AttachedVlan: AttachedVlan{
+					GatewayAddressing: "HIGH",
+				},
+				IPv4PrefixSize: 23,
+			}
+			vlanID, err := client.DeployVLAN(VlanConfiguration)
 			if err != nil {
 				test.Fatal(err)
 			}
@@ -103,7 +110,8 @@ var deployVLANTestRequest = `
 		"name": "Production VLAN",
 		"description": "For hosting our Production Cloud Servers",
 		"privateIpv4BaseAddress": "10.0.3.0",
-		"privateIpv4PrefixSize": 23
+		"privateIpv4PrefixSize": 23,
+		"gatewayAddressing" : "HIGH"
 	}
 `
 
@@ -116,6 +124,7 @@ func verifyDeployVLANTestRequest(test *testing.T, request *DeployVLAN) {
 	expect.EqualsString("DeployVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
 	expect.EqualsString("DeployVLAN.IPv4BaseAddress", "10.0.3.0", request.IPv4BaseAddress)
 	expect.EqualsInt("DeployVLAN.IPv4PrefixSize", 23, request.IPv4PrefixSize)
+	expect.EqualsString("DeployVLAN.AttachedVlan.GatewayAddressing", "HIGH", request.AttachedVlan.GatewayAddressing)
 }
 
 var editVLANTestRequest = `
@@ -166,6 +175,9 @@ var getVLANTestResponse = `
 			"address": "10.0.3.0",
 			"prefixSize": 24
 		},
+		"attachedVlan":{
+					"gatewayAddressing": "HIGH"
+				},
 		"ipv4GatewayAddress": "10.0.3.1",
 		"ipv6Range": {
 			"address": "2607:f480:1111:1153:0:0:0:0",
@@ -188,6 +200,7 @@ func verifyGetVLANTestResponse(test *testing.T, vlan *VLAN) {
 	expect.EqualsString("VLAN.Description", "For hosting our Production Cloud Servers", vlan.Description)
 	expect.EqualsString("VLAN.IPv4Range.BaseAddress", "10.0.3.0", vlan.IPv4Range.BaseAddress)
 	expect.EqualsInt("VLAN.IPv4Range.PrefixSize", 24, vlan.IPv4Range.PrefixSize)
+	expect.EqualsString("VLAN.GatewayAddressing", "HIGH", vlan.AttachedVlan.GatewayAddressing)
 	expect.EqualsString("VLAN.IPv4GatewayAddress", "10.0.3.1", vlan.IPv4GatewayAddress)
 	expect.EqualsString("VLAN.IPv6Range.BaseAddress", "2607:f480:1111:1153:0:0:0:0", vlan.IPv6Range.BaseAddress)
 	expect.EqualsInt("VLAN.IPv6Range.PrefixSize", 64, vlan.IPv6Range.PrefixSize)
@@ -210,6 +223,9 @@ var listVLANsTestResponse = `
 				"privateIpv4Range": {
 					"address": "10.0.3.0",
 					"prefixSize": 24
+				},
+				"attachedVlan":{
+					"gatewayAddressing": "HIGH"
 				},
 				"ipv4GatewayAddress": "10.0.3.1",
 				"ipv6Range": {
@@ -250,6 +266,7 @@ func verifyListVLANsTestResponse(test *testing.T, vlans *VLANs) {
 	expect.EqualsString("VLANs.VLANs[0].IPv4Range.BaseAddress", "10.0.3.0", vlan1.IPv4Range.BaseAddress)
 	expect.EqualsInt("VLANs.VLANs[0].IPv4Range.PrefixSize", 24, vlan1.IPv4Range.PrefixSize)
 	expect.EqualsString("VLANs.VLANs[0].IPv4GatewayAddress", "10.0.3.1", vlan1.IPv4GatewayAddress)
+	expect.EqualsString("VLAN.GatewayAddressing", "HIGH", vlan1.AttachedVlan.GatewayAddressing)
 
 	expect.EqualsString("VLANs.VLANs[0].IPv6Range.BaseAddress", "2607:f480:1111:1153:0:0:0:0", vlan1.IPv6Range.BaseAddress)
 	expect.EqualsInt("VLANs.VLANs[0].IPv6Range.PrefixSize", 64, vlan1.IPv6Range.PrefixSize)

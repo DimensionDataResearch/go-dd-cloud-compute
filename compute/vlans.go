@@ -27,6 +27,9 @@ type VLAN struct {
 	// The VLAN's IPv4 gateway address.
 	IPv4GatewayAddress string `json:"ipv4GatewayAddress"`
 
+	//Attached VLAN type, for gateway addressing
+	AttachedVlan AttachedVlan `json:"attachedVlan"`
+
 	// The VLAN's associated IPv6 network range.
 	IPv6Range IPv6Range `json:"ipv6Range"`
 
@@ -102,6 +105,9 @@ type DeployVLAN struct {
 	// The private IPv4 base address for the VLAN.
 	IPv4BaseAddress string `json:"privateIpv4BaseAddress"`
 
+	//Attached VLAN type, for gateway addressing
+	AttachedVlan AttachedVlan `json:"attachedVlan"`
+
 	// The private IPv4 prefix size (i.e. netmask) for the VLAN.
 	IPv4PrefixSize int `json:"privateIpv4PrefixSize"`
 }
@@ -137,7 +143,7 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +185,7 @@ func (client *Client) GetVLANByName(name string, networkDomainID string) (*VLAN,
 		url.QueryEscape(name),
 		url.QueryEscape(networkDomainID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +235,7 @@ func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +263,7 @@ func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *
 }
 
 // DeployVLAN deploys a new VLAN into a network domain.
-func (client *Client) DeployVLAN(networkDomainID string, name string, description string, ipv4BaseAddress string, ipv4PrefixSize int) (vlanID string, err error) {
+func (client *Client) DeployVLAN(VLANconfig DeployVLAN) (vlanID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -266,13 +272,9 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 	requestURI := fmt.Sprintf("%s/network/deployVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployVLAN{
-		VLANID:          networkDomainID,
-		Name:            name,
-		Description:     description,
-		IPv4BaseAddress: ipv4BaseAddress,
-		IPv4PrefixSize:  ipv4PrefixSize,
-	})
+	// Using apiVer 2.9
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &VLANconfig)
+
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err
@@ -284,7 +286,7 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 	}
 
 	if apiResponse.ResponseCode != ResponseCodeInProgress {
-		return "", apiResponse.ToError("Request to deploy VLAN '%s' failed with status code %d (%s): %s", name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
+		return "", apiResponse.ToError("Request to deploy VLAN '%s' failed with status code %d (%s): %s", VLANconfig.Name, statusCode, apiResponse.ResponseCode, apiResponse.Message)
 	}
 
 	// Expected: "info" { "name": "vlanId", "value": "the-Id-of-the-new-VLAN" }
@@ -308,7 +310,7 @@ func (client *Client) EditVLAN(id string, name *string, description *string) (er
 	requestURI := fmt.Sprintf("%s/network/editVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditVLAN{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &EditVLAN{
 		ID:          id,
 		Name:        name,
 		Description: description,
@@ -341,7 +343,7 @@ func (client *Client) DeleteVLAN(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/network/deleteVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteVLAN{id})
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &DeleteVLAN{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err

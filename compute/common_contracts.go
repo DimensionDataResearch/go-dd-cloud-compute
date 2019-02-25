@@ -84,6 +84,11 @@ type VirtualMachineCPU struct {
 	CoresPerSocket int    `json:"coresPerSocket,omitempty"`
 }
 
+// AttachedVlan represents the VLAN's gatewayAddressing configuration
+type AttachedVlan struct {
+	GatewayAddressing string `json:"gatewayAddressing,omitempty"`
+}
+
 // VirtualMachineSCSIController represents the configuration for a SCSI controller in a virtual machine.
 type VirtualMachineSCSIController struct {
 	ID          string              `json:"id,omitempty"`
