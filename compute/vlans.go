@@ -41,6 +41,9 @@ type VLAN struct {
 
 	// The ID of the data center in which the VLAN and its containing network domain are deployed.
 	DataCenterID string `json:"datacenterId"`
+
+	// Gateway addressing
+	GatewayAddressing string `json:"gatewayAddressing"`
 }
 
 // GetID returns the VLAN's Id.
@@ -88,8 +91,13 @@ type VLANs struct {
 	PagedResult
 }
 
+type AttachedVlanGateway struct {
+	// Gateway addressing. Valid input either 'HIGH' or 'LOW'
+	GatewayAddressing string `json:"gatewayAddressing"`
+}
+
 // DeployVLAN represents the request body when deploying a cloud compute VLAN.
-type DeployVLAN struct {
+type DeployAttachedVLAN struct {
 	// The Id of the network domain in which the VLAN will be deployed.
 	VLANID string `json:"networkDomainId"`
 
@@ -100,10 +108,39 @@ type DeployVLAN struct {
 	Description string `json:"description"`
 
 	// The private IPv4 base address for the VLAN.
-	IPv4BaseAddress string `json:"privateIpv4BaseAddress"`
+	IPv4BaseAddress string `json:"privateIpv4NetworkAddress"`
 
 	// The private IPv4 prefix size (i.e. netmask) for the VLAN.
 	IPv4PrefixSize int `json:"privateIpv4PrefixSize"`
+
+	// Attached Vlan
+	AttachedVlan AttachedVlanGateway `json:"attachedVlan"`
+}
+
+// DeployVLAN represents the request body when deploying a cloud compute VLAN.
+type DeployDetachedVLAN struct {
+	// The Id of the network domain in which the VLAN will be deployed.
+	VLANID string `json:"networkDomainId"`
+
+	// The VLAN name.
+	Name string `json:"name"`
+
+	// The VLAN description.
+	Description string `json:"description"`
+
+	// The private IPv4 base address for the VLAN.
+	IPv4BaseAddress string `json:"privateIpv4NetworkAddress"`
+
+	// The private IPv4 prefix size (i.e. netmask) for the VLAN.
+	IPv4PrefixSize int `json:"privateIpv4PrefixSize"`
+
+	// Attached Vlan
+	DetachedVlan DetachedVlanGateway `json:"detachedVlan"`
+}
+
+type DetachedVlanGateway struct {
+	// The system will use this IP address as the IPv4 gateway when the Deploy Server API is used referencing a NIC to the VLAN.
+	Ipv4GatewayAddress string `json:"ipv4GatewayAddress"`
 }
 
 // EditVLAN represents the request body when editing a cloud compute VLAN.
@@ -137,7 +174,7 @@ func (client *Client) GetVLAN(id string) (vlan *VLAN, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +266,7 @@ func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *
 		url.QueryEscape(networkDomainID),
 		paging.EnsurePaging().toQueryParameters(),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +294,8 @@ func (client *Client) ListVLANs(networkDomainID string, paging *Paging) (vlans *
 }
 
 // DeployVLAN deploys a new VLAN into a network domain.
-func (client *Client) DeployVLAN(networkDomainID string, name string, description string, ipv4BaseAddress string, ipv4PrefixSize int) (vlanID string, err error) {
+func (client *Client) DeployVLAN(networkDomainID string, name string, description string, ipv4BaseAddress string,
+	ipv4PrefixSize int, attachedVlanGatewayAddressing string, detachedVlanIpv4GatewayAddress string) (vlanID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -266,13 +304,37 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 	requestURI := fmt.Sprintf("%s/network/deployVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeployVLAN{
-		VLANID:          networkDomainID,
-		Name:            name,
-		Description:     description,
-		IPv4BaseAddress: ipv4BaseAddress,
-		IPv4PrefixSize:  ipv4PrefixSize,
-	})
+
+	var request *http.Request
+
+	if attachedVlanGatewayAddressing != "" {
+
+		attachedVlan := AttachedVlanGateway{attachedVlanGatewayAddressing}
+		vlan := &DeployAttachedVLAN{
+			VLANID:          networkDomainID,
+			Name:            name,
+			Description:     description,
+			IPv4BaseAddress: ipv4BaseAddress,
+			IPv4PrefixSize:  ipv4PrefixSize,
+			AttachedVlan:    attachedVlan,
+		}
+
+		request, err = client.newRequestV29(requestURI, http.MethodPost, &vlan)
+
+	} else {
+		detachedVlan := DetachedVlanGateway{detachedVlanIpv4GatewayAddress}
+		vlan := &DeployDetachedVLAN{
+			VLANID:          networkDomainID,
+			Name:            name,
+			Description:     description,
+			IPv4BaseAddress: ipv4BaseAddress,
+			IPv4PrefixSize:  ipv4PrefixSize,
+			DetachedVlan:    detachedVlan,
+		}
+
+		request, err = client.newRequestV29(requestURI, http.MethodPost, &vlan)
+	}
+
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err
@@ -308,7 +370,7 @@ func (client *Client) EditVLAN(id string, name *string, description *string) (er
 	requestURI := fmt.Sprintf("%s/network/editVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &EditVLAN{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &EditVLAN{
 		ID:          id,
 		Name:        name,
 		Description: description,
@@ -341,7 +403,7 @@ func (client *Client) DeleteVLAN(id string) (err error) {
 	requestURI := fmt.Sprintf("%s/network/deleteVlan",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &DeleteVLAN{id})
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &DeleteVLAN{id})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
