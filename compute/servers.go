@@ -665,7 +665,7 @@ func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIP
 	requestURI := fmt.Sprintf("%s/server/notifyNicIpChange",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &notifyServerIPAddressChange{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &notifyServerIPAddressChange{
 		AdapterID:   networkAdapterID,
 		IPv4Address: newIPv4Address,
 		IPv6Address: newIPv6Address,
@@ -758,7 +758,7 @@ func (client *Client) addNicToServer(serverID string, nicConfiguration *serverNi
 	requestURI := fmt.Sprintf("%s/server/addNic",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV23(requestURI, http.MethodPost, &addNicConfiguration{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &addNicConfiguration{
 		ServerID: serverID,
 		Nic:      *nicConfiguration,
 	})
@@ -792,7 +792,7 @@ func (client *Client) RemoveNicFromServer(networkAdapterID string) (err error) {
 	requestURI := fmt.Sprintf("%s/server/removeNic",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteNic{ID: networkAdapterID})
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &deleteNic{ID: networkAdapterID})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -820,7 +820,7 @@ func (client *Client) ChangeNetworkAdapterType(networkAdapterID string, networkA
 	requestURI := fmt.Sprintf("%s/server/changeNetworkAdapter",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &changeNicType{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &changeNicType{
 		ID:   networkAdapterID,
 		Type: networkAdapterType,
 	})
