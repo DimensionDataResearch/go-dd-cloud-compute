@@ -90,6 +90,9 @@ const (
 	// ResultCodeBackupEnablementInProgressForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is in the process of being enabled for that server.
 	ResultCodeBackupEnablementInProgressForServer = "REASON_544"
 
+	// ResultCodeBackupNotEnabledForSubscription is a v1 API result code indicating that an operation cannot be performed on a server because backup is not enabled for that Subscription
+	ResultCodeBackupNotEnabledForSubscription = "REASON_541"
+
 	// ResultCodeBackupClientNotFound is a v1 API result code indicating that an operation cannot be performed on a backup client because the backup client does not exist (or was never actually installed on the target server).
 	ResultCodeBackupClientNotFound = "REASON_545"
 
