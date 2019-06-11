@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/DimensionDataResearch/go-dd-cloud-compute/compute/requests"
+	"github.com/hhakkaev/go-dd-cloud-compute/compute/requests"
 	"github.com/pkg/errors"
 )
 

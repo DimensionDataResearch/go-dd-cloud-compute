@@ -9,7 +9,7 @@ The client's methods (where possible) match the operations defined in the [Cloud
 
 To get started, run:
 ```
-go get github.com/DimensionDataResearch/go-dd-cloud-compute
+go get github.com/hhakkaev/go-dd-cloud-compute
 ```
 
 You can now create a client for the API, and retrieve a listing of your network domains.
@@ -19,7 +19,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/DimensionDataResearch/go-dd-cloud-compute/compute"
+	"github.com/hhakkaev/go-dd-cloud-compute/compute"
 )
 
 region := "AU"
