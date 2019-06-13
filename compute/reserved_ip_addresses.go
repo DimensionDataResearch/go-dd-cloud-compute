@@ -32,6 +32,7 @@ type ReservedIPv6Addresses struct {
 type reserveIPAddress struct {
 	IPAddress string `json:"ipAddress"`
 	VLANID    string `json:"vlanId"`
+	Description  string `json:"description"`
 }
 
 // ListReservedPrivateIPv4AddressesInVLAN retrieves all private IPv4 addresses reserved in the specified VLAN.
@@ -73,7 +74,7 @@ func (client *Client) ListReservedPrivateIPv4AddressesInVLAN(vlanID string) (res
 }
 
 // ReservePrivateIPv4Address creates a reservation for a private IPv4 address on a VLAN.
-func (client *Client) ReservePrivateIPv4Address(vlanID string, ipAddress string) error {
+func (client *Client) ReservePrivateIPv4Address(vlanID string, ipAddress string, description string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -82,9 +83,10 @@ func (client *Client) ReservePrivateIPv4Address(vlanID string, ipAddress string)
 	requestURI := fmt.Sprintf("%s/network/reservePrivateIpv4Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
+		Description: description,
 	})
 	if err != nil {
 		return err
@@ -107,7 +109,7 @@ func (client *Client) ReservePrivateIPv4Address(vlanID string, ipAddress string)
 }
 
 // UnreservePrivateIPv4Address removes the reservation (if any) for a private IPv4 address on a VLAN.
-func (client *Client) UnreservePrivateIPv4Address(vlanID string, ipAddress string) error {
+func (client *Client) UnreservePrivateIPv4Address(vlanID string, ipAddress string, description string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -116,9 +118,10 @@ func (client *Client) UnreservePrivateIPv4Address(vlanID string, ipAddress strin
 	requestURI := fmt.Sprintf("%s/network/unreservePrivateIpv4Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
+		Description: description,
 	})
 	if err != nil {
 		return err
@@ -179,7 +182,7 @@ func (client *Client) ListReservedIPv6AddressesInVLAN(vlanID string) (reservedIP
 }
 
 // ReserveIPv6Address creates a reservation for an IPv6 address on a VLAN.
-func (client *Client) ReserveIPv6Address(vlanID string, ipAddress string) error {
+func (client *Client) ReserveIPv6Address(vlanID string, ipAddress string, description string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -188,9 +191,10 @@ func (client *Client) ReserveIPv6Address(vlanID string, ipAddress string) error 
 	requestURI := fmt.Sprintf("%s/network/reserveIpv6Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
+		Description: description,
 	})
 	if err != nil {
 		return err
@@ -213,7 +217,7 @@ func (client *Client) ReserveIPv6Address(vlanID string, ipAddress string) error 
 }
 
 // UnreserveIPv6Address removes the reservation (if any) for an IPv6 address on a VLAN.
-func (client *Client) UnreserveIPv6Address(vlanID string, ipAddress string) error {
+func (client *Client) UnreserveIPv6Address(vlanID string, ipAddress string, description string) error {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return err
@@ -222,9 +226,10 @@ func (client *Client) UnreserveIPv6Address(vlanID string, ipAddress string) erro
 	requestURI := fmt.Sprintf("%s/network/unreserveIpv6Address",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodGet, &reserveIPAddress{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &reserveIPAddress{
 		IPAddress: ipAddress,
 		VLANID:    vlanID,
+		Description: description,
 	})
 	if err != nil {
 		return err
