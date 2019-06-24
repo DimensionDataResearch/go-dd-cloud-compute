@@ -281,7 +281,7 @@ func (client *Client) ListStaticRouteSystem(paging *Paging, networkDomainId stri
 }
 
 // Get static route by address
-func (client *Client) GetStaticRouteByAddress (paging *Paging, networkDomainId string, destinationNetworkAddress string,
+func (client *Client) GetStaticRouteByAddress(paging *Paging, networkDomainId string, destinationNetworkAddress string,
 	destinationPrefixSize int) (systemStaticRoute *StaticRoute, err error) {
 	systemStaticRoutes, err := client.ListStaticRouteSystem(nil, networkDomainId)
 	if err != nil {
@@ -461,4 +461,3 @@ func (client *Client) RestoreStaticRoute(networkDomainId string) (err error) {
 
 	return nil
 }
-

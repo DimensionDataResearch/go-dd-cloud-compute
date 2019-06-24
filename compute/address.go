@@ -42,43 +42,41 @@ func (client *Client) GetAddressOk(addresslistId string,
 func (client *Client) AddAddress(addresslistId string,
 	begin string, end string, network string, prefixSize int) (address *IPAddressListEntry, err error) {
 
-		// Get existing address list
-		addressList, err := client.GetIPAddressList(addresslistId)
+	// Get existing address list
+	addressList, err := client.GetIPAddressList(addresslistId)
 
-	    var newAddress IPAddressListEntry
+	var newAddress IPAddressListEntry
 
-		if begin != "" {
-			newAddress.Begin = begin
-		}
+	if begin != "" {
+		newAddress.Begin = begin
+	}
 
-		if end != "" {
-			newAddress.End = &end
-		}
+	if end != "" {
+		newAddress.End = &end
+	}
 
-		// Comply to existing IPAddressListEntry model to use begin for both IP Begin and Network
-		if network != "" {
-			newAddress.Begin = network
-		}
+	// Comply to existing IPAddressListEntry model to use begin for both IP Begin and Network
+	if network != "" {
+		newAddress.Begin = network
+	}
 
-		if prefixSize > 0 {
-			newAddress.PrefixSize = &prefixSize
-		}
+	if prefixSize > 0 {
+		newAddress.PrefixSize = &prefixSize
+	}
 
-		// Append address to current list
-	    editRequest := addressList.BuildEditRequest()
-	    editRequest.Addresses = append(editRequest.Addresses, newAddress)
+	// Append address to current list
+	editRequest := addressList.BuildEditRequest()
+	editRequest.Addresses = append(editRequest.Addresses, newAddress)
 
+	err = client.EditIPAddressList(editRequest)
+	if err != nil {
+		return nil, err
+	}
 
-		err = client.EditIPAddressList(editRequest)
-		if err != nil {
-			return nil, err
-		}
-
-		log.Printf("Appended address %+v\n to addresslist '%s'.", newAddress, addresslistId)
+	log.Printf("Appended address %+v\n to addresslist '%s'.", newAddress, addresslistId)
 
 	return &newAddress, nil
 }
-
 
 // Note: ipAddress can represent begin or network
 func (client *Client) DeleteAddress(addresslistId string,
@@ -93,9 +91,9 @@ func (client *Client) DeleteAddress(addresslistId string,
 
 		if ipAddress == addr.Begin {
 			// Copy last element to index i.
-			addresses[i] = addresses[len(addresses) - 1]
+			addresses[i] = addresses[len(addresses)-1]
 			// Erase last element (write zero value)
-			addresses[len(addresses) - 1] = IPAddressListEntry{}
+			addresses[len(addresses)-1] = IPAddressListEntry{}
 			// Truncate slice
 			addresses = addresses[:len(addresses)-1]
 		}
@@ -104,7 +102,6 @@ func (client *Client) DeleteAddress(addresslistId string,
 	// Append address to current list
 	editRequest := addressList.BuildEditRequest()
 	editRequest.Addresses = addresses
-
 
 	err = client.EditIPAddressList(editRequest)
 	if err != nil {

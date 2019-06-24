@@ -30,9 +30,9 @@ type ReservedIPv6Addresses struct {
 
 // Request body when reserving an IP address.
 type ReservedIPAddress struct {
-	IPAddress string `json:"ipAddress"`
-	VLANID    string `json:"vlanId"`
-	Description  string `json:"description"`
+	IPAddress   string `json:"ipAddress"`
+	VLANID      string `json:"vlanId"`
+	Description string `json:"description"`
 }
 
 // ListReservedPrivateIPv4AddressesInVLAN retrieves all private IPv4 addresses reserved in the specified VLAN.
@@ -84,8 +84,8 @@ func (client *Client) ReservePrivateIPv4Address(vlanID string, ipAddress string,
 		url.QueryEscape(organizationID),
 	)
 	request, err := client.newRequestV29(requestURI, http.MethodPost, &ReservedIPAddress{
-		IPAddress: ipAddress,
-		VLANID:    vlanID,
+		IPAddress:   ipAddress,
+		VLANID:      vlanID,
 		Description: description,
 	})
 
@@ -120,8 +120,8 @@ func (client *Client) UnreservePrivateIPv4Address(vlanID string, ipAddress strin
 		url.QueryEscape(organizationID),
 	)
 	request, err := client.newRequestV29(requestURI, http.MethodPost, &ReservedIPAddress{
-		IPAddress: ipAddress,
-		VLANID:    vlanID,
+		IPAddress:   ipAddress,
+		VLANID:      vlanID,
 		Description: description,
 	})
 	if err != nil {
@@ -193,8 +193,8 @@ func (client *Client) ReserveIPv6Address(vlanID string, ipAddress string, descri
 		url.QueryEscape(organizationID),
 	)
 	request, err := client.newRequestV29(requestURI, http.MethodPost, &ReservedIPAddress{
-		IPAddress: ipAddress,
-		VLANID:    vlanID,
+		IPAddress:   ipAddress,
+		VLANID:      vlanID,
 		Description: description,
 	})
 	if err != nil {
@@ -228,8 +228,8 @@ func (client *Client) UnreserveIPv6Address(vlanID string, ipAddress string, desc
 		url.QueryEscape(organizationID),
 	)
 	request, err := client.newRequestV29(requestURI, http.MethodPost, &ReservedIPAddress{
-		IPAddress: ipAddress,
-		VLANID:    vlanID,
+		IPAddress:   ipAddress,
+		VLANID:      vlanID,
 		Description: description,
 	})
 	if err != nil {

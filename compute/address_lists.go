@@ -3,9 +3,9 @@ package compute
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
-	"log"
 )
 
 // IPAddressList represents an IP address list.
@@ -317,4 +317,3 @@ func (client *Client) GetIPAddressListByName(name string, networkDomainID string
 
 	return &addressLists.AddressLists[0], err
 }
-
