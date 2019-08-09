@@ -84,6 +84,12 @@ const (
 	// ResultCodeServerNotFound is a v1 API result code indicating that an operation cannot be performed on a server because the server could not be found.
 	ResultCodeServerNotFound = "REASON_395"
 
+	// Backup service is not enabled for organisation
+	ResultCodeBackupNotEnabledForOrg = "REASON_540"
+
+	// Backup service is not enabled for org at the datacenter where server  resides.
+	ResultCodeBackupNotEnabledForOrgInDatacenter = "REASON_541"
+
 	// ResultCodeBackupNotEnabledForServer is a v1 API result code indicating that an operation cannot be performed on a server because backup is not enabled for that server.
 	ResultCodeBackupNotEnabledForServer = "REASON_543"
 
