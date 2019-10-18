@@ -57,4 +57,7 @@ const (
 
 	// ServerDiskSpeedHighPerformance represents the high-performance speed for server disks.
 	ServerDiskSpeedHighPerformance = "HIGHPERFORMANCE"
+
+	// Provisioned IOPS
+	ServerDiskSpeedProvisionedIops = "PROVISIONEDIOPS"
 )

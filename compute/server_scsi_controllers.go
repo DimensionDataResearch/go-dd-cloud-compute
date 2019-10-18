@@ -23,6 +23,7 @@ type addDiskToSCSIController struct {
 	SCSIController scsiController `json:"scsiController"`
 	SizeGB         int            `json:"sizeGb"`
 	Speed          string         `json:"speed"`
+	Iops           int            `json:"iops,omitempty"`
 }
 
 // scsiController represents part of the request body when adding a disk to a SCSI controller
@@ -55,7 +56,7 @@ func (client *Client) AddSCSIControllerToServer(serverID string, adapterType str
 	requestURI := fmt.Sprintf("%s/server/addScsiController",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &addSCSIControllerToServer{
+	request, err := client.newRequestV210(requestURI, http.MethodPost, &addSCSIControllerToServer{
 		ServerID:    serverID,
 		AdapterType: adapterType,
 		BusNumber:   busNumber,
@@ -108,7 +109,7 @@ func (client *Client) RemoveSCSIControllerFromServer(controllerID string) error 
 }
 
 // AddDiskToSCSIController adds a disk to an existing SCSI controller.
-func (client *Client) AddDiskToSCSIController(controllerID string, scsiUnitID int, sizeGB int, speed string) (diskID string, err error) {
+func (client *Client) AddDiskToSCSIController(controllerID string, scsiUnitID int, sizeGB int, speed string, iops int) (diskID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -117,14 +118,31 @@ func (client *Client) AddDiskToSCSIController(controllerID string, scsiUnitID in
 	requestURI := fmt.Sprintf("%s/server/addDisk",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &addDiskToSCSIController{
-		SCSIController: scsiController{
-			ControllerID: controllerID,
-			SCSIUnitID:   scsiUnitID,
-		},
-		SizeGB: sizeGB,
-		Speed:  speed,
-	})
+
+	var newDisk addDiskToSCSIController
+
+	newDisk.SizeGB = sizeGB
+	newDisk.Speed = speed
+
+	var scsiCtl scsiController
+	scsiCtl.SCSIUnitID = scsiUnitID
+	scsiCtl.ControllerID = controllerID
+
+	newDisk.SCSIController = scsiCtl
+
+	if speed == "PROVISIONEDIOPS" {
+		newDisk.Iops = iops
+	}
+
+	request, err := client.newRequestV210(requestURI, http.MethodPost, newDisk)
+	//request, err := client.newRequestV210(requestURI, http.MethodPost, &addDiskToSCSIController{
+	//	SCSIController: scsiController{
+	//		ControllerID: controllerID,
+	//		SCSIUnitID:   scsiUnitID,
+	//	},
+	//	SizeGB: sizeGB,
+	//	Speed:  speed,
+	//})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return "", err

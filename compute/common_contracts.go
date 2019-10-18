@@ -148,6 +148,7 @@ type VirtualMachineDisk struct {
 	SCSIUnitID int    `json:"scsiId"`
 	SizeGB     int    `json:"sizeGb"`
 	Speed      string `json:"speed"`
+	Iops       int    `json:"iops,omitempty"`
 	State      string `json:"state,omitempty"`
 }
 
