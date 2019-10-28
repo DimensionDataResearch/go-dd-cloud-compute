@@ -262,7 +262,10 @@ func (client *Client) GetServerBackupDetails(serverID string) (*ServerBackupDeta
 			return nil, errors.Wrapf(err, "failed to parse error response for retrieving backup details of server '%s'", serverID)
 		}
 
-		if response.ResultCode == ResultCodeBackupNotEnabledForServer || response.ResultCode == ResultCodeBackupEnablementInProgressForServer {
+		if response.ResultCode == ResultCodeBackupNotEnabledForServer ||
+			response.ResultCode == ResultCodeBackupEnablementInProgressForServer ||
+			response.ResultCode == ResultCodeBackupNotEnabledForOrg ||
+			response.ResultCode == ResultCodeBackupNotEnabledForOrgInDatacenter {
 			return nil, nil
 		}
 

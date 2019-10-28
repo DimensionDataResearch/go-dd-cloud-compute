@@ -236,16 +236,86 @@ func (client *Client) ListStaticRoute(paging *Paging) (staticRoutes *StaticRoute
 	return staticRoutes, nil
 }
 
-// List static route of a network domain by Name
-func (client *Client) GetStaticRouteByName(name string) (staticRoute *StaticRoute, err error) {
+// List static route of a network domain
+func (client *Client) ListStaticRouteSystem(paging *Paging, networkDomainId string) (staticRoutes *StaticRoutes, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
 	}
 
-	requestURI := fmt.Sprintf("%s/network/staticRoute?name=%s",
+	requestURI := fmt.Sprintf("%s/network/staticRoute?%s&networkDomainId=%s&type=SYSTEM",
+		url.QueryEscape(organizationID),
+		paging.EnsurePaging().toQueryParameters(),
+		url.QueryEscape(networkDomainId),
+	)
+
+	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, apiResponse.ToError("Request failed with status code %d (%s): %s",
+			statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	staticRoutes = &StaticRoutes{}
+	err = json.Unmarshal(responseBody, staticRoutes)
+	if err != nil {
+		return nil, err
+	}
+
+	return staticRoutes, nil
+}
+
+// Get static route by address
+func (client *Client) GetStaticRouteByAddress(paging *Paging, networkDomainId string, destinationNetworkAddress string,
+	destinationPrefixSize int) (systemStaticRoute *StaticRoute, err error) {
+	systemStaticRoutes, err := client.ListStaticRouteSystem(nil, networkDomainId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find matching static route by destination address
+	for _, route := range systemStaticRoutes.Routes {
+		if route.DestinationNetworkAddress == destinationNetworkAddress &&
+			route.DestinationPrefixSize == destinationPrefixSize {
+
+			matchingRoute, err := client.GetStaticRoute(route.ID)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return matchingRoute, nil
+		}
+	}
+	return nil, nil
+}
+
+// List static route of a network domain by Name
+func (client *Client) GetStaticRouteByName(name string, domainId string) (staticRoute *StaticRoute, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return nil, err
+	}
+
+	requestURI := fmt.Sprintf("%s/network/staticRoute?name=%s&networkDomainId=%s",
 		url.QueryEscape(organizationID),
 		url.QueryEscape(name),
+		url.QueryEscape(domainId),
 	)
 
 	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
@@ -285,6 +355,7 @@ func (client *Client) GetStaticRouteByName(name string) (staticRoute *StaticRout
 
 // Get static route by ID
 func (client *Client) GetStaticRoute(id string) (staticRoute *StaticRoute, err error) {
+	log.Printf("GetStaticRoute with ID: %s", id)
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return nil, err
@@ -332,6 +403,7 @@ func (client *Client) DeleteStaticRoute(id string) (err error) {
 	if err != nil {
 		return err
 	}
+	log.Printf("DeleteStaticRoute with ID: %s  organization:%s", id, organizationID)
 
 	requestURI := fmt.Sprintf("%s/network/deleteStaticRoute",
 		url.QueryEscape(organizationID),

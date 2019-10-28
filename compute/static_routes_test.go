@@ -230,7 +230,8 @@ func TestClient_GetStaticRouteByName_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	staticRoute, err := client.GetStaticRouteByName("ClientStaticRoute")
+	domainId := "660a4030-5051-4344-a5a3-f7cbf7c44832"
+	staticRoute, err := client.GetStaticRouteByName("ClientStaticRoute", domainId)
 	if err != nil {
 		test.Fatal(err)
 	}

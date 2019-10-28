@@ -3,9 +3,9 @@ package compute
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
-	"log"
 )
 
 // IPAddressList represents an IP address list.
@@ -304,23 +304,16 @@ func (client *Client) GetIPAddressListByName(name string, networkDomainID string
 	err = json.Unmarshal(responseBody, addressLists)
 
 	if err != nil {
-		log.Printf("XXXX address list unmarshall error: %s", err)
 		return nil, err
 	}
 	if addressLists.IsEmpty() {
-		log.Printf("XXXX address list unmarshall is empty")
 		return nil, nil // No matching addresslist was found.
 	}
 
 	if len(addressLists.AddressLists) != 1 {
-		log.Printf("XXXX Found multiple address list")
 		return nil, fmt.Errorf("found multiple addresslist (%d) named '%s'",
 			len(addressLists.AddressLists), name)
 	}
 
-	log.Printf("XXXX address list 0 : %s", addressLists.AddressLists[0].Addresses[0].Begin)
-	log.Printf("XXXX addresses : %v", addressLists.AddressLists[0])
-
 	return &addressLists.AddressLists[0], err
 }
-

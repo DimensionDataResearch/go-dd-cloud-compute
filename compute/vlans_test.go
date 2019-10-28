@@ -33,7 +33,7 @@ func TestClient_ListVLANs_Success(test *testing.T) {
 }
 
 // Deploy VLAN (successful).
-func TestClient_DeployVlan_Success(test *testing.T) {
+func TestClient_DeployAttachedVlan_Success(test *testing.T) {
 	expect := expect(test)
 
 	testClientRequest(test, &ClientTestConfig{
@@ -44,6 +44,8 @@ func TestClient_DeployVlan_Success(test *testing.T) {
 				"For hosting our Production Cloud Servers",
 				"10.0.3.0",
 				23,
+				"HIGH",
+				"",
 			)
 			if err != nil {
 				test.Fatal(err)
@@ -51,8 +53,35 @@ func TestClient_DeployVlan_Success(test *testing.T) {
 
 			expect.EqualsString("VLANID", "0e56433f-d808-4669-821d-812769517ff8", vlanID)
 		},
-		Respond: testValidateJSONRequestAndRespondOK(deployVLANTestResponse, &DeployVLAN{}, func(test *testing.T, requestBody interface{}) {
-			verifyDeployVLANTestRequest(test, requestBody.(*DeployVLAN))
+		Respond: testValidateJSONRequestAndRespondOK(deployVLANTestResponse, &DeployAttachedVLAN{}, func(test *testing.T, requestBody interface{}) {
+			verifyDeployVLANTestRequest(test, requestBody.(*DeployAttachedVLAN))
+		}),
+	})
+}
+
+// Deploy Detached VLAN (successful).
+func TestClient_DeployDetachedVlan_Success(test *testing.T) {
+	expect := expect(test)
+
+	testClientRequest(test, &ClientTestConfig{
+		Request: func(test *testing.T, client *Client) {
+			vlanID, err := client.DeployVLAN(
+				"484174a2-ae74-4658-9e56-50fc90e086cf",
+				"Production VLAN",
+				"For hosting our Production Cloud Servers",
+				"10.0.3.0",
+				23,
+				"",
+				"10.0.0.1",
+			)
+			if err != nil {
+				test.Fatal(err)
+			}
+
+			expect.EqualsString("VLANID", "0e56433f-d808-4669-821d-812769517ff8", vlanID)
+		},
+		Respond: testValidateJSONRequestAndRespondOK(deployVLANTestResponse, &DeployDetachedVLAN{}, func(test *testing.T, requestBody interface{}) {
+			verifyDeployDetachedVLANTestRequest(test, requestBody.(*DeployDetachedVLAN))
 		}),
 	})
 }
@@ -107,7 +136,18 @@ var deployVLANTestRequest = `
 	}
 `
 
-func verifyDeployVLANTestRequest(test *testing.T, request *DeployVLAN) {
+func verifyDeployVLANTestRequest(test *testing.T, request *DeployAttachedVLAN) {
+	expect := expect(test)
+
+	expect.NotNil("DeployVLAN", request)
+	expect.EqualsString("DeployVLAN.ID", "484174a2-ae74-4658-9e56-50fc90e086cf", request.VLANID)
+	expect.EqualsString("DeployVLAN.Name", "Production VLAN", request.Name)
+	expect.EqualsString("DeployVLAN.Description", "For hosting our Production Cloud Servers", request.Description)
+	expect.EqualsString("DeployVLAN.IPv4BaseAddress", "10.0.3.0", request.IPv4BaseAddress)
+	expect.EqualsInt("DeployVLAN.IPv4PrefixSize", 23, request.IPv4PrefixSize)
+}
+
+func verifyDeployDetachedVLANTestRequest(test *testing.T, request *DeployDetachedVLAN) {
 	expect := expect(test)
 
 	expect.NotNil("DeployVLAN", request)

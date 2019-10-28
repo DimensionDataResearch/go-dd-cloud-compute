@@ -144,10 +144,20 @@ type reconfigureServer struct {
 
 // addDiskToServer represents the request body when adding a new disk to a server.
 type addDiskToServer struct {
-	ServerID   string `json:"id"`
+	ServerID   string `json:"Id"`
 	SizeGB     int    `json:"sizeGb"`
 	Speed      string `json:"speed"`
 	SCSIUnitID int    `json:"scsiId"`
+	Iops       int    `json:"iops,omitempty"`
+}
+
+// addDiskToServer represents the request body when adding a new disk to a server.
+type addNewDiskToServer struct {
+	ServerID       string         `json:"serverId,omitempty"`
+	SizeGB         int            `json:"sizeGb"`
+	Speed          string         `json:"speed"`
+	Iops           int            `json:"iops,omitempty"`
+	SCSIController scsiController `json:"scsiController,omitempty"`
 }
 
 // removeDiskFromServer represents the request body when removing an existing disk from a server.
@@ -178,11 +188,19 @@ type resizeServerDisk struct {
 
 // changeServerDiskSpeed represents the request body when changing a server disk's speed.
 type changeServerDiskSpeed struct {
-	// The XML name for the "resizeServerDisk" data contract
-	XMLName xml.Name `xml:"http://oec.api.opsource.net/schemas/server ChangeDiskSpeed"`
+	// Disk ID
+	ID string `json:"id"`
 
 	// The new disk speed.
-	Speed string `xml:"speed"`
+	Speed string `json:"speed"`
+
+	// IOPS
+	Iops int `json:"iops,omitempty"`
+}
+
+type changeServerDiskIops struct {
+	ID   string `json:"id"`
+	Iops int    `json:"iops"`
 }
 
 // Request body when deleting a server.
@@ -223,6 +241,7 @@ type changeNicType struct {
 // Returns nil if no server is found with the specified Id.
 func (client *Client) GetServer(id string) (server *Server, err error) {
 	organizationID, err := client.getOrganizationID()
+
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +250,8 @@ func (client *Client) GetServer(id string) (server *Server, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+
+	request, err := client.newRequestV210(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +443,7 @@ func (client *Client) EditServerMetadata(serverID string, name *string, descript
 }
 
 // AddDiskToServer adds a disk to an existing server.
-func (client *Client) AddDiskToServer(serverID string, scsiUnitID int, sizeGB int, speed string) (diskID string, err error) {
+func (client *Client) AddDiskToServer(serverID string, scsiBusNumber *int, scsiUnitID *int, sizeGB int, speed string, iops int) (diskID string, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return "", err
@@ -432,13 +452,37 @@ func (client *Client) AddDiskToServer(serverID string, scsiUnitID int, sizeGB in
 	requestURI := fmt.Sprintf("%s/server/addDisk",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &addDiskToServer{
-		ServerID:   serverID,
-		SizeGB:     sizeGB,
-		SCSIUnitID: scsiUnitID,
-		Speed:      speed,
-	})
+
+	server, err := client.GetServer(serverID)
+
+	if err != nil {
+		return "", err
+	}
+
+	var newDisk addNewDiskToServer
+	newDisk.ServerID = serverID
+	newDisk.SizeGB = sizeGB
+	newDisk.Speed = speed
+
+	// Add disk by scsiController with scsiId
+	if scsiUnitID != nil && scsiBusNumber != nil {
+
+		var scsiCtl scsiController
+		scsiCtl.SCSIUnitID = *scsiUnitID
+		scsiCtl.ControllerID = server.SCSIControllers[*scsiBusNumber].ID
+
+		newDisk.ServerID = ""
+		newDisk.SCSIController = scsiCtl
+	}
+
+	if speed == "PROVISIONEDIOPS" {
+		newDisk.Iops = iops
+	}
+
+	request, err := client.newRequestV210(requestURI, http.MethodPost, newDisk)
+
 	responseBody, statusCode, err := client.executeRequest(request)
+
 	if err != nil {
 		return "", err
 	}
@@ -486,26 +530,78 @@ func (client *Client) ResizeServerDisk(serverID string, diskID string, newSizeGB
 }
 
 // ChangeServerDiskSpeed requests changing of a server disk's speed.
-func (client *Client) ChangeServerDiskSpeed(serverID string, diskID string, newSpeed string) (response *APIResponseV1, err error) {
+func (client *Client) ChangeServerDiskSpeed(serverID string, diskID string, newSpeed string, iops *int) (apiResponse *APIResponseV2, err error) {
 	organizationID, err := client.getOrganizationID()
 	if err != nil {
 		return
 	}
 
-	requestURI := fmt.Sprintf("%s/server/%s/disk/%s/changeSpeed",
+	requestURI := fmt.Sprintf("%s/server/changeDiskSpeed",
 		url.QueryEscape(organizationID),
-		url.QueryEscape(serverID),
-		url.QueryEscape(diskID),
 	)
-	request, err := client.newRequestV1(requestURI, http.MethodPost, &changeServerDiskSpeed{
-		Speed: newSpeed,
+
+	var request *http.Request
+
+	if iops != nil {
+		request, err = client.newRequestV210(requestURI, http.MethodPost, &changeServerDiskSpeed{
+			ID:    diskID,
+			Speed: newSpeed,
+			Iops:  *iops,
+		})
+	} else {
+		request, err = client.newRequestV210(requestURI, http.MethodPost, &changeServerDiskSpeed{
+			ID:    diskID,
+			Speed: newSpeed,
+		})
+	}
+
+	responseBody, statusCode, err := client.executeRequest(request)
+
+	if err != nil {
+		return
+	}
+
+	apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+
+	if statusCode != http.StatusOK {
+		if err != nil {
+			return nil, err
+		}
+		return nil, apiResponse.ToError("Request to change disk speed failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
+
+	return apiResponse, nil
+}
+
+// Change Disk IOPS
+func (client *Client) ChangeServerDiskIops(diskID string, iops int) (apiResponse *APIResponseV2, err error) {
+	organizationID, err := client.getOrganizationID()
+	if err != nil {
+		return
+	}
+
+	requestURI := fmt.Sprintf("%s/server/changeDiskIops",
+		url.QueryEscape(organizationID),
+	)
+	request, err := client.newRequestV210(requestURI, http.MethodPost, &changeServerDiskIops{
+		ID:   diskID,
+		Iops: iops,
 	})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return
 	}
 
-	response, err = readAPIResponseV1(responseBody, statusCode)
+	if statusCode != http.StatusOK {
+		var apiResponse *APIResponseV2
+
+		apiResponse, err = readAPIResponseAsJSON(responseBody, statusCode)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, apiResponse.ToError("Request to change disk IOPS failed with status code %d (%s): %s", statusCode, apiResponse.ResponseCode, apiResponse.Message)
+	}
 
 	return
 }
@@ -665,7 +761,7 @@ func (client *Client) NotifyServerIPAddressChange(networkAdapterID string, newIP
 	requestURI := fmt.Sprintf("%s/server/notifyNicIpChange",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &notifyServerIPAddressChange{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &notifyServerIPAddressChange{
 		AdapterID:   networkAdapterID,
 		IPv4Address: newIPv4Address,
 		IPv6Address: newIPv6Address,
@@ -758,7 +854,7 @@ func (client *Client) addNicToServer(serverID string, nicConfiguration *serverNi
 	requestURI := fmt.Sprintf("%s/server/addNic",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV23(requestURI, http.MethodPost, &addNicConfiguration{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &addNicConfiguration{
 		ServerID: serverID,
 		Nic:      *nicConfiguration,
 	})
@@ -792,7 +888,7 @@ func (client *Client) RemoveNicFromServer(networkAdapterID string) (err error) {
 	requestURI := fmt.Sprintf("%s/server/removeNic",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &deleteNic{ID: networkAdapterID})
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &deleteNic{ID: networkAdapterID})
 	responseBody, statusCode, err := client.executeRequest(request)
 	if err != nil {
 		return err
@@ -820,7 +916,7 @@ func (client *Client) ChangeNetworkAdapterType(networkAdapterID string, networkA
 	requestURI := fmt.Sprintf("%s/server/changeNetworkAdapter",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV24(requestURI, http.MethodPost, &changeNicType{
+	request, err := client.newRequestV29(requestURI, http.MethodPost, &changeNicType{
 		ID:   networkAdapterID,
 		Type: networkAdapterType,
 	})

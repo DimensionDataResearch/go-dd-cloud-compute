@@ -181,18 +181,38 @@ func TestClient_AddServerDisk_Success(test *testing.T) {
 	expect := expect(test)
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		requestBody := &addDiskToServer{}
-		err := readRequestBodyAsJSON(request, requestBody)
-		if err != nil {
-			test.Fatal(err.Error())
+		var resp string
+		switch request.RequestURI {
+		//case "/caas/2.10/dummy-organization-id/server/server/7b62aae5-bdbe-4595-b58d-c78f95db2a7f":
+		case "/caas/2.10/dummy-organization-id/server/server/9e6b496d-5261-4542-91aa-b50c7f569c54":
+			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK)
+			resp = getServerTestResponseV2
+			//fmt.Fprintln(writer, resp)
+		case "/caas/2.10/dummy-organization-id/server/addDisk":
+			// requestBody := &addDiskToServer{}
+			requestBody := &addDiskToServer{
+				ServerID:   "7b62aae5-bdbe-4595-b58d-c78f95db2a7f",
+				SizeGB:     20,
+				Speed:      "ECONOMY",
+				SCSIUnitID: 4,
+			}
+			err := readRequestBodyAsJSON(request, requestBody)
+
+			if err != nil {
+				test.Fatal(err.Error())
+			}
+
+			verifyAddDiskToServerTestRequest(test, requestBody)
+
+			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK)
+			resp = addDiskToServerTestResponseV2
+			//fmt.Fprintln(writer, resp)
+		default:
+			http.Error(writer, "not found", http.StatusNotFound)
 		}
-
-		verifyAddDiskToServerTestRequest(test, requestBody)
-
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK)
-
-		fmt.Fprintln(writer, addDiskToServerTestResponse)
+		writer.Write([]byte(resp))
 	}))
 	defer testServer.Close()
 
@@ -201,7 +221,12 @@ func TestClient_AddServerDisk_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	diskID, err := client.AddDiskToServer("7b62aae5-bdbe-4595-b58d-c78f95db2a7f", 4, 20, "ECONOMY")
+	var busNumber int
+	var scsiUnitId int
+	busNumber = 0
+	scsiUnitId = 0
+	diskID, err := client.AddDiskToServer("9e6b496d-5261-4542-91aa-b50c7f569c54", &busNumber, &scsiUnitId, 20, "ECONOMY", 0)
+
 	if err != nil {
 		test.Fatal(err)
 	}
@@ -255,19 +280,20 @@ func TestClient_ChangeServerDiskSpeed_Success(test *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		expect.EqualsString(
 			"Request.URL",
-			"/oec/0.9/dummy-organization-id/server/7b62aae5-bdbe-4595-b58d-c78f95db2a7f/disk/92b1819e-6f91-4abe-88c7-607841959f90/changeSpeed",
+			"/caas/2.10/dummy-organization-id/server/changeDiskSpeed",
 			request.URL.Path,
 		)
 
 		requestBody := &changeServerDiskSpeed{}
-		err := readRequestBodyAsXML(request, requestBody)
+		//err := readRequestBodyAsXML(request, requestBody)
+		err := readRequestBodyAsJSON(request, requestBody)
 		if err != nil {
 			test.Fatal(err.Error())
 		}
 
 		verifyChangeServerDiskSpeedRequest(test, requestBody)
 
-		writer.Header().Set("Content-Type", "application/xml")
+		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
 
 		fmt.Fprintln(writer, changeServerDiskSpeedTestResponse)
@@ -279,12 +305,12 @@ func TestClient_ChangeServerDiskSpeed_Success(test *testing.T) {
 		OrganizationID: "dummy-organization-id",
 	})
 
-	response, err := client.ChangeServerDiskSpeed("7b62aae5-bdbe-4595-b58d-c78f95db2a7f", "92b1819e-6f91-4abe-88c7-607841959f90", ServerDiskSpeedStandard)
+	response, err := client.ChangeServerDiskSpeed("7b62aae5-bdbe-4595-b58d-c78f95db2a7f", "92b1819e-6f91-4abe-88c7-607841959f90", ServerDiskSpeedStandard, nil)
 	if err != nil {
 		test.Fatal(err)
 	}
 
-	verifyChangeServerDiskSpeedTestResponse(test, response)
+	verifyChangeServerDiskSpeedTestResponseV2(test, response)
 }
 
 // Add Nic (successful).
@@ -432,7 +458,23 @@ const deployServerTestRequest = `
 				"scsiId": "1",
 				"speed": "HIGHPERFORMANCE"
 			}
-		]
+		],
+		"scsiController": {
+			"disk": [ {
+						 "id": "11f0cbc4-1b3b-49c4-a4e6-697caff4b872",
+						 "scsiId": "0",
+						 "sizeGb": "30",
+						 "speed": "PROVISIONEDIOPS",
+						 "iops": "400",
+						 "state": "NORMAL"
+					  }
+				   ],
+			   "id": "00cbc4-1b3b-49c4-a4e6-697caff4b872",
+			   "adapterType": "BUS_LOGIC",
+			   "key": "1000",
+			   "state": "NORMAL",
+			   "busNumber": "0",
+		  },
 	}
 `
 
@@ -841,6 +883,37 @@ func verifyDeployServerTestResponse(test *testing.T, response *APIResponseV2) {
 	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
 
+const addDiskToServerTestResponseV2 = `
+	{ 
+	   "operation":"ADD_DISK",
+	   "responseCode":"IN_PROGRESS",
+	   "message":"Request to Add Disk has been accepted. Please use appropriate Get or List API for status.",
+	   "info":[ 
+		  { 
+			 "name":"diskId",
+			 "value":"9e6b496d-5261-4542-91aa-b50c7f569c54"
+		  },
+		  { 
+			 "name":"scsiId",
+			 "value":"2"
+		  },
+		  { 
+			 "name":"scsiControllerId",
+			 "value":"b1799a47-6c13-4c12-a3c7-b8d0c4595f0a"
+		  },
+		  { 
+			 "name":"busNumber",
+			 "value":"0"
+		  },
+		  { 
+			 "name":"speed",
+			 "value":"PROVISIONEDIOPS"
+		  }
+	   ],
+	   "requestId":"au_20191018T115803761+1100_8468e14b-6c21-4c30-9d4c-055e791fce35"
+	}
+`
+
 const addDiskToServerTestResponse = `
 	{
 		"requestId": "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad",
@@ -894,22 +967,23 @@ func verifyResizeServerDiskTestResponse(test *testing.T, response *APIResponseV1
 }
 
 const changeServerDiskSpeedTestResponse = `
-	<Status>
-		<operation>Change Server Disk Speed</operation>
-		<result>SUCCESS</result>
-		<resultDetail>Change Server Disk Speed Issued</resultDetail>
-		<resultCode>RESULT_0</resultCode>
-	</Status>
+	{
+		"operation": "CHANGE_DISK_SPEED",
+		"responseCode": "IN_PROGRESS",
+		"message": "Request to Change Disk Speed has been accepted. Please use appropriate Get or List API for status.", "info": [],
+        "warning": [],
+        "error": [],
+        "requestId": "na9_20180321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad"
+	}
 `
 
-func verifyChangeServerDiskSpeedTestResponse(test *testing.T, response *APIResponseV1) {
+func verifyChangeServerDiskSpeedTestResponseV2(test *testing.T, response *APIResponseV2) {
 	expect := expect(test)
 
 	expect.NotNil("APIResponse", response)
-	expect.EqualsString("Response.Operation", "Change Server Disk Speed", response.Operation)
-	expect.EqualsString("Response.ResponseCode", ResultSuccess, response.Result)
-	expect.EqualsString("Response.Message", "Change Server Disk Speed Issued", response.Message)
-	expect.EqualsString("Response.ResultCode", "RESULT_0", response.ResultCode)
+	expect.EqualsString("Response.Operation", "CHANGE_DISK_SPEED", response.Operation)
+	expect.EqualsString("Response.ResponseCode", ResponseCodeInProgress, response.ResponseCode)
+	expect.EqualsString("Response.Message", "Request to Change Disk Speed has been accepted. Please use appropriate Get or List API for status.", response.Message)
 }
 
 const deleteServerTestResponse = `
@@ -984,3 +1058,91 @@ func verifyRemoveNicFromServerTestResponse(test *testing.T, response *APIRespons
 	expect.EqualsString("Response.Message", "Request to Remove NIC 5999db1d-725c-46ba-9d4e-d33991e61ab1 for VLAN 'Subsystem VLAN' from Server 'Production Mail Server' has been accepted and is being processed.", response.Message)
 	expect.EqualsString("Response.RequestID", "na9_20160321T074626030-0400_7e9fffe7-190b-46f2-9107-9d52fe57d0ad", response.RequestID)
 }
+
+const getServerTestResponseV2 = `
+	{  
+       "name":"server_test-iops",
+	   "description":"This is my Terraform test server - disk within server resource.",
+	   "cpu":{ 
+		  "count":2,
+		  "speed":"STANDARD",
+		  "coresPerSocket":1
+	   },
+	   "memoryGb":8,
+	   "scsiController":[ 
+		  { 
+			 "disk":[ 
+				{ 
+				   "state":"NORMAL",
+				   "id":"9e6b496d-5261-4542-91aa-b50c7f569c54",
+				   "sizeGb":23,
+				   "speed":"HIGHPERFORMANCE",
+				   "scsiId":0
+				},
+				{ 
+				   "state":"NORMAL",
+				   "id":"e648e83c-559d-4f14-93b4-04bcb6fd8aca",
+				   "sizeGb":25,
+				   "speed":"ECONOMY",
+				   "scsiId":1
+				}
+			 ],
+			 "state":"NORMAL",
+			 "id":"b1799a47-6c13-4c12-a3c7-b8d0c4595f0a",
+			 "adapterType":"LSI_LOGIC_PARALLEL",
+			 "key":1000,
+			 "busNumber":0
+		  }
+	   ],
+	   "sataController":[ 
+	
+	   ],
+	   "ideController":[ 
+	
+	   ],
+	   "floppy":[ 
+	
+	   ],
+	   "networkInfo":{ 
+		  "primaryNic":{ 
+			 "id":"d457022b-508c-40b4-ae43-7d533e689d11",
+			 "privateIpv4":"10.0.0.22",
+			 "ipv6":"2402:9900:111:1684:4eb1:1260:2aed:ec72",
+			 "vlanId":"36731475-930b-483d-9c3c-75237eb0dd61",
+			 "vlanName":"functional_test",
+			 "networkAdapter":"E1000",
+			 "connected":true,
+			 "macAddress":"00:50:56:81:56:be",
+			 "key":4000,
+			 "state":"NORMAL"
+		  },
+		  "networkDomainId":"660a4030-5051-4344-a5a3-f7cbf7c44832"
+	   },
+	   "source":{ 
+		  "type":"IMAGE_ID",
+		  "value":"6c998e9b-e2b5-4d80-a17b-cdbd3818b5ea"
+	   },
+	   "createTime":"2019-09-12T05:23:06.000Z",
+	   "deployed":true,
+	   "started":false,
+	   "state":"NORMAL",
+	   "guest":{ 
+		  "operatingSystem":{ 
+			 "id":"CENTOS764",
+			 "displayName":"CENTOS7/64",
+			 "family":"UNIX",
+			 "osUnitsGroupId":"CENTOS"
+		  },
+		  "osCustomization":true
+	   },
+	   "virtualHardware":{ 
+		  "version":"vmx-13",
+		  "upToDate":true
+	   },
+	   "tag":[ 
+	
+	   ],
+	   "id":"a7581c56-57e2-4a8e-afa8-387b6e45a977",
+	   "datacenterId":"AU9"
+	}
+`
