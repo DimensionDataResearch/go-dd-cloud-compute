@@ -321,7 +321,7 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 
 		request, err = client.newRequestV29(requestURI, http.MethodPost, &vlan)
 
-	} else {
+	} else if detachedVlanIpv4GatewayAddress != "" {
 		detachedVlan := DetachedVlanGateway{detachedVlanIpv4GatewayAddress}
 		vlan := &DeployDetachedVLAN{
 			VLANID:          networkDomainID,
@@ -333,6 +333,19 @@ func (client *Client) DeployVLAN(networkDomainID string, name string, descriptio
 		}
 
 		request, err = client.newRequestV29(requestURI, http.MethodPost, &vlan)
+	} else {
+		attachedVlan := AttachedVlanGateway{"LOW"}
+		vlan := &DeployAttachedVLAN{
+			VLANID:          networkDomainID,
+			Name:            name,
+			Description:     description,
+			IPv4BaseAddress: ipv4BaseAddress,
+			IPv4PrefixSize:  ipv4PrefixSize,
+			AttachedVlan:    attachedVlan,
+		}
+
+		request, err = client.newRequestV29(requestURI, http.MethodPost, &vlan)
+
 	}
 
 	responseBody, statusCode, err := client.executeRequest(request)
