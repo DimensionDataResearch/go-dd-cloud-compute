@@ -50,7 +50,7 @@ func (client *Client) GetNATRule(id string) (rule *NATRule, err error) {
 		url.QueryEscape(organizationID),
 		url.QueryEscape(id),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV29(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (client *Client) AddNATRule(networkDomainID string, internalIPAddress strin
 	requestURI := fmt.Sprintf("%s/network/createNatRule",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV22(requestURI, http.MethodPost, &createNATRule{
+	request, err := client.newRequestV213(requestURI, http.MethodPost, &createNATRule{
 		NetworkDomainID:   networkDomainID,
 		InternalIPAddress: internalIPAddress,
 		ExternalIPAddress: externalIPAddress,

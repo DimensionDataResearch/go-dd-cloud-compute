@@ -323,6 +323,11 @@ func (client *Client) newRequestV210(relativeURI string, method string, body int
 	return client.newRequestV2x(10, relativeURI, method, body)
 }
 
+// Create a basic request for the compute API (V2.13, JSON).
+func (client *Client) newRequestV213(relativeURI string, method string, body interface{}) (*http.Request, error) {
+	return client.newRequestV2x(13, relativeURI, method, body)
+}
+
 // Create a basic request for the compute API (V2.x, JSON).
 func (client *Client) newRequestV2x(minorVersion int, relativeURI string, method string, body interface{}) (*http.Request, error) {
 	requestURI := fmt.Sprintf("%s/caas/2.%d/%s", client.baseAddress, minorVersion, relativeURI)
