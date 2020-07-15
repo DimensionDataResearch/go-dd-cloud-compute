@@ -108,5 +108,5 @@ if err != nil {
 
 // When deployment is complete, resource can be cast to a Server to obtain server details (if required).
 server := resource.(*compute.Server)
-fmt.Printf("Server '%s' (%s) has been successfully deployed.", server.Name, server.ID)
+fmt.Printf("Server '%s' (%s) has been successfully deployed. ", server.Name, server.ID)
 ```
