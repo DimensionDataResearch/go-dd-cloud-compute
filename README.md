@@ -4,7 +4,7 @@ The Go client for Dimension Data Cloud Compute targets the CloudControl (MCP) 2.
 
 API reference documentation can be found [here](https://godoc.org/github.com/DimensionDataResearch/go-dd-cloud-compute/compute).
 
-The client's methods (where possible) match the operations defined in the [CloudControl 2.2 API](https://community.opsourcecloud.net/Public?goto=DocumentRevision.jsp%3FdocId%3D144faed4cf556401f5b94fb1afafa9b5%26from%3DBrowse_e5b1a66815188ad439f76183b401f026).
+The client's methods (where possible) match the operations defined in the [CloudControl 2.2 to 2.13 API](https://community.opsourcecloud.net/Public?goto=DocumentRevision.jsp%3FdocId%3D144faed4cf556401f5b94fb1afafa9b5%26from%3DBrowse_e5b1a66815188ad439f76183b401f026).
 
 
 To get started, run:
