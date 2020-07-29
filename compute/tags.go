@@ -153,7 +153,7 @@ func (client *Client) GetAssetTags(assetID string, assetType string, paging *Pag
 		url.QueryEscape(assetType),
 		paging.toQueryParameters(),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodGet, nil)
+	request, err := client.newRequestV213(requestURI, http.MethodGet, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (client *Client) ApplyAssetTags(assetID string, assetType string, tags ...T
 	requestURI := fmt.Sprintf("%s/tag/applyTags",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &applyTags{
+	request, err := client.newRequestV213(requestURI, http.MethodPost, &applyTags{
 		AssetID:   assetID,
 		AssetType: assetType,
 		Tags:      tags,
@@ -216,7 +216,7 @@ func (client *Client) RemoveAssetTags(assetID string, assetType string, tagNames
 	requestURI := fmt.Sprintf("%s/tag/removeTags",
 		url.QueryEscape(organizationID),
 	)
-	request, err := client.newRequestV25(requestURI, http.MethodPost, &removeTags{
+	request, err := client.newRequestV213(requestURI, http.MethodPost, &removeTags{
 		AssetID:   assetID,
 		AssetType: assetType,
 		TagNames:  tagNames,
